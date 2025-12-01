@@ -1,0 +1,29 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ddde9f38930aa462987125c689634be9, type: 3}
+  m_Name: AU_IdleKing
+  m_EditorClassIdentifier: 
+  nodeId: 16
+  displayName: Idle King
+  description: Helper Hands generate Dark Matter on every roll.
+  icon: {fileID: 0}
+  branch: 2
+  tier: 5
+  treePosition: {x: 50, y: -550}
+  darkMatterCost: 20
+  prerequisites: 0e0000000f000000
+  effects:
+  - effectType: 16
+    value: 0
+    targetDiceType: 0
+    unlockSkill: 0
+    specialFlag: 1

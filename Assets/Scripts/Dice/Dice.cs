@@ -41,6 +41,13 @@ namespace Incredicer.Dice
         private float minX, maxX, minY, maxY;
         private const float SCREEN_PADDING = 0.8f;
 
+        // UI exclusion zones (in world units from screen edges)
+        // Left buttons zone: top-left corner where Skills/Ascend buttons are
+        private const float LEFT_UI_ZONE_WIDTH = 2.5f;   // How far from left edge
+        private const float LEFT_UI_ZONE_TOP = 3.5f;     // How far down from top the zone extends
+        // Bottom shop panel zone: center-bottom where Buy/Upgrade buttons are
+        private const float BOTTOM_UI_ZONE_HEIGHT = 1.8f; // How far up from bottom
+
         // Dice face sprites (generated at runtime)
         private Sprite[] faceSprites;
         private bool isAnimating = false;
@@ -54,6 +61,16 @@ namespace Incredicer.Dice
         // Per-dice multiplier (can be modified by skill nodes)
         private double moneyMultiplier = 1.0;
         private double dmMultiplier = 1.0;
+
+        // Store the initial scale set during Initialize
+        private Vector3 initialScale = Vector3.one * 0.7f;
+
+        // FocusedGravity / PrecisionAim movement
+        [Header("Gravity Settings")]
+        [SerializeField] private float gravityForce = 0.5f;
+        [SerializeField] private float precisionAimForce = 3f;
+        [SerializeField] private float maxDriftSpeed = 2f;
+        private Vector2 currentVelocity = Vector2.zero;
 
         // Properties
         public DiceData Data => data;
@@ -81,6 +98,114 @@ namespace Incredicer.Dice
             currentSequence?.Kill();
         }
 
+        private void Update()
+        {
+            // Skip movement updates if animating (rolling)
+            if (isAnimating) return;
+
+            ApplyGravityAndAimEffects();
+        }
+
+        /// <summary>
+        /// Applies FocusedGravity and PrecisionAim movement effects.
+        /// </summary>
+        private void ApplyGravityAndAimEffects()
+        {
+            if (GameStats.Instance == null) return;
+
+            Vector2 force = Vector2.zero;
+            Vector3 currentPos = transform.position;
+
+            // FocusedGravity: Dice drift toward the center of all dice (cluster together)
+            if (GameStats.Instance.FocusedGravityActive)
+            {
+                Vector2 clusterCenter = GetDiceClusterCenter();
+                Vector2 toCenter = clusterCenter - (Vector2)currentPos;
+                float distance = toCenter.magnitude;
+
+                // Only apply force if not already at center
+                if (distance > 0.5f)
+                {
+                    force += toCenter.normalized * gravityForce;
+                }
+            }
+
+            // PrecisionAim: When mouse is held, dice are pulled toward cursor
+            if (GameStats.Instance.PrecisionAimActive && Input.GetMouseButton(0))
+            {
+                Vector3 mouseWorldPos = mainCamera.ScreenToWorldPoint(Input.mousePosition);
+                mouseWorldPos.z = 0;
+
+                Vector2 toCursor = (Vector2)mouseWorldPos - (Vector2)currentPos;
+                float distanceToCursor = toCursor.magnitude;
+
+                // Apply stronger force when closer, capped at max
+                if (distanceToCursor > 0.3f)
+                {
+                    float pullStrength = Mathf.Min(precisionAimForce, precisionAimForce * (3f / distanceToCursor));
+                    force += toCursor.normalized * pullStrength;
+                }
+            }
+
+            // Apply force to velocity with damping
+            if (force.sqrMagnitude > 0.001f)
+            {
+                currentVelocity += force * Time.deltaTime;
+                currentVelocity = Vector2.ClampMagnitude(currentVelocity, maxDriftSpeed);
+            }
+            else
+            {
+                // Dampen velocity when no force applied
+                currentVelocity *= (1f - Time.deltaTime * 3f);
+            }
+
+            // Apply velocity to position
+            if (currentVelocity.sqrMagnitude > 0.001f)
+            {
+                Vector3 newPos = currentPos + (Vector3)currentVelocity * Time.deltaTime;
+
+                // Clamp to screen bounds
+                newPos.x = Mathf.Clamp(newPos.x, minX, maxX);
+                newPos.y = Mathf.Clamp(newPos.y, minY, maxY);
+
+                // Avoid UI zones
+                if (!IsInUIZone(newPos))
+                {
+                    transform.position = newPos;
+                }
+                else
+                {
+                    // Bounce off UI zones
+                    currentVelocity *= -0.5f;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Gets the center position of all dice (for FocusedGravity clustering).
+        /// </summary>
+        private Vector2 GetDiceClusterCenter()
+        {
+            if (DiceManager.Instance == null || DiceManager.Instance.ActiveDice.Count == 0)
+            {
+                return mainCamera != null ? (Vector2)mainCamera.transform.position : Vector2.zero;
+            }
+
+            Vector2 sum = Vector2.zero;
+            int count = 0;
+
+            foreach (var dice in DiceManager.Instance.ActiveDice)
+            {
+                if (dice != null)
+                {
+                    sum += (Vector2)dice.transform.position;
+                    count++;
+                }
+            }
+
+            return count > 0 ? sum / count : Vector2.zero;
+        }
+
         /// <summary>
         /// Calculates screen bounds based on camera view.
         /// </summary>
@@ -91,10 +216,37 @@ namespace Incredicer.Dice
             float cameraHeight = mainCamera.orthographicSize;
             float cameraWidth = cameraHeight * mainCamera.aspect;
 
+            // Basic screen bounds with small padding
             minX = mainCamera.transform.position.x - cameraWidth + SCREEN_PADDING;
             maxX = mainCamera.transform.position.x + cameraWidth - SCREEN_PADDING;
             minY = mainCamera.transform.position.y - cameraHeight + SCREEN_PADDING;
-            maxY = mainCamera.transform.position.y + cameraHeight - SCREEN_PADDING - 1f; // Leave room for UI at top
+            maxY = mainCamera.transform.position.y + cameraHeight - SCREEN_PADDING - 0.5f; // Small space for top UI
+        }
+
+        /// <summary>
+        /// Checks if a position is inside a UI exclusion zone.
+        /// </summary>
+        private bool IsInUIZone(Vector3 pos)
+        {
+            if (mainCamera == null) return false;
+
+            float cameraHeight = mainCamera.orthographicSize;
+            float cameraWidth = cameraHeight * mainCamera.aspect;
+            float camX = mainCamera.transform.position.x;
+            float camY = mainCamera.transform.position.y;
+
+            float screenLeft = camX - cameraWidth;
+            float screenTop = camY + cameraHeight;
+            float screenBottom = camY - cameraHeight;
+
+            // Check if in left buttons zone (top-left corner)
+            bool inLeftZone = pos.x < screenLeft + LEFT_UI_ZONE_WIDTH &&
+                              pos.y > screenTop - LEFT_UI_ZONE_TOP;
+
+            // Check if in bottom shop panel zone (center-bottom)
+            bool inBottomZone = pos.y < screenBottom + BOTTOM_UI_ZONE_HEIGHT;
+
+            return inLeftZone || inBottomZone;
         }
 
         /// <summary>
@@ -252,6 +404,16 @@ namespace Incredicer.Dice
             data = diceData;
             UpdateVisuals();
             SetupFeedbacks();
+
+            // Set dice size (smaller dice)
+            initialScale = Vector3.one * 0.7f;
+            transform.localScale = initialScale;
+
+            // Update collider to match
+            if (circleCollider != null)
+            {
+                circleCollider.radius = 0.5f;
+            }
         }
 
         /// <summary>
@@ -319,10 +481,67 @@ namespace Incredicer.Dice
                 finalMoney *= 2; // Double reward for rolling 6
             }
 
-            // Add money
+            // Add money with floating effect (money added when effect reaches counter)
             if (CurrencyManager.Instance != null)
             {
-                CurrencyManager.Instance.AddMoney(finalMoney, true);
+                CurrencyManager.Instance.AddMoneyWithEffect(finalMoney, transform.position, isJackpot);
+            }
+
+            // Check for Table Tax bonus coin proc
+            if (GameStats.Instance != null && CurrencyManager.Instance != null)
+            {
+                double tableTaxBonus = GameStats.Instance.CheckTableTaxProc(CurrencyManager.Instance.Money);
+                if (tableTaxBonus > 0)
+                {
+                    // Spawn a separate bonus coin effect with gold color
+                    CurrencyManager.Instance.AddMoneyWithEffect(tableTaxBonus, transform.position + Vector3.up * 0.3f, true);
+
+                    // Show floating text for bonus coin
+                    if (GameUI.Instance != null)
+                    {
+                        Color bonusColor = new Color(1f, 0.8f, 0.2f); // Gold color for bonus
+                        GameUI.Instance.ShowFloatingText(transform.position + Vector3.up * 0.5f, $"+${GameUI.FormatNumber(tableTaxBonus)} BONUS!", bonusColor);
+                    }
+
+                    // Play bonus sound
+                    if (Core.AudioManager.Instance != null)
+                    {
+                        Core.AudioManager.Instance.PlayJackpotSound();
+                    }
+                }
+            }
+
+            // Generate Dark Matter based on face value (only if DM is unlocked after ascending)
+            // Base DM = face value (+1 for rolling 1, +2 for rolling 2, etc.)
+            // Higher tier dice add bonus DM from their dmPerRoll
+            if (DiceManager.Instance != null && DiceManager.Instance.DarkMatterUnlocked)
+            {
+                // Base DM from face value
+                double baseDM = currentFaceValue;
+
+                // Add bonus DM from dice tier (dmPerRoll)
+                double tierBonus = data.dmPerRoll * dmMultiplier;
+                double dmEarned = baseDM + tierBonus;
+
+                // Apply DM modifiers from GameStats
+                if (GameStats.Instance != null)
+                {
+                    dmEarned = GameStats.Instance.ApplyDarkMatterModifiers(dmEarned);
+                }
+
+                if (dmEarned > 0 && CurrencyManager.Instance != null)
+                {
+                    CurrencyManager.Instance.AddDarkMatterWithEffect(dmEarned, transform.position);
+
+                    // Track for statistics
+                    if (PrestigeManager.Instance != null)
+                    {
+                        PrestigeManager.Instance.TrackDarkMatterEarned(dmEarned);
+                    }
+                }
+
+                // Notify listeners about DM generation
+                OnDarkMatterGenerated?.Invoke(dmEarned);
             }
 
             // Calculate target position for bounce (within screen bounds)
@@ -342,8 +561,41 @@ namespace Incredicer.Dice
                 jackpotFeedback.PlayFeedbacks();
             }
 
+            // Play sound effects
+            if (Core.AudioManager.Instance != null)
+            {
+                if (isJackpot)
+                {
+                    Core.AudioManager.Instance.PlayJackpotSound();
+                }
+                else
+                {
+                    Core.AudioManager.Instance.PlayRollSound();
+                }
+            }
+
             // Spawn visual effect
             SpawnRollEffect(isJackpot);
+
+            // Spawn particle effects
+            if (Core.VisualEffectsManager.Instance != null)
+            {
+                if (isJackpot)
+                {
+                    Core.VisualEffectsManager.Instance.SpawnJackpotEffect(transform.position);
+                }
+                else
+                {
+                    Core.VisualEffectsManager.Instance.SpawnRollEffect(transform.position);
+                }
+            }
+
+            // Screen shake on rolling 6 (jackpot)
+            if (isJackpot && mainCamera != null)
+            {
+                mainCamera.transform.DOKill();
+                mainCamera.transform.DOShakePosition(0.3f, 0.15f, 20, 90f, false, true);
+            }
 
             // Notify listeners
             OnRolled?.Invoke(this, finalMoney, isJackpot);
@@ -352,7 +604,7 @@ namespace Incredicer.Dice
         }
 
         /// <summary>
-        /// Gets a random target position within screen bounds.
+        /// Gets a random target position within screen bounds, avoiding UI zones.
         /// </summary>
         private Vector3 GetRandomTargetPosition()
         {
@@ -363,7 +615,7 @@ namespace Incredicer.Dice
             Vector3 newPos;
 
             // Try to find a valid position that's different from current
-            for (int i = 0; i < 15; i++)
+            for (int i = 0; i < 20; i++)
             {
                 float angle = Random.Range(0f, 360f) * Mathf.Deg2Rad;
                 float distance = Random.Range(moveDistance * 0.5f, moveDistance);
@@ -373,6 +625,12 @@ namespace Incredicer.Dice
                     Mathf.Clamp(currentPos.y + Mathf.Sin(angle) * distance, minY, maxY),
                     0
                 );
+
+                // Skip if position is in a UI zone
+                if (IsInUIZone(newPos))
+                {
+                    continue;
+                }
 
                 // Check if position is far enough from other dice
                 bool valid = true;
@@ -394,12 +652,22 @@ namespace Incredicer.Dice
                 }
             }
 
-            // Fallback: pick a random spot within bounds
-            return new Vector3(
-                Random.Range(minX, maxX),
-                Random.Range(minY, maxY),
-                0
-            );
+            // Fallback: pick a random spot within bounds, avoiding UI zones
+            for (int i = 0; i < 10; i++)
+            {
+                newPos = new Vector3(
+                    Random.Range(minX, maxX),
+                    Random.Range(minY, maxY),
+                    0
+                );
+                if (!IsInUIZone(newPos))
+                {
+                    return newPos;
+                }
+            }
+
+            // Last resort: return center of screen
+            return mainCamera != null ? mainCamera.transform.position : Vector3.zero;
         }
 
         /// <summary>
@@ -458,13 +726,13 @@ namespace Incredicer.Dice
                         .SetEase(Ease.InQuad)
                 );
 
-                // Squash on land
+                // Squash on land (relative to initial scale)
                 rollSequence.Append(
-                    transform.DOScale(new Vector3(1.2f, 0.8f, 1f), 0.04f)
+                    transform.DOScale(new Vector3(initialScale.x * 1.2f, initialScale.y * 0.8f, initialScale.z), 0.04f)
                         .SetEase(Ease.OutQuad)
                 );
                 rollSequence.Append(
-                    transform.DOScale(Vector3.one, 0.06f)
+                    transform.DOScale(initialScale, 0.06f)
                         .SetEase(Ease.OutBounce)
                 );
 
@@ -494,10 +762,10 @@ namespace Incredicer.Dice
                 }
             });
 
-            // Final punch effect
+            // Final punch effect (relative to initial scale)
             float scaleAmount = isJackpot ? 0.3f : 0.15f;
             rollSequence.Append(
-                transform.DOPunchScale(Vector3.one * scaleAmount, 0.15f, 6, 0.5f)
+                transform.DOPunchScale(initialScale * scaleAmount, 0.15f, 6, 0.5f)
             );
 
             // Jackpot color flash for rolling 6
@@ -514,7 +782,7 @@ namespace Incredicer.Dice
             {
                 isAnimating = false;
                 transform.rotation = Quaternion.identity;
-                transform.localScale = Vector3.one;
+                transform.localScale = initialScale;
             });
 
             currentSequence = rollSequence;

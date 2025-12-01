@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   nodeId: 17
   displayName: Bronze Dice
-  description: Unlock Bronze dice for purchase.
+  description: Unlock Bronze dice for purchase. 2x base earnings.
   icon: {fileID: 0}
   branch: 3
   tier: 1

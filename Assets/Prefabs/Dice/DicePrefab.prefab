@@ -137,15 +137,16 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   data: {fileID: 0}
   lastRollTime: -999
+  currentFaceValue: 1
   rollFeedback: {fileID: 0}
   jackpotFeedback: {fileID: 0}
   rollEffectPrefab: {fileID: 153838, guid: 80c6b5d330112ef41800a729a58d22e7, type: 3}
   jackpotEffectPrefab: {fileID: 5986565895683014295, guid: 01da1ea694d5825418e940e2029741ed, type: 3}
-  punchScale: 0.3
-  punchDuration: 0.2
-  rotationAmount: 15
-  vibrato: 10
-  elasticity: 1
+  bounceHeight: 1.5
+  bounceDuration: 0.25
+  moveDistance: 2.5
+  spinSpeed: 720
+  bounceCount: 2
 --- !u!1 &3460951200370379997
 GameObject:
   m_ObjectHideFlags: 0

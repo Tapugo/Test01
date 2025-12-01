@@ -1,0 +1,29 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ddde9f38930aa462987125c689634be9, type: 3}
+  m_Name: DE_RubyDice
+  m_EditorClassIdentifier: 
+  nodeId: 25
+  displayName: Ruby Dice
+  description: Unlock Ruby dice for purchase. 32x base earnings.
+  icon: {fileID: 0}
+  branch: 3
+  tier: 5
+  treePosition: {x: 400, y: -500}
+  darkMatterCost: 35
+  prerequisites: 17000000
+  effects:
+  - effectType: 14
+    value: 0
+    targetDiceType: 5
+    unlockSkill: 0
+    specialFlag: 0

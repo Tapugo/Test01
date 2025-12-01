@@ -14,11 +14,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   nodeId: 19
   displayName: Silver Dice
-  description: Unlock Silver dice for purchase.
+  description: Unlock Silver dice for purchase. 4x base earnings.
   icon: {fileID: 0}
   branch: 3
   tier: 2
-  treePosition: {x: 200, y: -200}
+  treePosition: {x: 250, y: -200}
   darkMatterCost: 5
   prerequisites: 11000000
   effects:

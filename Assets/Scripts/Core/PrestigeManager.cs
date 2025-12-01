@@ -6,30 +6,34 @@ using Incredicer.Skills;
 namespace Incredicer.Core
 {
     /// <summary>
-    /// Manages the prestige/ascension system.
-    /// Players can reset progress to earn Dark Matter based on lifetime money earned.
+    /// Manages the ascension system.
+    /// Players spend $1000 to ascend, which unlocks Dark Matter generation.
+    /// Dark Matter is earned per dice roll: +1 DM for rolling 1, +2 for rolling 2, etc.
     /// </summary>
     public class PrestigeManager : MonoBehaviour
     {
         public static PrestigeManager Instance { get; private set; }
 
-        [Header("Prestige Settings")]
-        [SerializeField] private double moneyRequiredForPrestige = 1000;
-        [SerializeField] private double darkMatterPerPrestige = 1;
-        [SerializeField] private double prestigeMoneyScaling = 10; // Each prestige requires 10x more money
-        [SerializeField] private double darkMatterScalingFactor = 1.5; // Each prestige gives more DM
+        [Header("Ascension Settings")]
+        [SerializeField] private double ascensionCost = 1000;
 
         [Header("State")]
-        [SerializeField] private int prestigeLevel = 0;
+        [SerializeField] private int ascensionLevel = 0;
         [SerializeField] private double totalDarkMatterEarned = 0;
+        [SerializeField] private bool hasAscended = false;
 
         // Events
-        public event Action<int> OnPrestigeCompleted;
-        public event Action<double> OnPotentialDMChanged;
+        public event Action<int> OnAscensionCompleted;
+        public event Action OnDarkMatterUnlocked;
 
         // Properties
-        public int PrestigeLevel => prestigeLevel;
+        public int AscensionLevel => ascensionLevel;
         public double TotalDarkMatterEarned => totalDarkMatterEarned;
+        public bool HasAscended => hasAscended;
+        public double AscensionCost => ascensionCost;
+
+        // Legacy compatibility
+        public int PrestigeLevel => ascensionLevel;
 
         private void Awake()
         {
@@ -41,193 +45,120 @@ namespace Incredicer.Core
             Instance = this;
         }
 
-        private void Start()
-        {
-            // Subscribe to lifetime money changes to update potential DM
-            if (CurrencyManager.Instance != null)
-            {
-                CurrencyManager.Instance.OnLifetimeMoneyChanged += OnLifetimeMoneyUpdated;
-            }
-        }
-
-        private void OnDestroy()
-        {
-            if (CurrencyManager.Instance != null)
-            {
-                CurrencyManager.Instance.OnLifetimeMoneyChanged -= OnLifetimeMoneyUpdated;
-            }
-        }
-
         /// <summary>
-        /// Gets the amount of lifetime money required to prestige.
+        /// Gets the cost to ascend (always $1000).
         /// </summary>
         public double GetMoneyRequiredForPrestige()
         {
-            return moneyRequiredForPrestige * Math.Pow(prestigeMoneyScaling, prestigeLevel);
+            return ascensionCost;
         }
 
         /// <summary>
-        /// Checks if the player can currently prestige.
+        /// Checks if the player can currently ascend.
         /// </summary>
         public bool CanPrestige()
         {
+            if (hasAscended) return false; // Can only ascend once
             if (CurrencyManager.Instance == null) return false;
-            return CurrencyManager.Instance.LifetimeMoney >= GetMoneyRequiredForPrestige();
+            return CurrencyManager.Instance.Money >= ascensionCost;
         }
 
         /// <summary>
-        /// Calculates how much Dark Matter would be earned from prestiging now.
+        /// Returns 0 since we don't give DM directly from ascending.
+        /// DM is earned through dice rolls after ascending.
         /// </summary>
         public double CalculatePotentialDarkMatter()
         {
-            if (CurrencyManager.Instance == null) return 0;
-
-            double lifetimeMoney = CurrencyManager.Instance.LifetimeMoney;
-            double required = GetMoneyRequiredForPrestige();
-
-            if (lifetimeMoney < required) return 0;
-
-            // Base DM scales with how much over the requirement you are
-            double ratio = lifetimeMoney / required;
-            double baseDM = darkMatterPerPrestige * Math.Log10(ratio + 1) * 10;
-
-            // Apply prestige level bonus
-            double levelBonus = Math.Pow(darkMatterScalingFactor, prestigeLevel);
-            double totalDM = baseDM * levelBonus;
-
-            // Apply dark matter gain multiplier from skills
-            if (GameStats.Instance != null)
-            {
-                totalDM = GameStats.Instance.ApplyDarkMatterModifiers(totalDM);
-            }
-
-            return Math.Floor(totalDM);
+            return 0; // DM is earned through rolls, not from ascending
         }
 
         /// <summary>
-        /// Performs a prestige, resetting progress and awarding Dark Matter.
+        /// Performs an ascension, spending money to unlock Dark Matter generation.
         /// </summary>
         public bool DoPrestige()
         {
             if (!CanPrestige())
             {
-                Debug.Log("[PrestigeManager] Cannot prestige - requirements not met");
+                Debug.Log("[PrestigeManager] Cannot ascend - requirements not met or already ascended");
                 return false;
             }
 
-            double earnedDM = CalculatePotentialDarkMatter();
-            if (earnedDM <= 0)
+            // Spend the money
+            if (!CurrencyManager.Instance.SpendMoney(ascensionCost))
             {
-                Debug.Log("[PrestigeManager] Cannot prestige - would earn 0 DM");
+                Debug.Log("[PrestigeManager] Cannot ascend - couldn't spend money");
                 return false;
             }
 
-            Debug.Log($"[PrestigeManager] Prestiging! Earning {earnedDM} Dark Matter");
+            Debug.Log($"[PrestigeManager] Ascending! Unlocking Dark Matter generation.");
 
-            // Award Dark Matter
-            if (CurrencyManager.Instance != null)
-            {
-                CurrencyManager.Instance.AddDarkMatter(earnedDM);
-            }
+            hasAscended = true;
+            ascensionLevel = 1;
 
-            // Track totals
-            totalDarkMatterEarned += earnedDM;
-            prestigeLevel++;
-
-            // Reset progress
-            ResetForPrestige();
-
-            // Notify listeners
-            OnPrestigeCompleted?.Invoke(prestigeLevel);
-
-            // Unlock dark matter display if first prestige
-            if (prestigeLevel == 1 && DiceManager.Instance != null)
+            // Unlock dark matter display and generation
+            if (DiceManager.Instance != null)
             {
                 DiceManager.Instance.DarkMatterUnlocked = true;
             }
+
+            // Play prestige sound
+            if (AudioManager.Instance != null)
+            {
+                AudioManager.Instance.PlayPrestigeSound();
+            }
+
+            // Spawn prestige particle effect at screen center
+            if (VisualEffectsManager.Instance != null)
+            {
+                Camera cam = Camera.main;
+                if (cam != null)
+                {
+                    VisualEffectsManager.Instance.SpawnPrestigeEffect(cam.transform.position);
+                }
+            }
+
+            // Notify listeners
+            OnAscensionCompleted?.Invoke(ascensionLevel);
+            OnDarkMatterUnlocked?.Invoke();
 
             return true;
         }
 
         /// <summary>
-        /// Resets game progress for prestige (keeps Dark Matter and skill tree).
+        /// Tracks dark matter earned (for statistics).
         /// </summary>
-        private void ResetForPrestige()
+        public void TrackDarkMatterEarned(double amount)
         {
-            // Reset money (not dark matter)
-            if (CurrencyManager.Instance != null)
-            {
-                // Keep dark matter, reset everything else
-                double currentDM = CurrencyManager.Instance.DarkMatter;
-                double lifetimeDM = CurrencyManager.Instance.LifetimeDarkMatter;
-                CurrencyManager.Instance.SetCurrencies(0, currentDM, 0, lifetimeDM);
-            }
-
-            // Reset dice value upgrades (the money-bought ones)
-            if (GameStats.Instance != null)
-            {
-                GameStats.Instance.DiceValueUpgradeLevel = 0;
-            }
-
-            // Destroy all extra dice (keep one basic)
-            if (DiceManager.Instance != null)
-            {
-                var allDice = DiceManager.Instance.GetAllDice();
-                bool keptOne = false;
-                foreach (var dice in allDice)
-                {
-                    if (dice != null)
-                    {
-                        if (!keptOne && dice.Data != null && dice.Data.type == DiceType.Basic)
-                        {
-                            keptOne = true;
-                            continue;
-                        }
-                        Destroy(dice.gameObject);
-                    }
-                }
-            }
-
-            // Note: Skill tree is NOT reset - that's the permanent progression
-
-            Debug.Log("[PrestigeManager] Progress reset for prestige");
+            totalDarkMatterEarned += amount;
         }
 
         /// <summary>
-        /// Called when lifetime money changes.
-        /// </summary>
-        private void OnLifetimeMoneyUpdated(double newLifetimeMoney)
-        {
-            double potentialDM = CalculatePotentialDarkMatter();
-            OnPotentialDMChanged?.Invoke(potentialDM);
-        }
-
-        /// <summary>
-        /// Sets prestige state (used for save/load).
+        /// Sets ascension state (used for save/load).
         /// </summary>
         public void SetPrestigeState(int level, double totalDMEarned)
         {
-            prestigeLevel = level;
+            ascensionLevel = level;
             totalDarkMatterEarned = totalDMEarned;
+            hasAscended = level > 0;
         }
 
         /// <summary>
-        /// Gets a description of what will happen on prestige.
+        /// Gets a description of what will happen on ascension.
         /// </summary>
         public string GetPrestigeDescription()
         {
-            double required = GetMoneyRequiredForPrestige();
-            double potential = CalculatePotentialDarkMatter();
-            bool canPrestige = CanPrestige();
-
-            if (!canPrestige)
+            if (hasAscended)
             {
-                return $"Earn ${UI.GameUI.FormatNumber(required)} lifetime money to unlock Ascension.";
+                return "You have ascended!\nDark Matter is now earned from dice rolls.";
+            }
+            else if (CanPrestige())
+            {
+                return $"Ascend for ${UI.GameUI.FormatNumber(ascensionCost)} to unlock Dark Matter!\n" +
+                       $"Earn DM from dice rolls (+1 for 1, +2 for 2, etc.)";
             }
             else
             {
-                return $"Ascend now to earn {UI.GameUI.FormatNumber(potential)} Dark Matter!\n" +
-                       $"Your money and dice will reset, but skills remain.";
+                return $"Save ${UI.GameUI.FormatNumber(ascensionCost)} to unlock Ascension.";
             }
         }
     }

@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   nodeId: 7
   displayName: Lucky Streak
-  description: 5% chance for rolls to be jackpots (2x value).
+  description: Additional 5% chance for rolls to be jackpots (2x value).
   icon: {fileID: 0}
   branch: 1
   tier: 3

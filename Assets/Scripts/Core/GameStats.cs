@@ -19,6 +19,10 @@ namespace Incredicer.Core
         [SerializeField] private float jackpotChance = 0f; // 0-1
         [SerializeField] private double jackpotMultiplier = 2.0;
 
+        [Header("Table Tax / Tip Jar")]
+        [SerializeField] private float tableTaxChance = 0f; // 0-1, chance per roll for bonus coin
+        [SerializeField] private float tipJarScaling = 0f; // 0-1, if > 0, bonus coin is this % of current money instead of flat +50
+
         [Header("Dark Matter")]
         [SerializeField] private double darkMatterGainMultiplier = 1.0;
 
@@ -33,6 +37,9 @@ namespace Incredicer.Core
         [Header("Special Flags")]
         [SerializeField] private bool idleKingActive = false;
         [SerializeField] private bool timeDilationActive = false;
+        [SerializeField] private bool focusedGravityActive = false;
+        [SerializeField] private bool precisionAimActive = false;
+        [SerializeField] private bool hyperburstActive = false;
 
         [Header("Cursor/Rolling")]
         [SerializeField] private float cursorRollRadius = 1.0f;
@@ -47,6 +54,8 @@ namespace Incredicer.Core
         public double IdleMoneyMultiplier { get => idleMoneyMultiplier; set => idleMoneyMultiplier = value; }
         public float JackpotChance { get => jackpotChance; set => jackpotChance = Mathf.Clamp01(value); }
         public double JackpotMultiplier { get => jackpotMultiplier; set => jackpotMultiplier = value; }
+        public float TableTaxChance { get => tableTaxChance; set => tableTaxChance = Mathf.Clamp01(value); }
+        public float TipJarScaling { get => tipJarScaling; set => tipJarScaling = Mathf.Clamp01(value); }
         public double DarkMatterGainMultiplier { get => darkMatterGainMultiplier; set => darkMatterGainMultiplier = value; }
         public double HelperHandSpeedMultiplier { get => helperHandSpeedMultiplier; set => helperHandSpeedMultiplier = value; }
         public int HelperHandExtraRolls { get => helperHandExtraRolls; set => helperHandExtraRolls = value; }
@@ -54,6 +63,9 @@ namespace Incredicer.Core
         public double ActiveSkillDurationMultiplier { get => activeSkillDurationMultiplier; set => activeSkillDurationMultiplier = value; }
         public bool IdleKingActive { get => idleKingActive; set => idleKingActive = value; }
         public bool TimeDilationActive { get => timeDilationActive; set => timeDilationActive = value; }
+        public bool FocusedGravityActive { get => focusedGravityActive; set => focusedGravityActive = value; }
+        public bool PrecisionAimActive { get => precisionAimActive; set => precisionAimActive = value; }
+        public bool HyperburstActive { get => hyperburstActive; set => hyperburstActive = value; }
         public float CursorRollRadius { get => cursorRollRadius; set => cursorRollRadius = value; }
 
         private void Awake()
@@ -86,7 +98,7 @@ namespace Incredicer.Core
             if (isIdle)
             {
                 amount *= idleMoneyMultiplier;
-                
+
                 // Idle King: helper rolls don't get extra money (but do get extra DM)
                 // This is handled by not applying extra money bonus here
             }
@@ -95,6 +107,12 @@ namespace Incredicer.Core
             if (Random.value < jackpotChance)
             {
                 amount *= jackpotMultiplier;
+            }
+
+            // Hyperburst: double all money during the effect
+            if (hyperburstActive)
+            {
+                amount *= 2.0;
             }
 
             return amount;
@@ -115,7 +133,41 @@ namespace Incredicer.Core
                 amount *= 2.0;
             }
 
+            // Hyperburst: double all DM during the effect
+            if (hyperburstActive)
+            {
+                amount *= 2.0;
+            }
+
             return amount;
+        }
+
+        /// <summary>
+        /// Checks if Table Tax procs and returns the bonus coin amount.
+        /// Returns 0 if no proc, otherwise returns the bonus amount.
+        /// </summary>
+        /// <param name="currentMoney">Current money (used for Tip Jar scaling).</param>
+        /// <returns>Bonus coin amount, or 0 if no proc.</returns>
+        public double CheckTableTaxProc(double currentMoney)
+        {
+            if (tableTaxChance <= 0) return 0;
+
+            if (Random.value < tableTaxChance)
+            {
+                // Table Tax proc'd!
+                if (tipJarScaling > 0)
+                {
+                    // Tip Jar: bonus is percentage of current money
+                    return currentMoney * tipJarScaling;
+                }
+                else
+                {
+                    // Base Table Tax: flat +50 bonus
+                    return 50.0;
+                }
+            }
+
+            return 0;
         }
 
         /// <summary>
@@ -128,6 +180,8 @@ namespace Incredicer.Core
             idleMoneyMultiplier = 1.0;
             jackpotChance = 0f;
             jackpotMultiplier = 2.0;
+            tableTaxChance = 0f;
+            tipJarScaling = 0f;
             darkMatterGainMultiplier = 1.0;
             helperHandSpeedMultiplier = 1.0;
             helperHandExtraRolls = 0;
@@ -135,6 +189,9 @@ namespace Incredicer.Core
             activeSkillDurationMultiplier = 1.0;
             idleKingActive = false;
             timeDilationActive = false;
+            focusedGravityActive = false;
+            precisionAimActive = false;
+            hyperburstActive = false;
             cursorRollRadius = 1.0f;
         }
     }

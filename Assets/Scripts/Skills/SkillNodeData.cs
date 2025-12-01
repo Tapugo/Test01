@@ -113,6 +113,13 @@ namespace Incredicer.Skills
                     stats.HelperHandExtraRolls += (int)effect.value;
                     break;
 
+                case SkillEffectType.HelperHandMaxHandsAdd:
+                    if (Helpers.HelperHandManager.Instance != null)
+                    {
+                        Helpers.HelperHandManager.Instance.MaxHands += (int)effect.value;
+                    }
+                    break;
+
                 case SkillEffectType.SkillCooldownMultiplier:
                     stats.SkillCooldownMultiplier *= effect.value;
                     break;
@@ -123,6 +130,14 @@ namespace Incredicer.Skills
 
                 case SkillEffectType.CursorRollRadiusAdd:
                     stats.CursorRollRadius += effect.value;
+                    break;
+
+                case SkillEffectType.TableTaxChance:
+                    stats.TableTaxChance += effect.value;
+                    break;
+
+                case SkillEffectType.TipJarScaling:
+                    stats.TipJarScaling += effect.value;
                     break;
 
                 case SkillEffectType.SpecialFlag:
@@ -181,6 +196,13 @@ namespace Incredicer.Skills
                     stats.HelperHandExtraRolls -= (int)effect.value;
                     break;
 
+                case SkillEffectType.HelperHandMaxHandsAdd:
+                    if (Helpers.HelperHandManager.Instance != null)
+                    {
+                        Helpers.HelperHandManager.Instance.MaxHands -= (int)effect.value;
+                    }
+                    break;
+
                 case SkillEffectType.SkillCooldownMultiplier:
                     if (effect.value != 0) stats.SkillCooldownMultiplier /= effect.value;
                     break;
@@ -191,6 +213,14 @@ namespace Incredicer.Skills
 
                 case SkillEffectType.CursorRollRadiusAdd:
                     stats.CursorRollRadius -= effect.value;
+                    break;
+
+                case SkillEffectType.TableTaxChance:
+                    stats.TableTaxChance -= effect.value;
+                    break;
+
+                case SkillEffectType.TipJarScaling:
+                    stats.TipJarScaling -= effect.value;
                     break;
 
                 case SkillEffectType.SpecialFlag:
@@ -210,6 +240,12 @@ namespace Incredicer.Skills
                     break;
                 case SpecialFlagType.TimeDilation:
                     stats.TimeDilationActive = enable;
+                    break;
+                case SpecialFlagType.FocusedGravity:
+                    stats.FocusedGravityActive = enable;
+                    break;
+                case SpecialFlagType.PrecisionAim:
+                    stats.PrecisionAimActive = enable;
                     break;
             }
         }

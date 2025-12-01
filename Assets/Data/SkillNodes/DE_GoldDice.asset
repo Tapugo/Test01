@@ -14,12 +14,12 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   nodeId: 21
   displayName: Gold Dice
-  description: Unlock Gold dice for purchase.
+  description: Unlock Gold dice for purchase. 8x base earnings.
   icon: {fileID: 0}
   branch: 3
   tier: 3
-  treePosition: {x: 200, y: -300}
-  darkMatterCost: 15
+  treePosition: {x: 300, y: -300}
+  darkMatterCost: 10
   prerequisites: 13000000
   effects:
   - effectType: 14

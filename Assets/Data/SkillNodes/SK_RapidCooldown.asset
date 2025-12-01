@@ -18,9 +18,9 @@ MonoBehaviour:
   icon: {fileID: 0}
   branch: 4
   tier: 3
-  treePosition: {x: 0, y: -350}
-  darkMatterCost: 8
-  prerequisites: 1c000000
+  treePosition: {x: -100, y: -300}
+  darkMatterCost: 6
+  prerequisites: 1d000000
   effects:
   - effectType: 12
     value: 0.75

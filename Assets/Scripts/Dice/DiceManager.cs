@@ -167,6 +167,19 @@ namespace Incredicer.Dice
 
             Vector2 spawnPos = GetRandomSpawnPosition();
             SpawnDice(data, spawnPos);
+
+            // Play purchase sound
+            if (Core.AudioManager.Instance != null)
+            {
+                Core.AudioManager.Instance.PlayPurchaseSound();
+            }
+
+            // Spawn purchase particle effect
+            if (Core.VisualEffectsManager.Instance != null)
+            {
+                Core.VisualEffectsManager.Instance.SpawnPurchaseEffect(spawnPos);
+            }
+
             return true;
         }
 
@@ -223,7 +236,99 @@ namespace Incredicer.Dice
         /// </summary>
         public List<Dice> GetAllDice()
         {
+            // Clean up any null references first
+            activeDice.RemoveAll(d => d == null);
             return new List<Dice>(activeDice);
+        }
+
+        /// <summary>
+        /// Removes a dice from tracking and destroys it.
+        /// </summary>
+        public void RemoveDice(Dice dice)
+        {
+            if (dice == null) return;
+
+            // Unsubscribe from events
+            dice.OnDarkMatterGenerated -= HandleDarkMatterGenerated;
+
+            // Update count
+            if (dice.Data != null && ownedDiceCount.ContainsKey(dice.Data.type))
+            {
+                ownedDiceCount[dice.Data.type] = Mathf.Max(0, ownedDiceCount[dice.Data.type] - 1);
+            }
+
+            // Remove from list
+            activeDice.Remove(dice);
+
+            // Destroy the game object
+            Destroy(dice.gameObject);
+        }
+
+        /// <summary>
+        /// Removes all dice except one basic die (used for prestige reset).
+        /// </summary>
+        public void ResetToSingleBasicDice()
+        {
+            // Find one basic dice to keep
+            Dice diceToKeep = null;
+            foreach (var dice in activeDice)
+            {
+                if (dice != null && dice.Data != null && dice.Data.type == DiceType.Basic)
+                {
+                    diceToKeep = dice;
+                    break;
+                }
+            }
+
+            // Create a list of dice to remove (can't modify during iteration)
+            List<Dice> diceToRemove = new List<Dice>();
+            foreach (var dice in activeDice)
+            {
+                if (dice != null && dice != diceToKeep)
+                {
+                    diceToRemove.Add(dice);
+                }
+            }
+
+            // Remove all dice except the one we're keeping
+            foreach (var dice in diceToRemove)
+            {
+                if (dice != null)
+                {
+                    // Unsubscribe from events
+                    dice.OnDarkMatterGenerated -= HandleDarkMatterGenerated;
+                    Destroy(dice.gameObject);
+                }
+            }
+
+            // Clear and rebuild the active dice list
+            activeDice.Clear();
+            if (diceToKeep != null)
+            {
+                activeDice.Add(diceToKeep);
+            }
+
+            // Reset owned counts
+            foreach (DiceType type in System.Enum.GetValues(typeof(DiceType)))
+            {
+                ownedDiceCount[type] = 0;
+            }
+            if (diceToKeep != null && diceToKeep.Data != null)
+            {
+                ownedDiceCount[diceToKeep.Data.type] = 1;
+            }
+
+            // If no dice to keep, spawn a new basic one
+            if (diceToKeep == null)
+            {
+                DiceData basicData = GetDiceData(DiceType.Basic);
+                if (basicData != null)
+                {
+                    SpawnDice(basicData, Vector2.zero);
+                }
+            }
+
+            Debug.Log($"[DiceManager] Reset to single basic dice. Active dice count: {activeDice.Count}");
         }
 
         /// <summary>

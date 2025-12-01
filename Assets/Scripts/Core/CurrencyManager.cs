@@ -1,5 +1,6 @@
 using System;
 using UnityEngine;
+using Incredicer.UI;
 
 namespace Incredicer.Core
 {
@@ -40,10 +41,55 @@ namespace Incredicer.Core
             }
             Instance = this;
             DontDestroyOnLoad(gameObject);
+
+            // Always start fresh with 0 currency - SaveSystem will load saved values if they exist
+            money = 0;
+            darkMatter = 0;
+            lifetimeMoney = 0;
+            lifetimeDarkMatter = 0;
         }
 
         /// <summary>
-        /// Adds money to the player's balance.
+        /// Adds money with floating effect from a world position.
+        /// The money is not added immediately - it's added when the effect reaches the counter.
+        /// </summary>
+        /// <param name="amount">Amount to add.</param>
+        /// <param name="worldPosition">World position to spawn the effect from.</param>
+        /// <param name="isJackpot">Whether this was a jackpot roll (affects effect color).</param>
+        public void AddMoneyWithEffect(double amount, Vector3 worldPosition, bool isJackpot = false)
+        {
+            if (amount <= 0) return;
+
+            // Track lifetime immediately for progression checks
+            lifetimeMoney += amount;
+            OnLifetimeMoneyChanged?.Invoke(lifetimeMoney);
+
+            // Spawn the floating effect - money will be added when it reaches the counter
+            if (FloatingCurrencyEffect.Instance != null)
+            {
+                FloatingCurrencyEffect.Instance.SpawnMoneyEffect(worldPosition, amount, isJackpot);
+            }
+            else
+            {
+                // Fallback: add directly if no effect system
+                AddMoneyDirect(amount);
+            }
+        }
+
+        /// <summary>
+        /// Adds money directly to the player's balance (used when effect reaches counter or for non-visual adds).
+        /// </summary>
+        /// <param name="amount">Amount to add.</param>
+        public void AddMoneyDirect(double amount)
+        {
+            if (amount <= 0) return;
+
+            money += amount;
+            OnMoneyChanged?.Invoke(money);
+        }
+
+        /// <summary>
+        /// Adds money to the player's balance (legacy method for compatibility).
         /// </summary>
         /// <param name="amount">Amount to add.</param>
         /// <param name="fromRoll">True if this money came from a dice roll (counts toward lifetime).</param>
@@ -52,7 +98,7 @@ namespace Incredicer.Core
             if (amount <= 0) return;
 
             money += amount;
-            
+
             if (fromRoll)
             {
                 lifetimeMoney += amount;
@@ -88,7 +134,45 @@ namespace Incredicer.Core
         }
 
         /// <summary>
-        /// Adds dark matter to the player's balance.
+        /// Adds dark matter with floating effect from a world position.
+        /// The dark matter is not added immediately - it's added when the effect reaches the counter.
+        /// </summary>
+        /// <param name="amount">Amount to add.</param>
+        /// <param name="worldPosition">World position to spawn the effect from.</param>
+        public void AddDarkMatterWithEffect(double amount, Vector3 worldPosition)
+        {
+            if (amount <= 0) return;
+
+            // Track lifetime immediately
+            lifetimeDarkMatter += amount;
+            OnLifetimeDarkMatterChanged?.Invoke(lifetimeDarkMatter);
+
+            // Spawn the floating effect - DM will be added when it reaches the counter
+            if (FloatingCurrencyEffect.Instance != null)
+            {
+                FloatingCurrencyEffect.Instance.SpawnDarkMatterEffect(worldPosition, amount);
+            }
+            else
+            {
+                // Fallback: add directly if no effect system
+                AddDarkMatterDirect(amount);
+            }
+        }
+
+        /// <summary>
+        /// Adds dark matter directly to the player's balance (used when effect reaches counter).
+        /// </summary>
+        /// <param name="amount">Amount to add.</param>
+        public void AddDarkMatterDirect(double amount)
+        {
+            if (amount <= 0) return;
+
+            darkMatter += amount;
+            OnDarkMatterChanged?.Invoke(darkMatter);
+        }
+
+        /// <summary>
+        /// Adds dark matter to the player's balance (legacy method for compatibility).
         /// </summary>
         /// <param name="amount">Amount to add.</param>
         public void AddDarkMatter(double amount)

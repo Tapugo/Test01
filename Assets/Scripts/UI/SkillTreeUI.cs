@@ -9,7 +9,7 @@ using Incredicer.Skills;
 namespace Incredicer.UI
 {
     /// <summary>
-    /// UI controller for the skill tree panel.
+    /// UI controller for the skill tree panel with proper node rendering and connections.
     /// </summary>
     public class SkillTreeUI : MonoBehaviour
     {
@@ -18,6 +18,7 @@ namespace Incredicer.UI
         [Header("Panel")]
         [SerializeField] private GameObject skillTreePanel;
         [SerializeField] private CanvasGroup panelCanvasGroup;
+        [SerializeField] private RectTransform panelRect;
 
         [Header("Header")]
         [SerializeField] private TextMeshProUGUI darkMatterText;
@@ -25,10 +26,11 @@ namespace Incredicer.UI
         [SerializeField] private Button closeButton;
 
         [Header("Skill Node Container")]
-        [SerializeField] private Transform nodeContainer;
-        [SerializeField] private GameObject skillNodePrefab;
+        [SerializeField] private RectTransform nodeContainer;
+        [SerializeField] private RectTransform connectionContainer;
+        [SerializeField] private ScrollRect scrollRect;
 
-        [Header("Node Info Panel")]
+        [Header("Node Info Panel (Below Tree)")]
         [SerializeField] private GameObject nodeInfoPanel;
         [SerializeField] private TextMeshProUGUI nodeNameText;
         [SerializeField] private TextMeshProUGUI nodeDescriptionText;
@@ -36,13 +38,25 @@ namespace Incredicer.UI
         [SerializeField] private Button purchaseButton;
         [SerializeField] private TextMeshProUGUI purchaseButtonText;
 
+        [Header("Node Visual Settings")]
+        [SerializeField] private float nodeSize = 70f;
+        [SerializeField] private float nodeSpacing = 100f;
+        [SerializeField] private float connectionWidth = 4f;
+        [SerializeField] private Color unlockedColor = new Color(0.3f, 0.9f, 0.4f);
+        [SerializeField] private Color availableColor = new Color(1f, 0.85f, 0.3f);
+        [SerializeField] private Color lockedColor = new Color(0.3f, 0.3f, 0.35f);
+        [SerializeField] private Color connectionColorUnlocked = new Color(0.3f, 0.9f, 0.4f, 0.8f);
+        [SerializeField] private Color connectionColorLocked = new Color(0.3f, 0.3f, 0.35f, 0.5f);
+
         [Header("Animation")]
         [SerializeField] private float fadeInDuration = 0.25f;
         [SerializeField] private float fadeOutDuration = 0.15f;
 
         private Dictionary<SkillNodeId, SkillNodeButton> nodeButtons = new Dictionary<SkillNodeId, SkillNodeButton>();
+        private Dictionary<SkillNodeId, List<Image>> nodeConnections = new Dictionary<SkillNodeId, List<Image>>();
         private SkillNodeData selectedNode;
         private bool isOpen;
+        private bool isInitialized;
 
         public bool IsOpen => isOpen;
 
@@ -109,12 +123,220 @@ namespace Incredicer.UI
         }
 
         /// <summary>
+        /// Initialize the skill tree UI by creating all node buttons.
+        /// </summary>
+        private void InitializeSkillTree()
+        {
+            if (isInitialized) return;
+            if (SkillTreeManager.Instance == null) return;
+
+            isInitialized = true;
+
+            // Clear existing
+            nodeButtons.Clear();
+            nodeConnections.Clear();
+
+            if (nodeContainer != null)
+            {
+                foreach (Transform child in nodeContainer)
+                {
+                    Destroy(child.gameObject);
+                }
+            }
+
+            if (connectionContainer != null)
+            {
+                foreach (Transform child in connectionContainer)
+                {
+                    Destroy(child.gameObject);
+                }
+            }
+
+            // Get all skill nodes and create buttons for each
+            var allNodes = new List<SkillNodeData>();
+            foreach (SkillBranch branch in System.Enum.GetValues(typeof(SkillBranch)))
+            {
+                allNodes.AddRange(SkillTreeManager.Instance.GetNodesInBranch(branch));
+            }
+
+            // First pass: Create all nodes
+            foreach (var nodeData in allNodes)
+            {
+                if (nodeData == null) continue;
+                CreateNodeButton(nodeData);
+            }
+
+            // Second pass: Create connections
+            foreach (var nodeData in allNodes)
+            {
+                if (nodeData == null) continue;
+                CreateNodeConnections(nodeData);
+            }
+
+            Debug.Log($"[SkillTreeUI] Initialized with {nodeButtons.Count} nodes");
+        }
+
+        /// <summary>
+        /// Creates a visual button for a skill node.
+        /// </summary>
+        private void CreateNodeButton(SkillNodeData nodeData)
+        {
+            if (nodeContainer == null) return;
+
+            // Create node object
+            GameObject nodeObj = new GameObject($"Node_{nodeData.nodeId}");
+            nodeObj.transform.SetParent(nodeContainer, false);
+
+            RectTransform rt = nodeObj.AddComponent<RectTransform>();
+            rt.sizeDelta = new Vector2(nodeSize, nodeSize);
+            rt.anchoredPosition = nodeData.treePosition * nodeSpacing;
+
+            // Background circle
+            Image bgImage = nodeObj.AddComponent<Image>();
+            bgImage.color = lockedColor;
+
+            // Make it round using a circular sprite or mask
+            // For now, we'll use a rounded rect appearance
+            bgImage.type = Image.Type.Sliced;
+
+            // Add button component
+            Button button = nodeObj.AddComponent<Button>();
+            ColorBlock colors = button.colors;
+            colors.normalColor = Color.white;
+            colors.highlightedColor = new Color(1.1f, 1.1f, 1.1f);
+            colors.pressedColor = new Color(0.9f, 0.9f, 0.9f);
+            button.colors = colors;
+
+            // Create inner circle for icon area
+            GameObject innerObj = new GameObject("Inner");
+            innerObj.transform.SetParent(nodeObj.transform, false);
+            RectTransform innerRt = innerObj.AddComponent<RectTransform>();
+            innerRt.sizeDelta = new Vector2(nodeSize - 8, nodeSize - 8);
+            innerRt.anchoredPosition = Vector2.zero;
+
+            Image innerImage = innerObj.AddComponent<Image>();
+            innerImage.color = new Color(0.15f, 0.15f, 0.2f);
+
+            // Create icon
+            GameObject iconObj = new GameObject("Icon");
+            iconObj.transform.SetParent(innerObj.transform, false);
+            RectTransform iconRt = iconObj.AddComponent<RectTransform>();
+            iconRt.sizeDelta = new Vector2(nodeSize - 24, nodeSize - 24);
+            iconRt.anchoredPosition = Vector2.zero;
+
+            Image iconImage = iconObj.AddComponent<Image>();
+            if (nodeData.icon != null)
+            {
+                iconImage.sprite = nodeData.icon;
+            }
+            else
+            {
+                // Default icon - just show tier number
+                iconImage.color = Color.clear;
+            }
+
+            // Create tier text if no icon
+            if (nodeData.icon == null)
+            {
+                GameObject tierTextObj = new GameObject("TierText");
+                tierTextObj.transform.SetParent(innerObj.transform, false);
+                RectTransform tierRt = tierTextObj.AddComponent<RectTransform>();
+                tierRt.sizeDelta = new Vector2(nodeSize - 16, nodeSize - 16);
+                tierRt.anchoredPosition = Vector2.zero;
+
+                TextMeshProUGUI tierText = tierTextObj.AddComponent<TextMeshProUGUI>();
+                tierText.text = GetNodeInitials(nodeData);
+                tierText.fontSize = 16;
+                tierText.fontStyle = FontStyles.Bold;
+                tierText.alignment = TextAlignmentOptions.Center;
+                tierText.color = Color.white;
+            }
+
+            // Create glow effect for available nodes
+            GameObject glowObj = new GameObject("Glow");
+            glowObj.transform.SetParent(nodeObj.transform, false);
+            glowObj.transform.SetAsFirstSibling();
+            RectTransform glowRt = glowObj.AddComponent<RectTransform>();
+            glowRt.sizeDelta = new Vector2(nodeSize + 12, nodeSize + 12);
+            glowRt.anchoredPosition = Vector2.zero;
+
+            Image glowImage = glowObj.AddComponent<Image>();
+            glowImage.color = new Color(1f, 0.85f, 0.3f, 0f);
+            glowObj.SetActive(false);
+
+            // Create and store the node button component
+            SkillNodeButton nodeButton = nodeObj.AddComponent<SkillNodeButton>();
+            nodeButton.Initialize(nodeData, button, bgImage, innerImage, iconImage, glowImage);
+
+            button.onClick.AddListener(() => OnNodeClicked(nodeData));
+
+            nodeButtons[nodeData.nodeId] = nodeButton;
+        }
+
+        private string GetNodeInitials(SkillNodeData nodeData)
+        {
+            if (string.IsNullOrEmpty(nodeData.displayName)) return "?";
+            string[] words = nodeData.displayName.Split(' ');
+            if (words.Length >= 2)
+            {
+                return $"{words[0][0]}{words[1][0]}";
+            }
+            return nodeData.displayName.Substring(0, Mathf.Min(2, nodeData.displayName.Length)).ToUpper();
+        }
+
+        /// <summary>
+        /// Creates connection lines from a node to its prerequisites.
+        /// </summary>
+        private void CreateNodeConnections(SkillNodeData nodeData)
+        {
+            if (connectionContainer == null) return;
+            if (nodeData.prerequisites == null || nodeData.prerequisites.Count == 0) return;
+
+            if (!nodeButtons.TryGetValue(nodeData.nodeId, out var targetButton)) return;
+
+            List<Image> connections = new List<Image>();
+
+            foreach (var prereqId in nodeData.prerequisites)
+            {
+                if (!nodeButtons.TryGetValue(prereqId, out var sourceButton)) continue;
+
+                // Create connection line
+                GameObject lineObj = new GameObject($"Connection_{prereqId}_{nodeData.nodeId}");
+                lineObj.transform.SetParent(connectionContainer, false);
+
+                RectTransform lineRt = lineObj.AddComponent<RectTransform>();
+
+                // Calculate line position and rotation
+                Vector2 startPos = SkillTreeManager.Instance.GetNodeData(prereqId)?.treePosition * nodeSpacing ?? Vector2.zero;
+                Vector2 endPos = nodeData.treePosition * nodeSpacing;
+
+                Vector2 direction = endPos - startPos;
+                float distance = direction.magnitude;
+                float angle = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg;
+
+                lineRt.sizeDelta = new Vector2(distance - nodeSize * 0.8f, connectionWidth);
+                lineRt.anchoredPosition = (startPos + endPos) / 2f;
+                lineRt.localRotation = Quaternion.Euler(0, 0, angle);
+
+                Image lineImage = lineObj.AddComponent<Image>();
+                lineImage.color = connectionColorLocked;
+
+                connections.Add(lineImage);
+            }
+
+            nodeConnections[nodeData.nodeId] = connections;
+        }
+
+        /// <summary>
         /// Shows the skill tree panel.
         /// </summary>
         public void Show()
         {
             if (isOpen) return;
             isOpen = true;
+
+            // Initialize on first show
+            InitializeSkillTree();
 
             if (skillTreePanel != null)
             {
@@ -202,7 +424,7 @@ namespace Incredicer.UI
         {
             if (darkMatterText != null)
             {
-                darkMatterText.text = $"DM: {GameUI.FormatNumber(amount)}";
+                darkMatterText.text = $"Dark Matter: {GameUI.FormatNumber(amount)}";
             }
         }
 
@@ -211,24 +433,34 @@ namespace Incredicer.UI
         /// </summary>
         private void UpdateAllNodeButtons()
         {
+            if (SkillTreeManager.Instance == null) return;
+
             foreach (var kvp in nodeButtons)
             {
-                UpdateNodeButton(kvp.Key, kvp.Value);
+                var nodeId = kvp.Key;
+                var button = kvp.Value;
+
+                if (button == null) continue;
+
+                bool unlocked = SkillTreeManager.Instance.IsNodeUnlocked(nodeId);
+                bool canPurchase = SkillTreeManager.Instance.CanPurchaseNode(nodeId);
+                bool prereqsMet = SkillTreeManager.Instance.ArePrerequisitesMet(nodeId);
+
+                button.SetState(unlocked, canPurchase, prereqsMet, unlockedColor, availableColor, lockedColor);
+
+                // Update connections
+                if (nodeConnections.TryGetValue(nodeId, out var connections))
+                {
+                    Color connColor = unlocked ? connectionColorUnlocked : connectionColorLocked;
+                    foreach (var conn in connections)
+                    {
+                        if (conn != null)
+                        {
+                            conn.color = connColor;
+                        }
+                    }
+                }
             }
-        }
-
-        /// <summary>
-        /// Updates a single node button state.
-        /// </summary>
-        private void UpdateNodeButton(SkillNodeId nodeId, SkillNodeButton button)
-        {
-            if (SkillTreeManager.Instance == null || button == null) return;
-
-            bool unlocked = SkillTreeManager.Instance.IsNodeUnlocked(nodeId);
-            bool canPurchase = SkillTreeManager.Instance.CanPurchaseNode(nodeId);
-            bool prereqsMet = SkillTreeManager.Instance.ArePrerequisitesMet(nodeId);
-
-            button.SetState(unlocked, canPurchase, prereqsMet);
         }
 
         /// <summary>
@@ -240,6 +472,18 @@ namespace Incredicer.UI
 
             selectedNode = nodeData;
             ShowNodeInfo(nodeData);
+
+            // Pulse animation on selected node
+            if (nodeButtons.TryGetValue(nodeData.nodeId, out var button))
+            {
+                button.PlaySelectAnimation();
+            }
+
+            // Play click sound
+            if (AudioManager.Instance != null)
+            {
+                AudioManager.Instance.PlayRollSound();
+            }
         }
 
         /// <summary>
@@ -250,6 +494,11 @@ namespace Incredicer.UI
             if (nodeInfoPanel == null) return;
 
             nodeInfoPanel.SetActive(true);
+
+            // Animate panel in
+            nodeInfoPanel.transform.DOKill();
+            nodeInfoPanel.transform.localScale = Vector3.one * 0.9f;
+            nodeInfoPanel.transform.DOScale(1f, 0.15f).SetEase(Ease.OutBack);
 
             if (nodeNameText != null)
             {
@@ -322,6 +571,12 @@ namespace Incredicer.UI
                     purchaseButton.transform.DOPunchScale(Vector3.one * 0.2f, 0.2f, 5, 0.5f);
                 }
 
+                // Show floating text
+                if (GameUI.Instance != null)
+                {
+                    GameUI.Instance.ShowFloatingText(Vector3.zero, $"Skill Unlocked!\n{selectedNode.displayName}", new Color(0.4f, 1f, 0.5f));
+                }
+
                 Debug.Log($"[SkillTreeUI] Purchased skill: {selectedNode.displayName}");
             }
             else
@@ -367,7 +622,7 @@ namespace Incredicer.UI
         public void RegisterNodeButton(SkillNodeId nodeId, SkillNodeButton button)
         {
             nodeButtons[nodeId] = button;
-            UpdateNodeButton(nodeId, button);
+            UpdateAllNodeButtons();
         }
     }
 
@@ -376,69 +631,84 @@ namespace Incredicer.UI
     /// </summary>
     public class SkillNodeButton : MonoBehaviour
     {
-        [SerializeField] private SkillNodeData nodeData;
-        [SerializeField] private Button button;
-        [SerializeField] private Image iconImage;
-        [SerializeField] private Image backgroundImage;
-        [SerializeField] private GameObject lockedOverlay;
+        private SkillNodeData nodeData;
+        private Button button;
+        private Image backgroundImage;
+        private Image innerImage;
+        private Image iconImage;
+        private Image glowImage;
 
-        [Header("Colors")]
-        [SerializeField] private Color unlockedColor = new Color(0.4f, 0.8f, 0.4f);
-        [SerializeField] private Color availableColor = new Color(0.9f, 0.9f, 0.5f);
-        [SerializeField] private Color lockedColor = new Color(0.4f, 0.4f, 0.4f);
+        private bool isUnlocked;
+        private bool canPurchase;
+        private Sequence pulseSequence;
 
-        private void Start()
+        public void Initialize(SkillNodeData data, Button btn, Image bg, Image inner, Image icon, Image glow)
         {
-            if (button != null)
-            {
-                button.onClick.AddListener(OnClick);
-            }
-
-            // Register with UI
-            if (nodeData != null && SkillTreeUI.Instance != null)
-            {
-                SkillTreeUI.Instance.RegisterNodeButton(nodeData.nodeId, this);
-            }
-
-            // Set icon
-            if (iconImage != null && nodeData != null && nodeData.icon != null)
-            {
-                iconImage.sprite = nodeData.icon;
-            }
+            nodeData = data;
+            button = btn;
+            backgroundImage = bg;
+            innerImage = inner;
+            iconImage = icon;
+            glowImage = glow;
         }
 
-        private void OnClick()
+        private void OnDestroy()
         {
-            if (nodeData != null && SkillTreeUI.Instance != null)
-            {
-                SkillTreeUI.Instance.OnNodeClicked(nodeData);
-            }
+            pulseSequence?.Kill();
         }
 
         /// <summary>
         /// Sets the visual state of the node button.
         /// </summary>
-        public void SetState(bool unlocked, bool canPurchase, bool prereqsMet)
+        public void SetState(bool unlocked, bool purchasable, bool prereqsMet, Color unlockedCol, Color availableCol, Color lockedCol)
         {
+            isUnlocked = unlocked;
+            canPurchase = purchasable;
+
             if (backgroundImage != null)
             {
                 if (unlocked)
                 {
-                    backgroundImage.color = unlockedColor;
+                    backgroundImage.color = unlockedCol;
                 }
-                else if (canPurchase)
+                else if (purchasable)
                 {
-                    backgroundImage.color = availableColor;
+                    backgroundImage.color = availableCol;
                 }
                 else
                 {
-                    backgroundImage.color = lockedColor;
+                    backgroundImage.color = lockedCol;
                 }
             }
 
-            if (lockedOverlay != null)
+            // Show glow on available nodes
+            if (glowImage != null)
             {
-                lockedOverlay.SetActive(!unlocked && !prereqsMet);
+                bool showGlow = purchasable && !unlocked;
+                glowImage.gameObject.SetActive(showGlow);
+
+                if (showGlow)
+                {
+                    // Start pulse animation
+                    if (pulseSequence == null || !pulseSequence.IsActive())
+                    {
+                        pulseSequence = DOTween.Sequence();
+                        pulseSequence.Append(glowImage.DOFade(0.6f, 0.5f));
+                        pulseSequence.Append(glowImage.DOFade(0.2f, 0.5f));
+                        pulseSequence.SetLoops(-1);
+                    }
+                }
+                else
+                {
+                    pulseSequence?.Kill();
+                    pulseSequence = null;
+                }
+            }
+
+            // Dim icon for locked nodes
+            if (iconImage != null)
+            {
+                iconImage.color = unlocked ? Color.white : (prereqsMet ? new Color(0.8f, 0.8f, 0.8f) : new Color(0.4f, 0.4f, 0.4f));
             }
 
             if (button != null)
@@ -454,7 +724,26 @@ namespace Incredicer.UI
         {
             transform.DOKill();
             transform.localScale = Vector3.one;
-            transform.DOPunchScale(Vector3.one * 0.3f, 0.3f, 5, 0.5f);
+
+            Sequence seq = DOTween.Sequence();
+            seq.Append(transform.DOScale(1.3f, 0.15f).SetEase(Ease.OutBack));
+            seq.Append(transform.DOScale(1f, 0.1f).SetEase(Ease.InOutQuad));
+
+            // Flash effect
+            if (backgroundImage != null)
+            {
+                backgroundImage.DOColor(Color.white, 0.1f).SetLoops(2, LoopType.Yoyo);
+            }
+        }
+
+        /// <summary>
+        /// Plays selection animation.
+        /// </summary>
+        public void PlaySelectAnimation()
+        {
+            transform.DOKill();
+            transform.localScale = Vector3.one;
+            transform.DOPunchScale(Vector3.one * 0.15f, 0.2f, 5, 0.5f);
         }
     }
 }

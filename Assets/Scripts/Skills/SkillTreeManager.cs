@@ -139,6 +139,12 @@ namespace Incredicer.Skills
                 Debug.Log($"[SkillTree] Unlocked: {data.displayName}");
             }
 
+            // Play skill unlock sound
+            if (AudioManager.Instance != null)
+            {
+                AudioManager.Instance.PlaySkillUnlockSound();
+            }
+
             OnSkillUnlocked?.Invoke(nodeId);
         }
 
