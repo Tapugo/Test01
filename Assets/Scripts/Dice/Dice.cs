@@ -590,11 +590,15 @@ namespace Incredicer.Dice
                 }
             }
 
-            // Screen shake on rolling 6 (jackpot)
-            if (isJackpot && mainCamera != null)
+            // Screen shake on rolling 6 (jackpot) - Always get camera fresh to ensure it works
+            if (isJackpot)
             {
-                mainCamera.transform.DOKill();
-                mainCamera.transform.DOShakePosition(0.3f, 0.15f, 20, 90f, false, true);
+                Camera cam = mainCamera ?? Camera.main;
+                if (cam != null)
+                {
+                    cam.transform.DOKill();
+                    cam.transform.DOShakePosition(0.35f, 0.2f, 25, 90f, false, true);
+                }
             }
 
             // Notify listeners
