@@ -1,0 +1,34 @@
+{
+  "permissions": {
+    "allow": [
+      "mcp__coplay-mcp__set_unity_project_root",
+      "mcp__coplay-mcp__get_unity_editor_state",
+      "mcp__coplay-mcp__create_scene",
+      "mcp__coplay-mcp__get_unity_logs",
+      "Bash(mkdir -p:*)",
+      "mcp__coplay-mcp__open_scene",
+      "mcp__coplay-mcp__check_compile_errors",
+      "mcp__coplay-mcp__create_gameobject",
+      "mcp__coplay-mcp__add_component",
+      "mcp__coplay-mcp__save_scene",
+      "mcp__coplay-mcp__list_game_objects_in_hierarchy",
+      "mcp__coplay-mcp__execute_script",
+      "mcp__coplay-mcp__play_game",
+      "mcp__coplay-mcp__stop_game",
+      "mcp__coplay-mcp__get_game_object_info",
+      "mcp__coplay-mcp__list_unity_project_roots",
+      "mcp__coplay-mcp__get_scene_view_screenshot",
+      "mcp__coplay-mcp__delete_gameobject",
+      "mcp__coplay-mcp__capture_ui_canvas",
+      "mcp__coplay-mcp__set_property",
+      "Bash(tree:*)",
+      "Bash(cat:*)",
+      "mcp__coplay-mcp__create_ui_element",
+      "mcp__coplay-mcp__set_rect_transform",
+      "mcp__coplay-mcp__set_ui_text",
+      "mcp__coplay-mcp__remove_component"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

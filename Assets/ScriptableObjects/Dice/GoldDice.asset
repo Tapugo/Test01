@@ -1,0 +1,23 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: adac4624306454c70bd4d377045c1dcd, type: 3}
+  m_Name: GoldDice
+  m_EditorClassIdentifier: 
+  type: 3
+  displayName: Gold Dice
+  basePayout: 20
+  dmPerRoll: 0.05
+  sprite: {fileID: 0}
+  tintColor: {r: 1, g: 0.84, b: 0, a: 1}
+  shopBaseCost: 1000
+  shopCostGrowth: 1.15
+  rollCooldown: 0.5
