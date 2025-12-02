@@ -63,11 +63,11 @@ namespace Incredicer.Dice
         private double dmMultiplier = 1.0;
 
         // Store the initial scale set during Initialize
-        private Vector3 initialScale = Vector3.one * 0.7f;
+        private Vector3 initialScale = Vector3.one * 0.56f; // 20% smaller than original 0.7f
 
         // FocusedGravity / PrecisionAim movement
         [Header("Gravity Settings")]
-        [SerializeField] private float gravityForce = 0.5f;
+        [SerializeField] private float gravityForce = 0.15f; // Reduced for gentler drift
         [SerializeField] private float precisionAimForce = 3f;
         [SerializeField] private float maxDriftSpeed = 2f;
         private Vector2 currentVelocity = Vector2.zero;
@@ -406,7 +406,7 @@ namespace Incredicer.Dice
             SetupFeedbacks();
 
             // Set dice size (smaller dice)
-            initialScale = Vector3.one * 0.7f;
+            initialScale = Vector3.one * 0.56f; // 20% smaller than original 0.7f
             transform.localScale = initialScale;
 
             // Update collider to match
@@ -473,7 +473,7 @@ namespace Incredicer.Dice
             double tierMultiplier = data.basePayout; // This is the key difference between dice types!
             double baseMoney = (currentFaceValue * tierMultiplier) + upgradeBonus;
 
-            // Apply any global multipliers
+            // Apply any global multipliers from dice data
             double finalMoney = baseMoney * moneyMultiplier;
 
             // Check for jackpot (rolling a 6)
@@ -483,39 +483,17 @@ namespace Incredicer.Dice
                 finalMoney *= 2; // Double reward for rolling 6
             }
 
-            // Add money with floating effect (money added when effect reaches counter)
-            if (CurrencyManager.Instance != null)
+            // Apply all money modifiers from GameStats (including Hyperburst!)
+            if (GameStats.Instance != null)
             {
-                CurrencyManager.Instance.AddMoneyWithEffect(finalMoney, transform.position, isJackpot);
+                finalMoney = GameStats.Instance.ApplyMoneyModifiers(finalMoney, isManual, isIdle);
             }
 
-            // Check for Table Tax bonus coin proc
-            if (GameStats.Instance != null && CurrencyManager.Instance != null)
-            {
-                double tableTaxBonus = GameStats.Instance.CheckTableTaxProc(CurrencyManager.Instance.Money);
-                if (tableTaxBonus > 0)
-                {
-                    // Spawn a separate bonus coin effect with gold color
-                    CurrencyManager.Instance.AddMoneyWithEffect(tableTaxBonus, transform.position + Vector3.up * 0.3f, true);
+            // NOTE: Currency effects are now spawned when dice LANDS (in PlayRollAnimation callback)
+            // This ensures coins fly from the dice's final position when result is shown
 
-                    // Show floating text for bonus coin
-                    if (GameUI.Instance != null)
-                    {
-                        Color bonusColor = new Color(1f, 0.8f, 0.2f); // Gold color for bonus
-                        GameUI.Instance.ShowFloatingText(transform.position + Vector3.up * 0.5f, $"+${GameUI.FormatNumber(tableTaxBonus)} BONUS!", bonusColor);
-                    }
-
-                    // Play bonus sound
-                    if (Core.AudioManager.Instance != null)
-                    {
-                        Core.AudioManager.Instance.PlayJackpotSound();
-                    }
-                }
-            }
-
-            // Generate Dark Matter based on face value (only if DM is unlocked after ascending)
-            // Base DM = face value (+1 for rolling 1, +2 for rolling 2, etc.)
-            // Higher tier dice add bonus DM from their dmPerRoll
+            // Calculate dark matter earned (will be spawned when dice lands)
+            double dmEarned = 0;
             if (DiceManager.Instance != null && DiceManager.Instance.DarkMatterUnlocked)
             {
                 // Base DM from face value
@@ -523,34 +501,20 @@ namespace Incredicer.Dice
 
                 // Add bonus DM from dice tier (dmPerRoll)
                 double tierBonus = data.dmPerRoll * dmMultiplier;
-                double dmEarned = baseDM + tierBonus;
+                dmEarned = baseDM + tierBonus;
 
                 // Apply DM modifiers from GameStats
                 if (GameStats.Instance != null)
                 {
                     dmEarned = GameStats.Instance.ApplyDarkMatterModifiers(dmEarned);
                 }
-
-                if (dmEarned > 0 && CurrencyManager.Instance != null)
-                {
-                    CurrencyManager.Instance.AddDarkMatterWithEffect(dmEarned, transform.position);
-
-                    // Track for statistics
-                    if (PrestigeManager.Instance != null)
-                    {
-                        PrestigeManager.Instance.TrackDarkMatterEarned(dmEarned);
-                    }
-                }
-
-                // Notify listeners about DM generation
-                OnDarkMatterGenerated?.Invoke(dmEarned);
             }
 
             // Calculate target position for bounce (within screen bounds)
             Vector3 targetPos = GetRandomTargetPosition();
 
-            // Play roll animation (money popup shown at end of animation)
-            PlayRollAnimation(isJackpot, finalMoney, targetPos);
+            // Play roll animation (currency effects spawned when dice lands)
+            PlayRollAnimation(isJackpot, finalMoney, dmEarned, targetPos);
 
             // Play roll feedback (start of roll - NOT jackpot effects yet)
             if (rollFeedback != null)
@@ -651,8 +615,9 @@ namespace Incredicer.Dice
 
         /// <summary>
         /// Plays the roll animation with bounce to new position.
+        /// Currency effects are spawned when the dice lands and shows the result.
         /// </summary>
-        private void PlayRollAnimation(bool isJackpot, double moneyEarned, Vector3 targetPos)
+        private void PlayRollAnimation(bool isJackpot, double moneyEarned, double dmEarned, Vector3 targetPos)
         {
             currentSequence?.Kill();
             isAnimating = true;
@@ -738,6 +703,50 @@ namespace Incredicer.Dice
                 else
                 {
                     Debug.LogWarning($"[Dice] GameUI.Instance is null, cannot show floating text: {displayText}");
+                }
+
+                // === SPAWN CURRENCY EFFECTS - coins/gems fly from dice to counters ===
+                if (CurrencyManager.Instance != null)
+                {
+                    // Spawn money coins flying to the counter
+                    CurrencyManager.Instance.AddMoneyWithEffect(moneyEarned, transform.position, isJackpot);
+
+                    // Check for Table Tax bonus coin proc
+                    if (GameStats.Instance != null)
+                    {
+                        double tableTaxBonus = GameStats.Instance.CheckTableTaxProc(CurrencyManager.Instance.Money);
+                        if (tableTaxBonus > 0)
+                        {
+                            // Spawn bonus coins with slight delay
+                            CurrencyManager.Instance.AddMoneyWithEffect(tableTaxBonus, transform.position + Vector3.up * 0.3f, true);
+
+                            if (GameUI.Instance != null)
+                            {
+                                Color bonusColor = new Color(1f, 0.8f, 0.2f);
+                                GameUI.Instance.ShowFloatingText(transform.position + Vector3.up * 0.5f, $"+${GameUI.FormatNumber(tableTaxBonus)} BONUS!", bonusColor);
+                            }
+
+                            if (Core.AudioManager.Instance != null)
+                            {
+                                Core.AudioManager.Instance.PlayJackpotSound();
+                            }
+                        }
+                    }
+
+                    // Spawn dark matter gems flying to the counter
+                    if (dmEarned > 0)
+                    {
+                        CurrencyManager.Instance.AddDarkMatterWithEffect(dmEarned, transform.position);
+
+                        // Track for statistics
+                        if (PrestigeManager.Instance != null)
+                        {
+                            PrestigeManager.Instance.TrackDarkMatterEarned(dmEarned);
+                        }
+
+                        // Notify listeners about DM generation
+                        OnDarkMatterGenerated?.Invoke(dmEarned);
+                    }
                 }
 
                 // === JACKPOT EFFECTS - triggered when dice lands and shows the 6! ===

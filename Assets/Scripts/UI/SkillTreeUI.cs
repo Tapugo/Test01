@@ -74,6 +74,7 @@ namespace Incredicer.UI
             public TextMeshProUGUI buyButtonText;
             public Image buyButtonBg;
             public Image statusIcon;
+            public Image lockIcon;
         }
 
         private Dictionary<SkillNodeId, SkillNodeDef> allNodes = new Dictionary<SkillNodeId, SkillNodeDef>();
@@ -574,7 +575,7 @@ namespace Incredicer.UI
             nameObj.transform.SetParent(itemObj.transform, false);
             RectTransform nameRt = nameObj.AddComponent<RectTransform>();
             nameRt.anchorMin = new Vector2(0, 0.58f);
-            nameRt.anchorMax = new Vector2(0.65f, 1);
+            nameRt.anchorMax = new Vector2(0.56f, 1);  // Adjusted for wider button
             nameRt.offsetMin = new Vector2(24, 0);
             nameRt.offsetMax = new Vector2(-5, -12);
 
@@ -593,7 +594,7 @@ namespace Incredicer.UI
             descObj.transform.SetParent(itemObj.transform, false);
             RectTransform descRt = descObj.AddComponent<RectTransform>();
             descRt.anchorMin = new Vector2(0, 0.08f);
-            descRt.anchorMax = new Vector2(0.65f, 0.58f);
+            descRt.anchorMax = new Vector2(0.56f, 0.58f);  // Adjusted for wider button
             descRt.offsetMin = new Vector2(24, 10);
             descRt.offsetMax = new Vector2(-5, 0);
 
@@ -606,11 +607,11 @@ namespace Incredicer.UI
             descText.fontSizeMin = 28;
             descText.fontSizeMax = 38;
 
-            // === RIGHT SIDE: Narrower Buy Button with Price ===
+            // === RIGHT SIDE: Bigger Buy Button with Price ===
             GameObject buyObj = new GameObject("BuyButton");
             buyObj.transform.SetParent(itemObj.transform, false);
             RectTransform buyRt = buyObj.AddComponent<RectTransform>();
-            buyRt.anchorMin = new Vector2(0.67f, 0.1f);
+            buyRt.anchorMin = new Vector2(0.58f, 0.1f);  // Wider button (was 0.67f)
             buyRt.anchorMax = new Vector2(0.98f, 0.9f);
             buyRt.offsetMin = new Vector2(5, 10);
             buyRt.offsetMax = new Vector2(-10, -10);
@@ -653,6 +654,26 @@ namespace Incredicer.UI
             buyText.fontSizeMin = 28;
             buyText.fontSizeMax = 42;
 
+            // Lock icon overlay for locked skills - positioned to the right of the text
+            GameObject lockObj = new GameObject("LockIcon");
+            lockObj.transform.SetParent(buyObj.transform, false);
+            RectTransform lockRt = lockObj.AddComponent<RectTransform>();
+            // Anchor to right side, vertically centered with the text
+            lockRt.anchorMin = new Vector2(1f, 0.5f);
+            lockRt.anchorMax = new Vector2(1f, 0.5f);
+            lockRt.sizeDelta = new Vector2(40, 40);
+            lockRt.anchoredPosition = new Vector2(-15, 0); // 15px from right edge
+
+            Image lockImg = lockObj.AddComponent<Image>();
+            // Use GUI lock icon if available
+            if (guiAssets != null && guiAssets.iconLock != null)
+            {
+                lockImg.sprite = guiAssets.iconLock;
+            }
+            lockImg.color = new Color(0.5f, 0.5f, 0.55f);
+            lockImg.raycastTarget = false;
+            lockObj.SetActive(false); // Hidden by default
+
             skillItems[nodeDef.id] = new SkillItemUI
             {
                 gameObject = itemObj,
@@ -660,10 +681,11 @@ namespace Incredicer.UI
                 background = bg,
                 nameText = nameText,
                 descText = descText,
-                costText = null, // No separate cost text anymore
+                costText = null,
                 buyButton = buyBtn,
                 buyButtonText = buyText,
-                buyButtonBg = buyBg
+                buyButtonBg = buyBg,
+                lockIcon = lockImg
             };
         }
 
@@ -674,6 +696,12 @@ namespace Incredicer.UI
 
             isInitialized = false;
             BuildUI();
+
+            // Apply shared font to all text for consistency
+            ApplySharedFontToPanel();
+
+            // Apply black outlines to all text for readability
+            ApplyTextOutlinesToPanel();
 
             if (skillTreePanel != null)
             {
@@ -729,6 +757,40 @@ namespace Incredicer.UI
                 DiceRollerController.Instance.enabled = !blocked;
         }
 
+        /// <summary>
+        /// Applies black outlines to all text in the skill tree panel.
+        /// </summary>
+        private void ApplyTextOutlinesToPanel()
+        {
+            if (skillTreePanel == null) return;
+            TextMeshProUGUI[] allTexts = skillTreePanel.GetComponentsInChildren<TextMeshProUGUI>(true);
+            foreach (var tmp in allTexts)
+            {
+                GameUI.ApplyTextOutline(tmp);
+            }
+        }
+
+        /// <summary>
+        /// Applies the shared game font to all text in the skill tree panel.
+        /// </summary>
+        private void ApplySharedFontToPanel()
+        {
+            if (skillTreePanel == null) return;
+            if (GameUI.Instance == null) return;
+
+            TMP_FontAsset sharedFont = GameUI.Instance.SharedFont;
+            if (sharedFont == null) return;
+
+            TextMeshProUGUI[] allTexts = skillTreePanel.GetComponentsInChildren<TextMeshProUGUI>(true);
+            foreach (var tmp in allTexts)
+            {
+                if (tmp != null)
+                {
+                    tmp.font = sharedFont;
+                }
+            }
+        }
+
         private void UpdateDisplay()
         {
             if (CurrencyManager.Instance != null)
@@ -763,21 +825,27 @@ namespace Incredicer.UI
             bool canAfford = currentDM >= nodeDef.cost;
             bool canPurchase = !unlocked && prereqsMet && canAfford;
 
-            // Update button state
+            // Update button state - keep interactable for feedback, but disable for already owned
             if (item.buyButton != null)
-                item.buyButton.interactable = canPurchase;
+                item.buyButton.interactable = !unlocked;
 
             if (item.buyButtonText != null)
             {
                 string priceText = nodeDef.cost > 0 ? $"{GameUI.FormatNumber(nodeDef.cost)} DM" : "FREE";
                 if (unlocked)
-                    item.buyButtonText.text = "<size=120%>✓</size>\nOWNED";
+                    item.buyButtonText.text = "<b>OWNED</b>";
                 else if (!prereqsMet)
-                    item.buyButtonText.text = "<size=120%>🔒</size>\nLOCKED";
+                    item.buyButtonText.text = "<b>LOCKED</b>";
                 else if (canAfford)
-                    item.buyButtonText.text = $"UNLOCK\n<size=85%>{priceText}</size>";
+                    item.buyButtonText.text = $"<b>UNLOCK</b>\n<size=85%>{priceText}</size>";
                 else
                     item.buyButtonText.text = $"<color=#FF6666>{priceText}</color>\n<size=80%>NEED DM</size>";
+            }
+
+            // Show/hide lock icon overlay
+            if (item.lockIcon != null)
+            {
+                item.lockIcon.gameObject.SetActive(!unlocked && !prereqsMet);
             }
 
             if (item.buyButtonBg != null)
@@ -862,10 +930,22 @@ namespace Incredicer.UI
         {
             if (!allNodes.TryGetValue(nodeId, out var nodeDef)) return;
             if (IsNodeUnlocked(nodeId)) return;
-            if (!ArePrerequisitesMet(nodeId)) return;
+
+            // Check prerequisites - show locked feedback
+            if (!ArePrerequisitesMet(nodeId))
+            {
+                ShowInsufficientFeedback("Unlock prerequisites first!", nodeId);
+                return;
+            }
 
             double dm = CurrencyManager.Instance?.DarkMatter ?? 0;
-            if (dm < nodeDef.cost) return;
+
+            // Check if can afford - show not enough DM feedback
+            if (dm < nodeDef.cost)
+            {
+                ShowInsufficientFeedback("Not enough DM!", nodeId);
+                return;
+            }
 
             if (!CurrencyManager.Instance.SpendDarkMatter(nodeDef.cost)) return;
 
@@ -874,17 +954,71 @@ namespace Incredicer.UI
 
             UpdateDisplay();
 
-            // Visual feedback
+            // Satisfying unlock animation
             if (skillItems.TryGetValue(nodeId, out var item) && item.buyButton != null)
             {
-                item.buyButton.transform.DOKill();
-                item.buyButton.transform.DOPunchScale(Vector3.one * 0.2f, 0.3f, 5, 0.5f);
+                Transform btnTransform = item.buyButton.transform;
+                btnTransform.DOKill();
+                btnTransform.localScale = Vector3.one;
+
+                // Squeeze then bounce animation
+                Sequence unlockSeq = DOTween.Sequence();
+                unlockSeq.Append(btnTransform.DOScale(0.8f, 0.05f).SetEase(Ease.InQuad));
+                unlockSeq.Append(btnTransform.DOScale(1.25f, 0.15f).SetEase(Ease.OutBack));
+                unlockSeq.Append(btnTransform.DOScale(1f, 0.1f).SetEase(Ease.InOutSine));
+
+                // Flash the button green briefly
+                if (item.buyButtonBg != null)
+                {
+                    item.buyButtonBg.DOColor(new Color(0.3f, 1f, 0.4f), 0.1f)
+                        .OnComplete(() => item.buyButtonBg.DOColor(Color.white, 0.2f));
+                }
             }
 
+            // Show floating text
             if (GameUI.Instance != null)
                 GameUI.Instance.ShowFloatingText(Vector3.zero, $"Unlocked: {nodeDef.name}!", unlockedColor);
 
+            // Play skill unlock sound
+            if (Core.AudioManager.Instance != null)
+            {
+                Core.AudioManager.Instance.PlaySkillUnlockSound();
+            }
+
+            // Spawn skill unlock particle effect
+            if (Core.VisualEffectsManager.Instance != null)
+            {
+                Core.VisualEffectsManager.Instance.SpawnSkillUnlockEffect(Vector3.zero);
+            }
+
+            // Subtle screen shake for tactile feedback
+            Camera cam = Camera.main;
+            if (cam != null)
+            {
+                cam.transform.DOKill();
+                cam.transform.DOShakePosition(0.15f, 0.02f, 15, 90f, false, true);
+            }
+
             Debug.Log($"[SkillTreeUI] Purchased: {nodeDef.name}");
+        }
+
+        /// <summary>
+        /// Shows feedback when player can't afford or prerequisites not met.
+        /// </summary>
+        private void ShowInsufficientFeedback(string message, SkillNodeId nodeId)
+        {
+            // Shake the button
+            if (skillItems.TryGetValue(nodeId, out var item) && item.buyButton != null)
+            {
+                item.buyButton.transform.DOKill();
+                item.buyButton.transform.DOShakePosition(0.3f, 5f, 20);
+            }
+
+            // Show floating text
+            if (GameUI.Instance != null)
+            {
+                GameUI.Instance.ShowFloatingText(Vector3.zero, message, new Color(1f, 0.4f, 0.4f));
+            }
         }
 
         private void OnSkillUnlocked(SkillNodeId nodeId)

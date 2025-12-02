@@ -178,6 +178,12 @@ namespace Incredicer.Skills
                 GameStats.Instance.HyperburstActive = true;
             }
 
+            // Show x2 visual effect
+            if (UI.GameUI.Instance != null)
+            {
+                UI.GameUI.Instance.ShowHyperburstEffect(hyperburstDuration);
+            }
+
             StartCoroutine(HyperburstCoroutine());
         }
 
@@ -190,6 +196,12 @@ namespace Incredicer.Skills
             if (GameStats.Instance != null)
             {
                 GameStats.Instance.HyperburstActive = false;
+            }
+
+            // Hide x2 visual effect
+            if (UI.GameUI.Instance != null)
+            {
+                UI.GameUI.Instance.HideHyperburstEffect();
             }
 
             Debug.Log("[ActiveSkillManager] Hyperburst ended!");

@@ -55,6 +55,7 @@ namespace Incredicer.UI
             public Button buyButton;
             public TextMeshProUGUI buyButtonText;
             public Image buyButtonBg;
+            public Image lockIcon;
         }
 
         private void Awake()
@@ -172,17 +173,29 @@ namespace Incredicer.UI
                     panelCanvasGroup = shopPanel.AddComponent<CanvasGroup>();
             }
 
-            // Create header if money display doesn't exist
-            if (moneyDisplayText == null)
+            // Clean up existing dynamic children to avoid duplicates
+            Transform existingHeader = shopPanel.transform.Find("Header");
+            if (existingHeader != null)
             {
-                CreateHeader();
+                Destroy(existingHeader.gameObject);
+            }
+            Transform existingScrollArea = shopPanel.transform.Find("ScrollArea");
+            if (existingScrollArea != null)
+            {
+                Destroy(existingScrollArea.gameObject);
             }
 
-            // Create scroll area if it doesn't exist
-            if (scrollRect == null)
-            {
-                CreateScrollArea();
-            }
+            // Reset references so they get recreated
+            scrollRect = null;
+            contentContainer = null;
+            moneyDisplayText = null;
+            closeButton = null;
+
+            // Create header (always recreated after clearing)
+            CreateHeader();
+
+            // Create scroll area (always recreated after clearing)
+            CreateScrollArea();
         }
 
         private void CreateHeader()
@@ -497,18 +510,38 @@ namespace Incredicer.UI
             buyTextTmp.fontSizeMin = 28;
             buyTextTmp.fontSizeMax = 42;
 
+            // Lock icon overlay for locked dice - positioned to the right of the text
+            GameObject lockObj = new GameObject("LockIcon");
+            lockObj.transform.SetParent(buyBtnObj.transform, false);
+            RectTransform lockRt = lockObj.AddComponent<RectTransform>();
+            // Anchor to right side, vertically centered with the text
+            lockRt.anchorMin = new Vector2(1f, 0.5f);
+            lockRt.anchorMax = new Vector2(1f, 0.5f);
+            lockRt.sizeDelta = new Vector2(40, 40);
+            lockRt.anchoredPosition = new Vector2(-15, 0); // 15px from right edge
+
+            Image lockImg = lockObj.AddComponent<Image>();
+            if (guiAssets != null && guiAssets.iconLock != null)
+            {
+                lockImg.sprite = guiAssets.iconLock;
+            }
+            lockImg.color = new Color(0.5f, 0.5f, 0.55f);
+            lockImg.raycastTarget = false;
+            lockObj.SetActive(false); // Hidden by default
+
             shopItems[type] = new DiceShopItem
             {
                 gameObject = itemObj,
                 button = btn,
                 background = bg,
                 nameText = nameTmp,
-                priceText = null, // Price now on button
+                priceText = null,
                 ownedText = ownedTmp,
                 dicePreview = previewImg,
                 buyButton = buyBtn,
                 buyButtonText = buyTextTmp,
-                buyButtonBg = buyBtnBg
+                buyButtonBg = buyBtnBg,
+                lockIcon = lockImg
             };
         }
 
@@ -520,6 +553,12 @@ namespace Incredicer.UI
             // Force rebuild each time to ensure content is populated
             isInitialized = false;
             BuildShop();
+
+            // Apply shared font to all text for consistency
+            ApplySharedFontToPanel();
+
+            // Apply black outlines to all text for readability
+            ApplyTextOutlinesToPanel();
 
             if (shopPanel != null)
             {
@@ -583,6 +622,40 @@ namespace Incredicer.UI
             }
         }
 
+        /// <summary>
+        /// Applies black outlines to all text in the dice shop panel.
+        /// </summary>
+        private void ApplyTextOutlinesToPanel()
+        {
+            if (shopPanel == null) return;
+            TextMeshProUGUI[] allTexts = shopPanel.GetComponentsInChildren<TextMeshProUGUI>(true);
+            foreach (var tmp in allTexts)
+            {
+                GameUI.ApplyTextOutline(tmp);
+            }
+        }
+
+        /// <summary>
+        /// Applies the shared game font to all text in the dice shop panel.
+        /// </summary>
+        private void ApplySharedFontToPanel()
+        {
+            if (shopPanel == null) return;
+            if (GameUI.Instance == null) return;
+
+            TMP_FontAsset sharedFont = GameUI.Instance.SharedFont;
+            if (sharedFont == null) return;
+
+            TextMeshProUGUI[] allTexts = shopPanel.GetComponentsInChildren<TextMeshProUGUI>(true);
+            foreach (var tmp in allTexts)
+            {
+                if (tmp != null)
+                {
+                    tmp.font = sharedFont;
+                }
+            }
+        }
+
         private void UpdateMoneyDisplay(double amount)
         {
             if (moneyDisplayText != null)
@@ -621,10 +694,10 @@ namespace Incredicer.UI
                 item.ownedText.text = $"<color=#FFD700>{multiplierText}x Money</color>{dmBonus}\nOwned: {owned}";
             }
 
-            // Update buy button
+            // Update buy button - keep interactable for feedback (click handler shows messages)
             if (item.buyButton != null)
             {
-                item.buyButton.interactable = isUnlocked && canAfford;
+                item.buyButton.interactable = true;
             }
 
             // Update button text with price directly on button
@@ -632,11 +705,17 @@ namespace Incredicer.UI
             {
                 string priceStr = $"${GameUI.FormatNumber(price)}";
                 if (!isUnlocked)
-                    item.buyButtonText.text = "<size=120%>🔒</size>\nLOCKED";
+                    item.buyButtonText.text = "<b>LOCKED</b>";
                 else if (canAfford)
-                    item.buyButtonText.text = $"BUY\n<size=85%>{priceStr}</size>";
+                    item.buyButtonText.text = $"<b>BUY</b>\n<size=85%>{priceStr}</size>";
                 else
                     item.buyButtonText.text = $"<color=#FF6666>{priceStr}</color>\n<size=80%>NEED $</size>";
+            }
+
+            // Show/hide lock icon overlay
+            if (item.lockIcon != null)
+            {
+                item.lockIcon.gameObject.SetActive(!isUnlocked);
             }
 
             if (item.buyButtonBg != null)
@@ -712,35 +791,90 @@ namespace Incredicer.UI
         {
             if (DiceManager.Instance == null) return;
 
+            // Check if dice type is locked
+            bool isUnlocked = DiceManager.Instance.IsDiceTypeUnlocked(type);
+            if (!isUnlocked)
+            {
+                ShowInsufficientFeedback("Dice type locked!", type);
+                return;
+            }
+
+            // Check if can afford
+            double price = DiceManager.Instance.GetCurrentPrice(type);
+            double currentMoney = CurrencyManager.Instance?.Money ?? 0;
+
+            if (currentMoney < price)
+            {
+                ShowInsufficientFeedback("Not enough $!", type);
+                return;
+            }
+
             bool success = DiceManager.Instance.TryBuyDice(type);
 
             if (success)
             {
                 UpdateAllItems();
 
-                // Visual feedback
+                // Satisfying purchase animation
                 if (shopItems.TryGetValue(type, out var item) && item.buyButton != null)
                 {
-                    item.buyButton.transform.DOKill();
-                    item.buyButton.transform.localScale = Vector3.one;
-                    item.buyButton.transform.DOPunchScale(Vector3.one * 0.15f, 0.2f, 5, 0.5f);
+                    Transform btnTransform = item.buyButton.transform;
+                    btnTransform.DOKill();
+                    btnTransform.localScale = Vector3.one;
+
+                    // Squeeze then bounce animation
+                    Sequence purchaseSeq = DOTween.Sequence();
+                    purchaseSeq.Append(btnTransform.DOScale(0.85f, 0.05f).SetEase(Ease.InQuad));
+                    purchaseSeq.Append(btnTransform.DOScale(1.2f, 0.12f).SetEase(Ease.OutBack));
+                    purchaseSeq.Append(btnTransform.DOScale(1f, 0.1f).SetEase(Ease.InOutSine));
                 }
 
+                // Show floating text with dice name
                 if (GameUI.Instance != null)
                 {
                     DiceData data = DiceManager.Instance.GetDiceData(type);
                     string diceName = data != null ? data.displayName : type.ToString();
-                    GameUI.Instance.ShowFloatingText(Vector3.zero, $"Bought {diceName}!", new Color(0.3f, 1f, 0.4f));
+                    GameUI.Instance.ShowFloatingText(Vector3.zero, $"+1 {diceName}!", new Color(0.3f, 1f, 0.4f));
+                }
+
+                // Play purchase sound
+                if (Core.AudioManager.Instance != null)
+                {
+                    Core.AudioManager.Instance.PlayPurchaseSound();
+                }
+
+                // Spawn purchase particle effect
+                if (Core.VisualEffectsManager.Instance != null)
+                {
+                    Core.VisualEffectsManager.Instance.SpawnPurchaseEffect(Vector3.zero);
+                }
+
+                // Subtle screen shake for tactile feedback
+                Camera cam = Camera.main;
+                if (cam != null)
+                {
+                    cam.transform.DOKill();
+                    cam.transform.DOShakePosition(0.1f, 0.015f, 12, 90f, false, true);
                 }
             }
-            else
+        }
+
+        /// <summary>
+        /// Shows feedback when player can't afford or dice is locked.
+        /// </summary>
+        private void ShowInsufficientFeedback(string message, DiceType type)
+        {
+            // Shake the button
+            if (shopItems.TryGetValue(type, out var item) && item.buyButton != null)
             {
-                // Shake feedback
-                if (shopItems.TryGetValue(type, out var item) && item.buyButton != null)
-                {
-                    item.buyButton.transform.DOKill();
-                    item.buyButton.transform.DOShakePosition(0.2f, 3f, 15);
-                }
+                item.buyButton.transform.DOKill();
+                item.buyButton.transform.DOShakePosition(0.3f, 5f, 20);
+            }
+
+            // Show floating text
+            if (GameUI.Instance != null)
+            {
+                GameUI.Instance.ShowFloatingText(Vector3.zero, message, new Color(1f, 0.4f, 0.4f));
             }
         }
 

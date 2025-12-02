@@ -36,6 +36,9 @@ namespace Incredicer.UI
         [SerializeField] private GameObject diceShopPanel;
         [SerializeField] private Transform diceShopContent;
 
+        [Header("Bottom Shop Panel")]
+        [SerializeField] private RectTransform bottomShopPanel;
+
         [Header("Skill Tree Button")]
         [SerializeField] private Button skillTreeButton;
 
@@ -50,6 +53,25 @@ namespace Incredicer.UI
         [Header("Floating Text")]
         [SerializeField] private Transform floatingTextContainer;
         [SerializeField] private TMP_FontAsset floatingTextFont;
+
+        /// <summary>
+        /// Gets the shared game font for consistent styling across all UI.
+        /// </summary>
+        public TMP_FontAsset SharedFont
+        {
+            get
+            {
+                // Try to get font from floatingTextFont first
+                if (floatingTextFont != null) return floatingTextFont;
+
+                // Fallback: try to get from any existing TextMeshProUGUI
+                var existingText = GetComponentInChildren<TextMeshProUGUI>();
+                if (existingText != null && existingText.font != null)
+                    return existingText.font;
+
+                return null;
+            }
+        }
 
         [Header("Settings")]
         [SerializeField] private float currencyPunchScale = 1.15f;
@@ -87,6 +109,9 @@ namespace Incredicer.UI
         private void Start()
         {
             mainCamera = Camera.main;
+
+            // Fix bottom shop panel to fill screen edges
+            FixBottomShopPanel();
 
             // Create floating text container if not assigned
             if (floatingTextContainer == null)
@@ -186,6 +211,84 @@ namespace Incredicer.UI
 
             // Initial UI update (delayed to ensure managers are ready)
             Invoke(nameof(UpdateAllUI), 0.15f);
+
+            // Apply shared font to all buttons for consistent styling
+            ApplySharedFontToAllButtons();
+
+            // Apply black outlines to all text for better readability
+            ApplyTextOutlinesToAll();
+        }
+
+        /// <summary>
+        /// Applies the shared font to all button texts for consistent styling.
+        /// </summary>
+        private void ApplySharedFontToAllButtons()
+        {
+            if (floatingTextFont == null) return;
+
+            // Apply font to dice shop button
+            if (diceShopButtonText != null)
+            {
+                diceShopButtonText.font = floatingTextFont;
+            }
+
+            // Apply font to other button texts
+            if (buyDiceButtonText != null) buyDiceButtonText.font = floatingTextFont;
+            if (upgradeDiceButtonText != null) upgradeDiceButtonText.font = floatingTextFont;
+            if (darkMatterGeneratorButtonText != null) darkMatterGeneratorButtonText.font = floatingTextFont;
+            if (ascendButtonText != null) ascendButtonText.font = floatingTextFont;
+            if (activeSkillButtonText != null) activeSkillButtonText.font = floatingTextFont;
+
+            // Apply font to skill tree button text if it has one
+            if (skillTreeButton != null)
+            {
+                var skillTreeButtonText = skillTreeButton.GetComponentInChildren<TextMeshProUGUI>();
+                if (skillTreeButtonText != null)
+                {
+                    skillTreeButtonText.font = floatingTextFont;
+                }
+            }
+
+            Debug.Log("[GameUI] Applied shared font to all button texts");
+        }
+
+        /// <summary>
+        /// Applies black outlines to all TextMeshProUGUI elements in the UI.
+        /// </summary>
+        private void ApplyTextOutlinesToAll()
+        {
+            TextMeshProUGUI[] allTexts = GetComponentsInChildren<TextMeshProUGUI>(true);
+            foreach (var tmp in allTexts)
+            {
+                ApplyTextOutline(tmp);
+            }
+            Debug.Log($"[GameUI] Applied black outlines to {allTexts.Length} text elements");
+        }
+
+        /// <summary>
+        /// Applies a thin black outline to a TextMeshProUGUI for better contrast.
+        /// Safely handles cases where the font/material isn't ready yet.
+        /// </summary>
+        public static void ApplyTextOutline(TextMeshProUGUI tmp, float thickness = 0.15f)
+        {
+            if (tmp == null) return;
+
+            // Check if font asset and material are valid before setting outline
+            if (tmp.font == null || tmp.fontSharedMaterial == null)
+            {
+                // Skip - font or material not ready
+                return;
+            }
+
+            try
+            {
+                tmp.outlineWidth = thickness;
+                tmp.outlineColor = new Color(0f, 0f, 0f, 1f);
+            }
+            catch (System.Exception)
+            {
+                // Silently ignore if outline can't be applied (material issue)
+            }
         }
 
         private void Update()
@@ -274,6 +377,45 @@ namespace Incredicer.UI
         }
 
         /// <summary>
+        /// Fixes the bottom shop panel to fill the screen edges.
+        /// </summary>
+        private void FixBottomShopPanel()
+        {
+            // Try to find the ShopPanel if not assigned
+            if (bottomShopPanel == null)
+            {
+                Transform shopPanelTransform = transform.Find("ShopPanel");
+                if (shopPanelTransform != null)
+                {
+                    bottomShopPanel = shopPanelTransform.GetComponent<RectTransform>();
+                }
+            }
+
+            if (bottomShopPanel != null)
+            {
+                // Make it stretch to fill bottom and sides
+                bottomShopPanel.anchorMin = new Vector2(0, 0);
+                bottomShopPanel.anchorMax = new Vector2(1, 0);
+                bottomShopPanel.pivot = new Vector2(0.5f, 0);
+                bottomShopPanel.offsetMin = new Vector2(0, 0);  // Left = 0, Bottom = 0
+                bottomShopPanel.offsetMax = new Vector2(0, 120); // Right = 0 (stretch), Top = height
+
+                // Update background color if needed
+                Image bg = bottomShopPanel.GetComponent<Image>();
+                if (bg != null)
+                {
+                    bg.color = new Color(0.1f, 0.1f, 0.15f, 0.92f);
+                }
+
+                Debug.Log("[GameUI] Fixed bottom shop panel to fill screen edges");
+            }
+            else
+            {
+                Debug.LogWarning("[GameUI] Could not find ShopPanel to fix");
+            }
+        }
+
+        /// <summary>
         /// Updates all UI elements.
         /// </summary>
         public void UpdateAllUI()
@@ -352,18 +494,22 @@ namespace Incredicer.UI
         }
 
         /// <summary>
-        /// Updates button texts with current prices and disabled states.
+        /// Updates button texts with current prices and visual states.
+        /// Buttons are darkened when player can't afford them.
         /// </summary>
         private void UpdateButtonTexts()
         {
             double currentMoney = CurrencyManager.Instance != null ? CurrencyManager.Instance.Money : 0;
 
-            // Buy dice button
+            // Buy dice button - keep interactable for feedback but darken if can't afford
             if (buyDiceButton != null && DiceManager.Instance != null)
             {
                 double price = DiceManager.Instance.GetCurrentPrice(DiceType.Basic);
                 bool canAfford = currentMoney >= price;
-                buyDiceButton.interactable = canAfford;
+                buyDiceButton.interactable = true; // Always interactable for feedback
+
+                // Darken button when can't afford
+                SetButtonVisualState(buyDiceButton, canAfford);
 
                 if (buyDiceButtonText != null)
                 {
@@ -371,17 +517,20 @@ namespace Incredicer.UI
                 }
             }
 
-            // Upgrade dice button - shows current level and bonus
+            // Upgrade dice button - keep interactable for feedback but darken if can't afford
             if (upgradeDiceButton != null)
             {
                 bool canAfford = currentMoney >= diceValueUpgradeCost;
-                upgradeDiceButton.interactable = canAfford;
+                upgradeDiceButton.interactable = true; // Always interactable for feedback
+
+                // Darken button when can't afford
+                SetButtonVisualState(upgradeDiceButton, canAfford);
 
                 if (upgradeDiceButtonText != null)
                 {
                     int currentLevel = GameStats.Instance != null ? GameStats.Instance.DiceValueUpgradeLevel : 0;
-                    string bonusText = currentLevel > 0 ? $" +{currentLevel}" : "";
-                    upgradeDiceButtonText.text = $"Upgrade{bonusText}\n<size=60%>${FormatNumber(diceValueUpgradeCost)}</size>";
+                    string levelText = currentLevel > 0 ? $" +{currentLevel}" : "";
+                    upgradeDiceButtonText.text = $"Upgrade Dice ${levelText}\n<size=60%>${FormatNumber(diceValueUpgradeCost)}</size>";
                 }
             }
         }
@@ -399,23 +548,88 @@ namespace Incredicer.UI
                 return;
             }
 
+            // Check if can afford before attempting
+            double price = DiceManager.Instance.GetCurrentPrice(DiceType.Basic);
+            double currentMoney = CurrencyManager.Instance != null ? CurrencyManager.Instance.Money : 0;
+
+            if (currentMoney < price)
+            {
+                // Show feedback and shake
+                ShowNotEnoughFeedback("Not enough $!");
+                buyDiceButton.transform.DOKill();
+                buyDiceButton.transform.DOShakePosition(0.3f, 5f, 20);
+                return;
+            }
+
             bool success = DiceManager.Instance.TryBuyDice(DiceType.Basic);
             Debug.Log($"[GameUI] Buy dice result: {success}");
 
             if (success)
             {
-                // Animate button
-                buyDiceButton.transform.DOKill();
-                buyDiceButton.transform.localScale = Vector3.one;
-                buyDiceButton.transform.DOPunchScale(Vector3.one * 0.15f, 0.2f, 5, 0.5f);
+                // Satisfying purchase animation
+                PlayPurchaseAnimation(buyDiceButton.transform);
                 UpdateButtonTexts();
             }
-            else
+        }
+
+        /// <summary>
+        /// Plays a satisfying bounce animation and effects on successful purchase.
+        /// </summary>
+        private void PlayPurchaseAnimation(Transform buttonTransform)
+        {
+            if (buttonTransform == null) return;
+
+            buttonTransform.DOKill();
+            buttonTransform.localScale = Vector3.one;
+
+            // Create satisfying sequence: quick squeeze then bounce out
+            Sequence purchaseSeq = DOTween.Sequence();
+            purchaseSeq.Append(buttonTransform.DOScale(0.9f, 0.05f).SetEase(Ease.InQuad));
+            purchaseSeq.Append(buttonTransform.DOScale(1.15f, 0.1f).SetEase(Ease.OutBack));
+            purchaseSeq.Append(buttonTransform.DOScale(1f, 0.1f).SetEase(Ease.InOutSine));
+
+            // Subtle camera shake for tactile feedback
+            if (mainCamera != null)
             {
-                // Show feedback and shake
-                ShowNotEnoughFeedback("Not enough money!");
-                buyDiceButton.transform.DOKill();
-                buyDiceButton.transform.DOShakePosition(0.2f, 3f, 15);
+                mainCamera.transform.DOKill();
+                mainCamera.transform.DOShakePosition(0.1f, 0.02f, 15, 90f, false, true);
+            }
+
+            // Spawn purchase particle effect
+            if (VisualEffectsManager.Instance != null)
+            {
+                Vector3 worldPos = mainCamera != null ? mainCamera.ScreenToWorldPoint(buttonTransform.position) : Vector3.zero;
+                worldPos.z = 0;
+                VisualEffectsManager.Instance.SpawnPurchaseEffect(worldPos);
+            }
+
+            // Play sound
+            if (AudioManager.Instance != null)
+            {
+                AudioManager.Instance.PlayPurchaseSound();
+            }
+        }
+
+        /// <summary>
+        /// Sets the visual state of a button (darkened when unavailable, normal when available).
+        /// </summary>
+        private void SetButtonVisualState(Button button, bool isAvailable)
+        {
+            if (button == null) return;
+
+            Image buttonImage = button.GetComponent<Image>();
+            if (buttonImage != null)
+            {
+                // Darken the button when unavailable
+                Color targetColor = isAvailable ? Color.white : new Color(0.5f, 0.5f, 0.5f, 1f);
+                buttonImage.color = targetColor;
+            }
+
+            // Also dim the text slightly when unavailable
+            TextMeshProUGUI buttonText = button.GetComponentInChildren<TextMeshProUGUI>();
+            if (buttonText != null)
+            {
+                buttonText.color = isAvailable ? Color.white : new Color(0.7f, 0.7f, 0.7f, 1f);
             }
         }
 
@@ -461,13 +675,18 @@ namespace Incredicer.UI
                 bool success = PrestigeManager.Instance.DoPrestige();
                 if (success)
                 {
-                    // Animate button
-                    ascendButton.transform.DOKill();
-                    ascendButton.transform.localScale = Vector3.one;
-                    ascendButton.transform.DOPunchScale(Vector3.one * 0.3f, 0.3f, 5, 0.5f);
+                    // Hide the ascend button with animation
+                    if (ascendButton != null)
+                    {
+                        ascendButton.transform.DOKill();
+                        ascendButton.transform.DOScale(0f, 0.3f).SetEase(Ease.InBack).OnComplete(() =>
+                        {
+                            ascendButton.gameObject.SetActive(false);
+                        });
+                    }
 
-                    // Show floating text - DM is now unlocked!
-                    ShowFloatingText(Vector3.zero, "ASCENDED!\nDark Matter Unlocked!", new Color(0.8f, 0.5f, 1f));
+                    // Show Dark Matter Unlocked celebration banner!
+                    ShowDarkMatterUnlockedCelebration();
 
                     // Screen shake for dramatic effect
                     if (mainCamera != null)
@@ -488,6 +707,148 @@ namespace Incredicer.UI
                 ascendButton.transform.DOShakePosition(0.2f, 3f, 15);
 
                 Debug.Log($"[GameUI] Cannot ascend yet. Need: ${FormatNumber(required)}");
+            }
+        }
+
+        /// <summary>
+        /// Shows a big celebration banner when Dark Matter is unlocked.
+        /// </summary>
+        private void ShowDarkMatterUnlockedCelebration()
+        {
+            // Create full-screen overlay
+            GameObject overlayObj = new GameObject("DMUnlockCelebration");
+            overlayObj.transform.SetParent(transform, false);
+
+            RectTransform overlayRt = overlayObj.AddComponent<RectTransform>();
+            overlayRt.anchorMin = Vector2.zero;
+            overlayRt.anchorMax = Vector2.one;
+            overlayRt.offsetMin = Vector2.zero;
+            overlayRt.offsetMax = Vector2.zero;
+
+            // Semi-transparent dark background
+            Image overlayBg = overlayObj.AddComponent<Image>();
+            overlayBg.color = new Color(0f, 0f, 0f, 0f);
+            overlayBg.raycastTarget = true;
+
+            // Banner container
+            GameObject bannerObj = new GameObject("Banner");
+            bannerObj.transform.SetParent(overlayObj.transform, false);
+
+            RectTransform bannerRt = bannerObj.AddComponent<RectTransform>();
+            bannerRt.anchorMin = new Vector2(0.1f, 0.35f);
+            bannerRt.anchorMax = new Vector2(0.9f, 0.65f);
+            bannerRt.offsetMin = Vector2.zero;
+            bannerRt.offsetMax = Vector2.zero;
+            bannerRt.localScale = Vector3.zero;
+
+            Image bannerBg = bannerObj.AddComponent<Image>();
+            bannerBg.color = new Color(0.15f, 0.1f, 0.25f, 0.95f);
+
+            // Add glow outline
+            Outline bannerOutline = bannerObj.AddComponent<Outline>();
+            bannerOutline.effectColor = new Color(0.8f, 0.5f, 1f, 1f);
+            bannerOutline.effectDistance = new Vector2(4, 4);
+
+            // Title text
+            GameObject titleObj = new GameObject("Title");
+            titleObj.transform.SetParent(bannerObj.transform, false);
+
+            RectTransform titleRt = titleObj.AddComponent<RectTransform>();
+            titleRt.anchorMin = new Vector2(0, 0.5f);
+            titleRt.anchorMax = new Vector2(1, 1f);
+            titleRt.offsetMin = new Vector2(20, 0);
+            titleRt.offsetMax = new Vector2(-20, -10);
+
+            TextMeshProUGUI titleText = titleObj.AddComponent<TextMeshProUGUI>();
+            titleText.text = "DARK MATTER";
+            titleText.fontSize = 72;
+            titleText.fontStyle = FontStyles.Bold;
+            titleText.alignment = TextAlignmentOptions.Center;
+            titleText.color = new Color(0.9f, 0.7f, 1f);
+            ApplyTextOutline(titleText, 0.2f);
+
+            // Subtitle text
+            GameObject subtitleObj = new GameObject("Subtitle");
+            subtitleObj.transform.SetParent(bannerObj.transform, false);
+
+            RectTransform subtitleRt = subtitleObj.AddComponent<RectTransform>();
+            subtitleRt.anchorMin = new Vector2(0, 0);
+            subtitleRt.anchorMax = new Vector2(1, 0.5f);
+            subtitleRt.offsetMin = new Vector2(20, 10);
+            subtitleRt.offsetMax = new Vector2(-20, 0);
+
+            TextMeshProUGUI subtitleText = subtitleObj.AddComponent<TextMeshProUGUI>();
+            subtitleText.text = "UNLOCKED!";
+            subtitleText.fontSize = 56;
+            subtitleText.fontStyle = FontStyles.Bold;
+            subtitleText.alignment = TextAlignmentOptions.Center;
+            subtitleText.color = new Color(1f, 0.85f, 0.3f);
+            ApplyTextOutline(subtitleText, 0.2f);
+
+            // Animation sequence
+            Sequence celebrationSeq = DOTween.Sequence();
+
+            // Fade in background
+            celebrationSeq.Append(overlayBg.DOFade(0.7f, 0.3f));
+
+            // Pop in banner
+            celebrationSeq.Join(bannerRt.DOScale(1f, 0.4f).SetEase(Ease.OutBack));
+
+            // Spawn fireworks particles
+            celebrationSeq.InsertCallback(0.2f, () =>
+            {
+                SpawnCelebrationFireworks();
+            });
+
+            // Pulse the banner
+            celebrationSeq.Append(bannerRt.DOScale(1.05f, 0.3f).SetEase(Ease.InOutSine));
+            celebrationSeq.Append(bannerRt.DOScale(1f, 0.3f).SetEase(Ease.InOutSine));
+
+            // Wait a moment
+            celebrationSeq.AppendInterval(1.5f);
+
+            // Fade out
+            celebrationSeq.Append(overlayBg.DOFade(0f, 0.3f));
+            celebrationSeq.Join(bannerRt.DOScale(0f, 0.3f).SetEase(Ease.InBack));
+
+            // Cleanup
+            celebrationSeq.OnComplete(() =>
+            {
+                Destroy(overlayObj);
+            });
+        }
+
+        /// <summary>
+        /// Spawns firework particle effects for the Dark Matter celebration.
+        /// </summary>
+        private void SpawnCelebrationFireworks()
+        {
+            if (VisualEffectsManager.Instance == null) return;
+
+            // Spawn multiple fireworks at different positions
+            Vector3[] positions = new Vector3[]
+            {
+                new Vector3(-3f, 2f, 0),
+                new Vector3(3f, 2f, 0),
+                new Vector3(-2f, -1f, 0),
+                new Vector3(2f, -1f, 0),
+                new Vector3(0f, 3f, 0)
+            };
+
+            for (int i = 0; i < positions.Length; i++)
+            {
+                float delay = i * 0.15f;
+                Vector3 pos = positions[i];
+                DOVirtual.DelayedCall(delay, () =>
+                {
+                    VisualEffectsManager.Instance.SpawnPrestigeEffect(pos);
+                });
+            }
+
+            // Play celebration sound
+            if (AudioManager.Instance != null)
+            {
+                AudioManager.Instance.PlayJackpotSound();
             }
         }
 
@@ -546,6 +907,10 @@ namespace Incredicer.UI
             }
         }
 
+        // Active skill button pulse state
+        private bool isSkillButtonPulsing = false;
+        private Tweener skillButtonPulse;
+
         /// <summary>
         /// Updates the active skill button text and state.
         /// </summary>
@@ -557,6 +922,7 @@ namespace Incredicer.UI
             if (SkillTreeManager.Instance == null)
             {
                 activeSkillButton.gameObject.SetActive(false);
+                StopSkillButtonPulse();
                 return;
             }
 
@@ -566,6 +932,7 @@ namespace Incredicer.UI
             if (!hasRollBurst && !hasHyperburst)
             {
                 activeSkillButton.gameObject.SetActive(false);
+                StopSkillButtonPulse();
                 return;
             }
 
@@ -587,47 +954,97 @@ namespace Incredicer.UI
                     if (isReady)
                     {
                         activeSkillButtonText.text = $"{skillName}\n<size=60%>READY!</size>";
+                        StartSkillButtonPulse();
                     }
                     else
                     {
                         activeSkillButtonText.text = $"{skillName}\n<size=60%>{cooldown:F1}s</size>";
+                        StopSkillButtonPulse();
                     }
                 }
             }
         }
 
         /// <summary>
+        /// Starts a pulsing glow animation on the active skill button.
+        /// </summary>
+        private void StartSkillButtonPulse()
+        {
+            if (isSkillButtonPulsing || activeSkillButton == null) return;
+            isSkillButtonPulsing = true;
+
+            // Gentle pulse animation
+            skillButtonPulse = activeSkillButton.transform.DOScale(1.08f, 0.5f)
+                .SetEase(Ease.InOutSine)
+                .SetLoops(-1, LoopType.Yoyo);
+
+            // Also pulse the button color if it has an Image
+            Image btnImage = activeSkillButton.GetComponent<Image>();
+            if (btnImage != null)
+            {
+                Color baseColor = btnImage.color;
+                btnImage.DOColor(new Color(
+                    Mathf.Min(baseColor.r * 1.3f, 1f),
+                    Mathf.Min(baseColor.g * 1.3f, 1f),
+                    Mathf.Min(baseColor.b * 1.3f, 1f),
+                    baseColor.a), 0.5f)
+                    .SetEase(Ease.InOutSine)
+                    .SetLoops(-1, LoopType.Yoyo);
+            }
+        }
+
+        /// <summary>
+        /// Stops the pulsing animation on the active skill button.
+        /// </summary>
+        private void StopSkillButtonPulse()
+        {
+            if (!isSkillButtonPulsing) return;
+            isSkillButtonPulsing = false;
+
+            skillButtonPulse?.Kill();
+
+            if (activeSkillButton != null)
+            {
+                activeSkillButton.transform.DOKill();
+                activeSkillButton.transform.localScale = Vector3.one;
+
+                Image btnImage = activeSkillButton.GetComponent<Image>();
+                if (btnImage != null)
+                {
+                    btnImage.DOKill();
+                }
+            }
+        }
+
+        /// <summary>
         /// Updates the ascend button text and disabled state.
+        /// Hides the button after player has ascended.
         /// </summary>
         private void UpdateAscendButton()
         {
+            if (ascendButton == null) return;
             if (PrestigeManager.Instance == null) return;
 
             bool hasAscended = PrestigeManager.Instance.HasAscended;
             bool canAscend = PrestigeManager.Instance.CanPrestige();
             double required = PrestigeManager.Instance.GetMoneyRequiredForPrestige();
 
-            // Update interactable state
-            if (ascendButton != null)
+            // Hide button if already ascended
+            if (hasAscended)
             {
-                ascendButton.interactable = canAscend && !hasAscended;
+                ascendButton.gameObject.SetActive(false);
+                return;
             }
+
+            ascendButton.gameObject.SetActive(true);
+            ascendButton.interactable = true; // Always interactable for feedback
+
+            // Darken if can't afford
+            SetButtonVisualState(ascendButton, canAscend);
 
             if (ascendButtonText != null)
             {
-                if (hasAscended)
-                {
-                    ascendButtonText.text = "Ascended\n<size=60%>DM Active!</size>";
-                    ascendButton.interactable = false;
-                }
-                else if (canAscend)
-                {
-                    ascendButtonText.text = $"Ascend\n<size=60%>${FormatNumber(required)}</size>";
-                }
-                else
-                {
-                    ascendButtonText.text = $"Ascend\n<size=60%>${FormatNumber(required)}</size>";
-                }
+                ascendButtonText.text = $"Ascend\n<size=60%>${FormatNumber(required)}</size>";
             }
         }
 
@@ -667,6 +1084,17 @@ namespace Incredicer.UI
             double currentMoney = CurrencyManager.Instance.Money;
             Debug.Log($"[GameUI] Current money: {currentMoney}, Upgrade cost: {diceValueUpgradeCost}");
 
+            // Check if can afford before attempting
+            if (currentMoney < diceValueUpgradeCost)
+            {
+                Debug.Log("[GameUI] Cannot afford upgrade - shaking button");
+                // Show feedback and shake
+                ShowNotEnoughFeedback("Not enough $!");
+                upgradeDiceButton.transform.DOKill();
+                upgradeDiceButton.transform.DOShakePosition(0.3f, 5f, 20);
+                return;
+            }
+
             if (CurrencyManager.Instance.SpendMoney(diceValueUpgradeCost))
             {
                 // Increase the dice value upgrade level
@@ -676,19 +1104,12 @@ namespace Incredicer.UI
                 // Increase cost for next upgrade
                 diceValueUpgradeCost *= diceValueUpgradeCostMultiplier;
 
-                // Animate button
-                upgradeDiceButton.transform.DOKill();
-                upgradeDiceButton.transform.localScale = Vector3.one;
-                upgradeDiceButton.transform.DOPunchScale(Vector3.one * 0.15f, 0.2f, 5, 0.5f);
+                // Satisfying purchase animation
+                PlayPurchaseAnimation(upgradeDiceButton.transform);
                 UpdateButtonTexts();
-            }
-            else
-            {
-                Debug.Log("[GameUI] Cannot afford upgrade - shaking button");
-                // Show feedback and shake
-                ShowNotEnoughFeedback("Not enough money!");
-                upgradeDiceButton.transform.DOKill();
-                upgradeDiceButton.transform.DOShakePosition(0.2f, 3f, 15);
+
+                // Show level up feedback
+                ShowFloatingText(Vector3.zero, $"Level {GameStats.Instance.DiceValueUpgradeLevel}!", new Color(0.4f, 1f, 0.4f));
             }
         }
 
@@ -955,6 +1376,9 @@ namespace Incredicer.UI
             tmp.color = color;
             tmp.raycastTarget = false;
 
+            // Apply black outline for readability
+            ApplyTextOutline(tmp);
+
             // Convert world position to screen position
             Vector3 screenPos = mainCamera.WorldToScreenPoint(worldPosition + Vector3.up * 0.5f);
 
@@ -979,5 +1403,165 @@ namespace Incredicer.UI
 
             seq.OnComplete(() => Destroy(textObj));
         }
+
+        #region Hyperburst Visual Effect
+
+        private GameObject hyperburstOverlay;
+        private TextMeshProUGUI hyperburstText;
+        private Sequence hyperburstPulseSequence;
+
+        /// <summary>
+        /// Shows the x2 Hyperburst visual effect overlay.
+        /// </summary>
+        public void ShowHyperburstEffect(float duration)
+        {
+            // Create overlay if doesn't exist
+            if (hyperburstOverlay == null)
+            {
+                CreateHyperburstOverlay();
+            }
+
+            hyperburstOverlay.SetActive(true);
+
+            // Animate in with punch
+            RectTransform rt = hyperburstOverlay.GetComponent<RectTransform>();
+            rt.localScale = Vector3.zero;
+            rt.DOKill();
+            rt.DOScale(1f, 0.3f).SetEase(Ease.OutBack);
+
+            // Start pulsing animation
+            StartHyperburstPulse();
+
+            // Screen flash effect
+            CreateScreenFlash(new Color(1f, 0.8f, 0.2f, 0.3f), 0.2f);
+
+            // Show floating text
+            ShowFloatingText(Vector3.zero, "x2 ALL EARNINGS!", new Color(1f, 0.85f, 0.2f));
+
+            Debug.Log("[GameUI] Hyperburst effect shown!");
+        }
+
+        /// <summary>
+        /// Hides the Hyperburst visual effect.
+        /// </summary>
+        public void HideHyperburstEffect()
+        {
+            if (hyperburstOverlay == null) return;
+
+            // Stop pulsing
+            hyperburstPulseSequence?.Kill();
+
+            // Animate out
+            RectTransform rt = hyperburstOverlay.GetComponent<RectTransform>();
+            rt.DOKill();
+            rt.DOScale(0f, 0.2f).SetEase(Ease.InBack).OnComplete(() =>
+            {
+                hyperburstOverlay.SetActive(false);
+            });
+
+            // Show end message
+            ShowFloatingText(Vector3.zero, "Hyperburst ended!", new Color(0.7f, 0.7f, 0.7f));
+
+            Debug.Log("[GameUI] Hyperburst effect hidden!");
+        }
+
+        /// <summary>
+        /// Creates the Hyperburst overlay UI element.
+        /// </summary>
+        private void CreateHyperburstOverlay()
+        {
+            hyperburstOverlay = new GameObject("HyperburstOverlay");
+            hyperburstOverlay.transform.SetParent(transform, false);
+
+            RectTransform rt = hyperburstOverlay.AddComponent<RectTransform>();
+            // Position in top-center of screen
+            rt.anchorMin = new Vector2(0.5f, 1f);
+            rt.anchorMax = new Vector2(0.5f, 1f);
+            rt.pivot = new Vector2(0.5f, 1f);
+            rt.anchoredPosition = new Vector2(0, -180);
+            rt.sizeDelta = new Vector2(300, 100);
+
+            // Background with glow effect
+            Image bg = hyperburstOverlay.AddComponent<Image>();
+            bg.color = new Color(1f, 0.7f, 0.1f, 0.9f);
+            bg.raycastTarget = false;
+
+            // Add outline/border effect
+            Outline outline = hyperburstOverlay.AddComponent<Outline>();
+            outline.effectColor = new Color(1f, 1f, 0.5f, 1f);
+            outline.effectDistance = new Vector2(3, 3);
+
+            // x2 Text
+            GameObject textObj = new GameObject("x2Text");
+            textObj.transform.SetParent(hyperburstOverlay.transform, false);
+
+            RectTransform textRt = textObj.AddComponent<RectTransform>();
+            textRt.anchorMin = Vector2.zero;
+            textRt.anchorMax = Vector2.one;
+            textRt.offsetMin = Vector2.zero;
+            textRt.offsetMax = Vector2.zero;
+
+            hyperburstText = textObj.AddComponent<TextMeshProUGUI>();
+            hyperburstText.text = "x2";
+            hyperburstText.fontSize = 72;
+            hyperburstText.fontStyle = FontStyles.Bold;
+            hyperburstText.alignment = TextAlignmentOptions.Center;
+            hyperburstText.color = Color.white;
+            hyperburstText.outlineWidth = 0.2f;
+            hyperburstText.outlineColor = new Color(0.3f, 0.1f, 0f, 1f);
+
+            if (floatingTextFont != null)
+            {
+                hyperburstText.font = floatingTextFont;
+            }
+
+            hyperburstOverlay.SetActive(false);
+        }
+
+        /// <summary>
+        /// Starts the pulsing animation for the Hyperburst overlay.
+        /// </summary>
+        private void StartHyperburstPulse()
+        {
+            hyperburstPulseSequence?.Kill();
+
+            RectTransform rt = hyperburstOverlay.GetComponent<RectTransform>();
+            hyperburstPulseSequence = DOTween.Sequence();
+            hyperburstPulseSequence.Append(rt.DOScale(1.1f, 0.3f).SetEase(Ease.InOutSine));
+            hyperburstPulseSequence.Append(rt.DOScale(1f, 0.3f).SetEase(Ease.InOutSine));
+            hyperburstPulseSequence.SetLoops(-1); // Infinite loop
+
+            // Also pulse the text color
+            if (hyperburstText != null)
+            {
+                hyperburstText.DOColor(new Color(1f, 1f, 0.7f), 0.3f)
+                    .SetLoops(-1, LoopType.Yoyo)
+                    .SetEase(Ease.InOutSine);
+            }
+        }
+
+        /// <summary>
+        /// Creates a brief screen flash effect.
+        /// </summary>
+        private void CreateScreenFlash(Color color, float duration)
+        {
+            GameObject flashObj = new GameObject("ScreenFlash");
+            flashObj.transform.SetParent(transform, false);
+
+            RectTransform rt = flashObj.AddComponent<RectTransform>();
+            rt.anchorMin = Vector2.zero;
+            rt.anchorMax = Vector2.one;
+            rt.offsetMin = Vector2.zero;
+            rt.offsetMax = Vector2.zero;
+
+            Image img = flashObj.AddComponent<Image>();
+            img.color = color;
+            img.raycastTarget = false;
+
+            // Fade out
+            img.DOFade(0f, duration).OnComplete(() => Destroy(flashObj));
+        }
+
+        #endregion
     }
 }

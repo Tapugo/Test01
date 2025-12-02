@@ -28,7 +28,8 @@
       "mcp__coplay-mcp__set_ui_text",
       "mcp__coplay-mcp__remove_component",
       "mcp__coplay-mcp__set_sibling_index",
-      "Bash(find:*)"
+      "Bash(find:*)",
+      "mcp__ide__getDiagnostics"
     ],
     "deny": [],
     "ask": []

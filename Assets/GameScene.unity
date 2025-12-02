@@ -789,28 +789,15 @@ MonoBehaviour:
   panelCanvasGroup: {fileID: 1199254805}
   panelRect: {fileID: 1199254804}
   darkMatterText: {fileID: 0}
-  skillPointsText: {fileID: 0}
   closeButton: {fileID: 0}
-  treeContainer: {fileID: 0}
-  nodeContainer: {fileID: 0}
-  connectionContainer: {fileID: 0}
   scrollRect: {fileID: 0}
-  infoPanelRect: {fileID: 0}
-  nodeInfoPanel: {fileID: 0}
-  nodeNameText: {fileID: 0}
-  nodeDescriptionText: {fileID: 0}
-  nodeCostText: {fileID: 0}
-  purchaseButton: {fileID: 0}
-  purchaseButtonText: {fileID: 0}
-  nodeSize: 120
-  nodeSpacingX: 160
-  nodeSpacingY: 140
-  connectionWidth: 3
+  contentContainer: {fileID: 0}
+  guiAssets: {fileID: 0}
+  itemHeight: 140
+  headerHeight: 70
   unlockedColor: {r: 0.3, g: 0.9, b: 0.4, a: 1}
   availableColor: {r: 1, g: 0.85, b: 0.3, a: 1}
   lockedColor: {r: 0.35, g: 0.35, b: 0.4, a: 1}
-  connectionColorUnlocked: {r: 0.3, g: 0.9, b: 0.4, a: 0.8}
-  connectionColorLocked: {r: 0.4, g: 0.4, b: 0.45, a: 0.5}
 --- !u!1 &468808212
 GameObject:
   m_ObjectHideFlags: 0
@@ -1945,6 +1932,7 @@ MonoBehaviour:
   diceShopButtonText: {fileID: 0}
   diceShopPanel: {fileID: 0}
   diceShopContent: {fileID: 0}
+  bottomShopPanel: {fileID: 0}
   skillTreeButton: {fileID: 1675717121}
   ascendButton: {fileID: 1000703327}
   ascendButtonText: {fileID: 1584781129}
@@ -2063,6 +2051,10 @@ MonoBehaviour:
   startScale: 1.2
   endScale: 0.5
   arcHeight: 100
+  particleCount: 5
+  particleSpread: 30
+  particleSize: 40
+  particleStagger: 0.05
   currencyEffectPrefab: {fileID: 0}
 --- !u!1 &1000703326
 GameObject:
@@ -2407,8 +2399,8 @@ MonoBehaviour:
       m_Calls: []
   m_text: DICE SHOP
   m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
-  m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
+  m_fontAsset: {fileID: 11400000, guid: e1980d03e94584c2b8bf7986c994fd3a, type: 2}
+  m_sharedMaterial: {fileID: -403277894513911722, guid: e1980d03e94584c2b8bf7986c994fd3a, type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
@@ -3562,8 +3554,11 @@ MonoBehaviour:
   openButton: {fileID: 1949402527}
   openButtonText: {fileID: 1107053302}
   closeButton: {fileID: 1347823085}
+  panelRect: {fileID: 0}
+  scrollRect: {fileID: 0}
   contentContainer: {fileID: 1343300592}
   moneyDisplayText: {fileID: 1626185758}
+  guiAssets: {fileID: 0}
   affordableColor: {r: 0.3, g: 0.8, b: 0.4, a: 1}
   unaffordableColor: {r: 0.5, g: 0.5, b: 0.5, a: 1}
   lockedColor: {r: 0.3, g: 0.3, b: 0.35, a: 1}

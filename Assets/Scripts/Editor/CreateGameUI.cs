@@ -109,18 +109,27 @@ namespace Incredicer.Editor
 
             Button skillTreeBtnComp = skillTreeBtn.GetComponent<Button>();
 
-            // ===== SHOP PANEL (bottom center) =====
-            GameObject shopPanel = CreatePanel(canvasObj.transform, "ShopPanel",
-                new Vector2(0.5f, 0), new Vector2(0.5f, 0), new Vector2(0.5f, 0),
-                new Vector2(0, 25), new Vector2(460, 90));
+            // ===== SHOP PANEL (bottom - fills bottom and sides) =====
+            GameObject shopPanel = new GameObject("ShopPanel");
+            shopPanel.transform.SetParent(canvasObj.transform);
 
-            Image shopBg = shopPanel.GetComponent<Image>();
-            shopBg.color = new Color(0.1f, 0.1f, 0.15f, 0.85f);
+            RectTransform shopRT = shopPanel.AddComponent<RectTransform>();
+            // Anchor to bottom, stretch horizontally to fill left and right sides
+            shopRT.anchorMin = new Vector2(0, 0);
+            shopRT.anchorMax = new Vector2(1, 0);
+            shopRT.pivot = new Vector2(0.5f, 0);
+            // Stretch to edges (no horizontal offset)
+            shopRT.offsetMin = new Vector2(0, 0); // Left, Bottom
+            shopRT.offsetMax = new Vector2(0, 110); // Right (0 = stretch to edge), Top (height)
 
-            // Add horizontal layout
+            Image shopBg = shopPanel.AddComponent<Image>();
+            shopBg.color = new Color(0.1f, 0.1f, 0.15f, 0.9f);
+            shopBg.raycastTarget = false;
+
+            // Add horizontal layout - center the buttons
             HorizontalLayoutGroup hlg = shopPanel.AddComponent<HorizontalLayoutGroup>();
-            hlg.padding = new RectOffset(15, 15, 12, 12);
-            hlg.spacing = 20;
+            hlg.padding = new RectOffset(40, 40, 20, 20);
+            hlg.spacing = 30;
             hlg.childAlignment = TextAnchor.MiddleCenter;
             hlg.childControlWidth = false;
             hlg.childControlHeight = true;
