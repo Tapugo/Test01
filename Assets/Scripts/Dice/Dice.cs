@@ -63,7 +63,7 @@ namespace Incredicer.Dice
         private double dmMultiplier = 1.0;
 
         // Store the initial scale set during Initialize
-        private Vector3 initialScale = Vector3.one * 0.56f; // 20% smaller than original 0.7f
+        private Vector3 initialScale = Vector3.one * 0.504f; // 30% smaller than original 0.7f (10% smaller than 0.56)
 
         // FocusedGravity / PrecisionAim movement
         [Header("Gravity Settings")]
@@ -116,17 +116,25 @@ namespace Incredicer.Dice
             Vector2 force = Vector2.zero;
             Vector3 currentPos = transform.position;
 
-            // FocusedGravity: Dice drift toward the center of all dice (cluster together)
+            // FocusedGravity: Dice slowly drift toward the center of the screen
             if (GameStats.Instance.FocusedGravityActive)
             {
-                Vector2 clusterCenter = GetDiceClusterCenter();
-                Vector2 toCenter = clusterCenter - (Vector2)currentPos;
+                // Get screen center in world coordinates
+                Vector2 screenCenter = mainCamera != null ? (Vector2)mainCamera.transform.position : Vector2.zero;
+                Vector2 toCenter = screenCenter - (Vector2)currentPos;
                 float distance = toCenter.magnitude;
 
-                // Only apply force if not already at center
-                if (distance > 0.5f)
+                // Only apply force if outside the "comfort zone" radius
+                // Dice will drift inward but stop before clustering at center
+                float comfortRadius = 1.5f; // Distance from center where dice stop drifting
+                if (distance > comfortRadius)
                 {
-                    force += toCenter.normalized * gravityForce;
+                    // Very slow drift - use a fraction of the normal gravity force
+                    float slowGravityForce = gravityForce * 0.15f;
+
+                    // Gradually reduce force as dice get closer to comfort zone
+                    float distanceFactor = Mathf.Clamp01((distance - comfortRadius) / 2f);
+                    force += toCenter.normalized * slowGravityForce * distanceFactor;
                 }
             }
 
@@ -406,7 +414,7 @@ namespace Incredicer.Dice
             SetupFeedbacks();
 
             // Set dice size (smaller dice)
-            initialScale = Vector3.one * 0.56f; // 20% smaller than original 0.7f
+            initialScale = Vector3.one * 0.504f; // 30% smaller than original 0.7f (10% smaller than 0.56)
             transform.localScale = initialScale;
 
             // Update collider to match

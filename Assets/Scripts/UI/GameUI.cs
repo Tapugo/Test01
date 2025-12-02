@@ -394,11 +394,12 @@ namespace Incredicer.UI
             if (bottomShopPanel != null)
             {
                 // Make it stretch to fill bottom and sides
+                // Panel height matches button height (150) with bottom edge at screen bottom
                 bottomShopPanel.anchorMin = new Vector2(0, 0);
                 bottomShopPanel.anchorMax = new Vector2(1, 0);
                 bottomShopPanel.pivot = new Vector2(0.5f, 0);
-                bottomShopPanel.offsetMin = new Vector2(0, 0);  // Left = 0, Bottom = 0
-                bottomShopPanel.offsetMax = new Vector2(0, 120); // Right = 0 (stretch), Top = height
+                bottomShopPanel.offsetMin = new Vector2(0, 0);   // Left = 0, Bottom = 0 (at screen edge)
+                bottomShopPanel.offsetMax = new Vector2(0, 150); // Right = 0 (stretch), Top = 150 (button height)
 
                 // Update background color if needed
                 Image bg = bottomShopPanel.GetComponent<Image>();

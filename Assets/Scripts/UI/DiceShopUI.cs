@@ -564,6 +564,16 @@ namespace Incredicer.UI
             {
                 shopPanel.SetActive(true);
 
+                // Ensure popup renders above effects
+                Canvas popupCanvas = shopPanel.GetComponent<Canvas>();
+                if (popupCanvas == null)
+                {
+                    popupCanvas = shopPanel.AddComponent<Canvas>();
+                    popupCanvas.overrideSorting = true;
+                    shopPanel.AddComponent<GraphicRaycaster>();
+                }
+                popupCanvas.sortingOrder = 200; // Above screen effects (50) and main UI (100)
+
                 if (panelCanvasGroup != null)
                 {
                     panelCanvasGroup.alpha = 0f;

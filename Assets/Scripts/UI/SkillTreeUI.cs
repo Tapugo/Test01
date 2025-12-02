@@ -706,6 +706,17 @@ namespace Incredicer.UI
             if (skillTreePanel != null)
             {
                 skillTreePanel.SetActive(true);
+
+                // Ensure popup renders above effects
+                Canvas popupCanvas = skillTreePanel.GetComponent<Canvas>();
+                if (popupCanvas == null)
+                {
+                    popupCanvas = skillTreePanel.AddComponent<Canvas>();
+                    popupCanvas.overrideSorting = true;
+                    skillTreePanel.AddComponent<UnityEngine.UI.GraphicRaycaster>();
+                }
+                popupCanvas.sortingOrder = 200; // Above screen effects (50) and main UI (100)
+
                 if (panelCanvasGroup != null)
                 {
                     panelCanvasGroup.alpha = 0f;

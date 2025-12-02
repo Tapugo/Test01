@@ -66,7 +66,7 @@ namespace Incredicer.Core
             canvasObj.transform.SetParent(transform);
             screenEffectsCanvas = canvasObj.AddComponent<Canvas>();
             screenEffectsCanvas.renderMode = RenderMode.ScreenSpaceOverlay;
-            screenEffectsCanvas.sortingOrder = 999;
+            screenEffectsCanvas.sortingOrder = 50; // Below UI popups (100+) but above game elements
 
             canvasObj.AddComponent<CanvasScaler>();
             canvasObj.AddComponent<GraphicRaycaster>();
@@ -717,7 +717,7 @@ namespace Incredicer.Core
             renderer.material.SetColor("_Color", color);
             renderer.trailMaterial = new Material(Shader.Find("Particles/Standard Unlit"));
             renderer.trailMaterial.SetColor("_Color", color);
-            renderer.sortingOrder = 100;
+            renderer.sortingOrder = 10; // Below UI elements but above dice
         }
 
         // ========== PUBLIC SPAWN METHODS ==========
