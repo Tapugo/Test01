@@ -10,7 +10,7 @@ namespace Incredicer.UI
 {
     /// <summary>
     /// Dice Shop UI - allows players to buy different types of dice.
-    /// Includes proper input blocking when open.
+    /// Styled with Layer Lab/GUI-CasualFantasy assets.
     /// </summary>
     public class DiceShopUI : MonoBehaviour
     {
@@ -24,8 +24,13 @@ namespace Incredicer.UI
         [SerializeField] private Button closeButton;
 
         [Header("Content")]
+        [SerializeField] private RectTransform panelRect;
+        [SerializeField] private ScrollRect scrollRect;
         [SerializeField] private RectTransform contentContainer;
         [SerializeField] private TextMeshProUGUI moneyDisplayText;
+
+        [Header("GUI Assets")]
+        [SerializeField] private GUISpriteAssets guiAssets;
 
         [Header("Visual Settings")]
         [SerializeField] private Color affordableColor = new Color(0.3f, 0.8f, 0.4f);
@@ -47,6 +52,9 @@ namespace Incredicer.UI
             public TextMeshProUGUI priceText;
             public TextMeshProUGUI ownedText;
             public Image dicePreview;
+            public Button buyButton;
+            public TextMeshProUGUI buyButtonText;
+            public Image buyButtonBg;
         }
 
         private void Awake()
@@ -57,6 +65,10 @@ namespace Incredicer.UI
                 return;
             }
             Instance = this;
+
+            // Load GUI assets if not assigned
+            if (guiAssets == null)
+                guiAssets = GUISpriteAssets.Instance;
 
             if (shopPanel != null)
             {
@@ -102,16 +114,19 @@ namespace Incredicer.UI
             if (isInitialized) return;
             isInitialized = true;
 
-            if (contentContainer == null)
-            {
-                CreateDefaultLayout();
-            }
+            if (shopPanel == null) return;
+
+            // Create UI structure if needed
+            CreateUIStructure();
 
             // Clear existing items
             shopItems.Clear();
-            foreach (Transform child in contentContainer)
+            if (contentContainer != null)
             {
-                Destroy(child.gameObject);
+                foreach (Transform child in contentContainer)
+                {
+                    Destroy(child.gameObject);
+                }
             }
 
             // Create items for each dice type
@@ -124,63 +139,249 @@ namespace Incredicer.UI
             Debug.Log($"[DiceShopUI] Built shop with {shopItems.Count} items");
         }
 
-        private void CreateDefaultLayout()
+        private void CreateUIStructure()
         {
-            // Create content container if not assigned
-            GameObject contentObj = new GameObject("Content");
-            contentObj.transform.SetParent(shopPanel.transform, false);
-            contentContainer = contentObj.AddComponent<RectTransform>();
-            contentContainer.anchorMin = new Vector2(0, 0);
-            contentContainer.anchorMax = new Vector2(1, 0.85f);
-            contentContainer.offsetMin = new Vector2(10, 10);
-            contentContainer.offsetMax = new Vector2(-10, -10);
+            // Get or create panel rect
+            if (panelRect == null)
+            {
+                panelRect = shopPanel.GetComponent<RectTransform>();
+                if (panelRect == null)
+                    panelRect = shopPanel.AddComponent<RectTransform>();
+            }
 
-            // Add vertical layout group
+            // Ensure panel fills screen with margins
+            panelRect.anchorMin = Vector2.zero;
+            panelRect.anchorMax = Vector2.one;
+            panelRect.offsetMin = new Vector2(20, 20);
+            panelRect.offsetMax = new Vector2(-20, -20);
+
+            // Add background if missing
+            Image panelBg = shopPanel.GetComponent<Image>();
+            if (panelBg == null)
+            {
+                panelBg = shopPanel.AddComponent<Image>();
+                panelBg.color = new Color(0.08f, 0.08f, 0.12f, 0.98f);
+            }
+
+            // Add canvas group if missing
+            if (panelCanvasGroup == null)
+            {
+                panelCanvasGroup = shopPanel.GetComponent<CanvasGroup>();
+                if (panelCanvasGroup == null)
+                    panelCanvasGroup = shopPanel.AddComponent<CanvasGroup>();
+            }
+
+            // Create header if money display doesn't exist
+            if (moneyDisplayText == null)
+            {
+                CreateHeader();
+            }
+
+            // Create scroll area if it doesn't exist
+            if (scrollRect == null)
+            {
+                CreateScrollArea();
+            }
+        }
+
+        private void CreateHeader()
+        {
+            GameObject headerObj = new GameObject("Header");
+            headerObj.transform.SetParent(shopPanel.transform, false);
+            RectTransform headerRt = headerObj.AddComponent<RectTransform>();
+            headerRt.anchorMin = new Vector2(0, 0.9f);
+            headerRt.anchorMax = new Vector2(1, 1);
+            headerRt.offsetMin = new Vector2(10, 5);
+            headerRt.offsetMax = new Vector2(-10, -5);
+
+            Image headerBg = headerObj.AddComponent<Image>();
+            // Use GUI sprite if available
+            if (guiAssets != null && guiAssets.horizontalFrame != null)
+            {
+                headerBg.sprite = guiAssets.horizontalFrame;
+                headerBg.type = Image.Type.Sliced;
+                headerBg.color = new Color(0.2f, 0.25f, 0.2f);
+            }
+            else
+            {
+                headerBg.color = new Color(0.12f, 0.12f, 0.18f, 0.98f);
+            }
+
+            // Title
+            GameObject titleObj = new GameObject("Title");
+            titleObj.transform.SetParent(headerObj.transform, false);
+            RectTransform titleRt = titleObj.AddComponent<RectTransform>();
+            titleRt.anchorMin = new Vector2(0, 0);
+            titleRt.anchorMax = new Vector2(0.35f, 1);
+            titleRt.offsetMin = new Vector2(15, 0);
+            titleRt.offsetMax = Vector2.zero;
+
+            TextMeshProUGUI titleText = titleObj.AddComponent<TextMeshProUGUI>();
+            titleText.text = "DICE SHOP";
+            titleText.fontSize = 28;
+            titleText.fontStyle = FontStyles.Bold;
+            titleText.alignment = TextAlignmentOptions.Left;
+            titleText.color = Color.white;
+
+            // Money display
+            GameObject moneyObj = new GameObject("Money");
+            moneyObj.transform.SetParent(headerObj.transform, false);
+            RectTransform moneyRt = moneyObj.AddComponent<RectTransform>();
+            moneyRt.anchorMin = new Vector2(0.35f, 0);
+            moneyRt.anchorMax = new Vector2(0.8f, 1);
+            moneyRt.offsetMin = Vector2.zero;
+            moneyRt.offsetMax = Vector2.zero;
+
+            moneyDisplayText = moneyObj.AddComponent<TextMeshProUGUI>();
+            moneyDisplayText.text = "$0";
+            moneyDisplayText.fontSize = 22;
+            moneyDisplayText.alignment = TextAlignmentOptions.Center;
+            moneyDisplayText.color = new Color(0.4f, 0.95f, 0.5f);
+
+            // Close button
+            GameObject closeObj = new GameObject("CloseButton");
+            closeObj.transform.SetParent(headerObj.transform, false);
+            RectTransform closeRt = closeObj.AddComponent<RectTransform>();
+            closeRt.anchorMin = new Vector2(0.85f, 0.1f);
+            closeRt.anchorMax = new Vector2(0.98f, 0.9f);
+            closeRt.offsetMin = Vector2.zero;
+            closeRt.offsetMax = Vector2.zero;
+
+            Image closeBg = closeObj.AddComponent<Image>();
+            // Use GUI button sprite if available
+            if (guiAssets != null && guiAssets.buttonRed != null)
+            {
+                closeBg.sprite = guiAssets.buttonRed;
+                closeBg.type = Image.Type.Sliced;
+                closeBg.color = Color.white;
+            }
+            else
+            {
+                closeBg.color = new Color(0.9f, 0.3f, 0.3f);
+            }
+
+            closeButton = closeObj.AddComponent<Button>();
+            closeButton.onClick.AddListener(Hide);
+
+            GameObject closeTextObj = new GameObject("X");
+            closeTextObj.transform.SetParent(closeObj.transform, false);
+            RectTransform closeTextRt = closeTextObj.AddComponent<RectTransform>();
+            closeTextRt.anchorMin = Vector2.zero;
+            closeTextRt.anchorMax = Vector2.one;
+            closeTextRt.offsetMin = Vector2.zero;
+            closeTextRt.offsetMax = Vector2.zero;
+
+            TextMeshProUGUI closeText = closeTextObj.AddComponent<TextMeshProUGUI>();
+            closeText.text = "X";
+            closeText.fontSize = 28;
+            closeText.fontStyle = FontStyles.Bold;
+            closeText.alignment = TextAlignmentOptions.Center;
+            closeText.color = Color.white;
+        }
+
+        private void CreateScrollArea()
+        {
+            // Create scroll area container
+            GameObject scrollObj = new GameObject("ScrollArea");
+            scrollObj.transform.SetParent(shopPanel.transform, false);
+            RectTransform scrollRt = scrollObj.AddComponent<RectTransform>();
+            scrollRt.anchorMin = new Vector2(0, 0);
+            scrollRt.anchorMax = new Vector2(1, 0.9f);
+            scrollRt.offsetMin = new Vector2(10, 10);
+            scrollRt.offsetMax = new Vector2(-10, -5);
+
+            // ScrollRect component
+            scrollRect = scrollObj.AddComponent<ScrollRect>();
+            scrollRect.horizontal = false;
+            scrollRect.vertical = true;
+            scrollRect.movementType = ScrollRect.MovementType.Elastic;
+            scrollRect.elasticity = 0.1f;
+            scrollRect.scrollSensitivity = 20f;
+
+            // Add RectMask2D directly to scroll area for clipping
+            scrollObj.AddComponent<RectMask2D>();
+
+            // Background image
+            Image scrollBg = scrollObj.AddComponent<Image>();
+            scrollBg.color = new Color(0.05f, 0.05f, 0.08f, 0.95f);
+
+            // Use the scroll object itself as viewport
+            scrollRect.viewport = scrollRt;
+
+            // Content - child of scroll area directly
+            GameObject contentObj = new GameObject("Content");
+            contentObj.transform.SetParent(scrollObj.transform, false);
+            contentContainer = contentObj.AddComponent<RectTransform>();
+
+            // Anchor to top-left, stretch horizontally
+            contentContainer.anchorMin = new Vector2(0, 1);
+            contentContainer.anchorMax = new Vector2(1, 1);
+            contentContainer.pivot = new Vector2(0.5f, 1);
+            contentContainer.anchoredPosition = Vector2.zero;
+            contentContainer.sizeDelta = new Vector2(0, 0);
+
             VerticalLayoutGroup vlg = contentObj.AddComponent<VerticalLayoutGroup>();
-            vlg.spacing = 8;
+            vlg.spacing = 10;
             vlg.padding = new RectOffset(10, 10, 10, 10);
             vlg.childAlignment = TextAnchor.UpperCenter;
-            vlg.childControlHeight = false;
+            vlg.childControlHeight = true;
             vlg.childControlWidth = true;
             vlg.childForceExpandHeight = false;
             vlg.childForceExpandWidth = true;
 
-            // Add content size fitter
             ContentSizeFitter csf = contentObj.AddComponent<ContentSizeFitter>();
+            csf.horizontalFit = ContentSizeFitter.FitMode.Unconstrained;
             csf.verticalFit = ContentSizeFitter.FitMode.PreferredSize;
+
+            scrollRect.content = contentContainer;
         }
 
         private void CreateShopItem(DiceType type)
         {
-            if (contentContainer == null) return;
+            if (contentContainer == null)
+            {
+                Debug.LogError($"[DiceShopUI] contentContainer is null when creating item for {type}");
+                return;
+            }
 
             DiceData data = DiceManager.Instance?.GetDiceData(type);
-            if (data == null) return;
+            if (data == null)
+            {
+                Debug.LogWarning($"[DiceShopUI] No DiceData for {type}");
+                return;
+            }
+
+            Debug.Log($"[DiceShopUI] Creating shop item for {type}: {data.displayName}");
 
             // Create item container
             GameObject itemObj = new GameObject($"Item_{type}");
             itemObj.transform.SetParent(contentContainer, false);
 
             RectTransform rt = itemObj.AddComponent<RectTransform>();
-            rt.sizeDelta = new Vector2(0, 70);
+            rt.sizeDelta = new Vector2(0, 120);
 
             LayoutElement le = itemObj.AddComponent<LayoutElement>();
-            le.minHeight = 70;
-            le.preferredHeight = 70;
+            le.minHeight = 120;
+            le.preferredHeight = 120;
+            le.flexibleWidth = 1;
 
+            // Use GUI list frame sprite if available
             Image bg = itemObj.AddComponent<Image>();
-            bg.color = new Color(0.15f, 0.15f, 0.2f, 0.95f);
+            if (guiAssets != null && guiAssets.listFrame != null)
+            {
+                bg.sprite = guiAssets.listFrame;
+                bg.type = Image.Type.Sliced;
+                bg.color = new Color(0.2f, 0.22f, 0.25f);
+            }
+            else
+            {
+                bg.color = new Color(0.2f, 0.2f, 0.25f, 0.98f);
+            }
 
+            // Item acts as button
             Button btn = itemObj.AddComponent<Button>();
-            ColorBlock colors = btn.colors;
-            colors.normalColor = Color.white;
-            colors.highlightedColor = new Color(1.1f, 1.1f, 1.1f);
-            colors.pressedColor = new Color(0.9f, 0.9f, 0.9f);
-            colors.disabledColor = new Color(0.6f, 0.6f, 0.6f);
-            btn.colors = colors;
-
+            btn.transition = Selectable.Transition.None;
             DiceType capturedType = type;
-            btn.onClick.AddListener(() => OnBuyClicked(capturedType));
 
             // Dice preview (left side)
             GameObject previewObj = new GameObject("Preview");
@@ -229,22 +430,70 @@ namespace Incredicer.UI
             ownedTmp.color = new Color(0.7f, 0.7f, 0.7f);
             ownedTmp.raycastTarget = false;
 
-            // Price text (right side)
+            // Price text (center)
             GameObject priceObj = new GameObject("Price");
             priceObj.transform.SetParent(itemObj.transform, false);
             RectTransform priceRt = priceObj.AddComponent<RectTransform>();
-            priceRt.anchorMin = new Vector2(0.5f, 0);
-            priceRt.anchorMax = new Vector2(1, 1);
-            priceRt.offsetMin = new Vector2(10, 10);
-            priceRt.offsetMax = new Vector2(-15, -10);
+            priceRt.anchorMin = new Vector2(0.45f, 0.5f);
+            priceRt.anchorMax = new Vector2(0.7f, 1);
+            priceRt.offsetMin = new Vector2(0, 5);
+            priceRt.offsetMax = new Vector2(0, -5);
 
             TextMeshProUGUI priceTmp = priceObj.AddComponent<TextMeshProUGUI>();
             priceTmp.text = "$0";
-            priceTmp.fontSize = 22;
+            priceTmp.fontSize = 20;
             priceTmp.fontStyle = FontStyles.Bold;
-            priceTmp.alignment = TextAlignmentOptions.Right;
+            priceTmp.alignment = TextAlignmentOptions.Center;
             priceTmp.color = affordableColor;
             priceTmp.raycastTarget = false;
+
+            // BUY BUTTON (right side - prominent)
+            GameObject buyBtnObj = new GameObject("BuyButton");
+            buyBtnObj.transform.SetParent(itemObj.transform, false);
+            RectTransform buyBtnRt = buyBtnObj.AddComponent<RectTransform>();
+            buyBtnRt.anchorMin = new Vector2(0.72f, 0.15f);
+            buyBtnRt.anchorMax = new Vector2(0.98f, 0.85f);
+            buyBtnRt.offsetMin = Vector2.zero;
+            buyBtnRt.offsetMax = Vector2.zero;
+
+            Image buyBtnBg = buyBtnObj.AddComponent<Image>();
+            // Use GUI button sprite if available
+            if (guiAssets != null && guiAssets.buttonGreen != null)
+            {
+                buyBtnBg.sprite = guiAssets.buttonGreen;
+                buyBtnBg.type = Image.Type.Sliced;
+                buyBtnBg.color = Color.white;
+            }
+            else
+            {
+                buyBtnBg.color = affordableColor;
+            }
+
+            Button buyBtn = buyBtnObj.AddComponent<Button>();
+            ColorBlock buyColors = buyBtn.colors;
+            buyColors.normalColor = Color.white;
+            buyColors.highlightedColor = new Color(1.15f, 1.15f, 1.15f);
+            buyColors.pressedColor = new Color(0.85f, 0.85f, 0.85f);
+            buyColors.disabledColor = new Color(0.5f, 0.5f, 0.5f);
+            buyBtn.colors = buyColors;
+            buyBtn.onClick.AddListener(() => OnBuyClicked(capturedType));
+
+            // Buy button text
+            GameObject buyTextObj = new GameObject("Text");
+            buyTextObj.transform.SetParent(buyBtnObj.transform, false);
+            RectTransform buyTextRt = buyTextObj.AddComponent<RectTransform>();
+            buyTextRt.anchorMin = Vector2.zero;
+            buyTextRt.anchorMax = Vector2.one;
+            buyTextRt.offsetMin = Vector2.zero;
+            buyTextRt.offsetMax = Vector2.zero;
+
+            TextMeshProUGUI buyTextTmp = buyTextObj.AddComponent<TextMeshProUGUI>();
+            buyTextTmp.text = "BUY";
+            buyTextTmp.fontSize = 24;
+            buyTextTmp.fontStyle = FontStyles.Bold;
+            buyTextTmp.alignment = TextAlignmentOptions.Center;
+            buyTextTmp.color = Color.white;
+            buyTextTmp.raycastTarget = false;
 
             shopItems[type] = new DiceShopItem
             {
@@ -254,7 +503,10 @@ namespace Incredicer.UI
                 nameText = nameTmp,
                 priceText = priceTmp,
                 ownedText = ownedTmp,
-                dicePreview = previewImg
+                dicePreview = previewImg,
+                buyButton = buyBtn,
+                buyButtonText = buyTextTmp,
+                buyButtonBg = buyBtnBg
             };
         }
 
@@ -263,6 +515,8 @@ namespace Incredicer.UI
             if (isOpen) return;
             isOpen = true;
 
+            // Force rebuild each time to ensure content is populated
+            isInitialized = false;
             BuildShop();
 
             if (shopPanel != null)
@@ -367,15 +621,65 @@ namespace Incredicer.UI
                 item.ownedText.text = $"Owned: {owned}";
             }
 
-            // Update colors and interactability
+            // Update buy button
+            if (item.buyButton != null)
+            {
+                item.buyButton.interactable = isUnlocked && canAfford;
+            }
+
+            if (item.buyButtonText != null)
+            {
+                if (!isUnlocked)
+                    item.buyButtonText.text = "LOCKED";
+                else if (canAfford)
+                    item.buyButtonText.text = "BUY";
+                else
+                    item.buyButtonText.text = "NEED $";
+            }
+
+            if (item.buyButtonBg != null)
+            {
+                // Update button sprite and color based on state
+                if (guiAssets != null)
+                {
+                    if (!isUnlocked && guiAssets.buttonGray != null)
+                    {
+                        item.buyButtonBg.sprite = guiAssets.buttonGray;
+                        item.buyButtonBg.color = new Color(0.6f, 0.6f, 0.6f);
+                    }
+                    else if (canAfford && guiAssets.buttonGreen != null)
+                    {
+                        item.buyButtonBg.sprite = guiAssets.buttonGreen;
+                        item.buyButtonBg.color = Color.white;
+                    }
+                    else if (guiAssets.buttonYellow != null)
+                    {
+                        item.buyButtonBg.sprite = guiAssets.buttonYellow;
+                        item.buyButtonBg.color = new Color(0.8f, 0.8f, 0.8f);
+                    }
+                    else
+                    {
+                        item.buyButtonBg.color = !isUnlocked ? lockedColor : (canAfford ? affordableColor : unaffordableColor);
+                    }
+                }
+                else
+                {
+                    if (!isUnlocked)
+                        item.buyButtonBg.color = lockedColor;
+                    else if (canAfford)
+                        item.buyButtonBg.color = affordableColor;
+                    else
+                        item.buyButtonBg.color = unaffordableColor;
+                }
+            }
+
+            // Update background and price colors
             if (!isUnlocked)
             {
                 if (item.background != null)
                     item.background.color = lockedColor;
                 if (item.priceText != null)
                     item.priceText.color = new Color(0.5f, 0.5f, 0.5f);
-                if (item.button != null)
-                    item.button.interactable = false;
             }
             else if (canAfford)
             {
@@ -383,8 +687,6 @@ namespace Incredicer.UI
                     item.background.color = new Color(0.15f, 0.2f, 0.15f, 0.95f);
                 if (item.priceText != null)
                     item.priceText.color = affordableColor;
-                if (item.button != null)
-                    item.button.interactable = true;
             }
             else
             {
@@ -392,8 +694,6 @@ namespace Incredicer.UI
                     item.background.color = new Color(0.15f, 0.15f, 0.2f, 0.95f);
                 if (item.priceText != null)
                     item.priceText.color = unaffordableColor;
-                if (item.button != null)
-                    item.button.interactable = false;
             }
         }
 
@@ -417,11 +717,11 @@ namespace Incredicer.UI
                 UpdateAllItems();
 
                 // Visual feedback
-                if (shopItems.TryGetValue(type, out var item) && item.button != null)
+                if (shopItems.TryGetValue(type, out var item) && item.buyButton != null)
                 {
-                    item.button.transform.DOKill();
-                    item.button.transform.localScale = Vector3.one;
-                    item.button.transform.DOPunchScale(Vector3.one * 0.1f, 0.2f, 5, 0.5f);
+                    item.buyButton.transform.DOKill();
+                    item.buyButton.transform.localScale = Vector3.one;
+                    item.buyButton.transform.DOPunchScale(Vector3.one * 0.15f, 0.2f, 5, 0.5f);
                 }
 
                 if (GameUI.Instance != null)
@@ -434,10 +734,10 @@ namespace Incredicer.UI
             else
             {
                 // Shake feedback
-                if (shopItems.TryGetValue(type, out var item) && item.button != null)
+                if (shopItems.TryGetValue(type, out var item) && item.buyButton != null)
                 {
-                    item.button.transform.DOKill();
-                    item.button.transform.DOShakePosition(0.2f, 3f, 15);
+                    item.buyButton.transform.DOKill();
+                    item.buyButton.transform.DOShakePosition(0.2f, 3f, 15);
                 }
             }
         }
