@@ -14,10 +14,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   type: 2
   displayName: Silver Dice
-  basePayout: 5
-  dmPerRoll: 0.01
+  basePayout: 10
+  dmPerRoll: 0.05
   sprite: {fileID: 0}
-  tintColor: {r: 0.75, g: 0.75, b: 0.8, a: 1}
-  shopBaseCost: 200
-  shopCostGrowth: 1.15
-  rollCooldown: 0.5
+  tintColor: {r: 0.75, g: 0.75, b: 0.85, a: 1}
+  shopBaseCost: 500
+  shopCostGrowth: 1.2
+  rollCooldown: 0.4

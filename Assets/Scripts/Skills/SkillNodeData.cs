@@ -116,7 +116,17 @@ namespace Incredicer.Skills
                 case SkillEffectType.HelperHandMaxHandsAdd:
                     if (Helpers.HelperHandManager.Instance != null)
                     {
+                        int previousMax = Helpers.HelperHandManager.Instance.MaxHands;
                         Helpers.HelperHandManager.Instance.MaxHands += (int)effect.value;
+
+                        // Spawn the new helper hands immediately
+                        int handsToAdd = (int)effect.value;
+                        for (int i = 0; i < handsToAdd; i++)
+                        {
+                            Helpers.HelperHandManager.Instance.AddHand();
+                        }
+
+                        Debug.Log($"[SkillNode] Added {handsToAdd} helper hand(s). MaxHands: {previousMax} -> {Helpers.HelperHandManager.Instance.MaxHands}");
                     }
                     break;
 

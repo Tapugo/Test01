@@ -465,11 +465,13 @@ namespace Incredicer.Dice
             // Roll a random dice face (1-6)
             currentFaceValue = Random.Range(1, 7);
 
-            // Calculate money based on face value + upgrade bonus
-            // Base reward = face value (1-6)
-            // With upgrades: face value + upgradeLevel
+            // Calculate money based on face value * dice tier multiplier + upgrade bonus
+            // Higher tier dice (Silver, Gold, etc.) earn SIGNIFICANTLY more money
+            // Base reward = face value * basePayout (tier multiplier)
+            // With upgrades: (face value * basePayout) + upgradeLevel
             int upgradeBonus = GameStats.Instance != null ? GameStats.Instance.DiceValueUpgradeLevel : 0;
-            double baseMoney = currentFaceValue + upgradeBonus;
+            double tierMultiplier = data.basePayout; // This is the key difference between dice types!
+            double baseMoney = (currentFaceValue * tierMultiplier) + upgradeBonus;
 
             // Apply any global multipliers
             double finalMoney = baseMoney * moneyMultiplier;
@@ -550,56 +552,29 @@ namespace Incredicer.Dice
             // Play roll animation (money popup shown at end of animation)
             PlayRollAnimation(isJackpot, finalMoney, targetPos);
 
-            // Play Feel feedback
+            // Play roll feedback (start of roll - NOT jackpot effects yet)
             if (rollFeedback != null)
             {
                 rollFeedback.PlayFeedbacks();
             }
 
-            if (isJackpot && jackpotFeedback != null)
-            {
-                jackpotFeedback.PlayFeedbacks();
-            }
-
-            // Play sound effects
+            // Play roll sound immediately (jackpot sound plays when dice lands)
             if (Core.AudioManager.Instance != null)
             {
-                if (isJackpot)
-                {
-                    Core.AudioManager.Instance.PlayJackpotSound();
-                }
-                else
-                {
-                    Core.AudioManager.Instance.PlayRollSound();
-                }
+                Core.AudioManager.Instance.PlayRollSound();
             }
 
-            // Spawn visual effect
-            SpawnRollEffect(isJackpot);
+            // Spawn roll visual effect at start
+            SpawnRollEffect(false); // false = not jackpot effect at start
 
-            // Spawn particle effects
+            // Spawn initial roll particle effect
             if (Core.VisualEffectsManager.Instance != null)
             {
-                if (isJackpot)
-                {
-                    Core.VisualEffectsManager.Instance.SpawnJackpotEffect(transform.position);
-                }
-                else
-                {
-                    Core.VisualEffectsManager.Instance.SpawnRollEffect(transform.position);
-                }
+                Core.VisualEffectsManager.Instance.SpawnRollEffect(transform.position);
             }
 
-            // Screen shake on rolling 6 (jackpot) - Always get camera fresh to ensure it works
-            if (isJackpot)
-            {
-                Camera cam = mainCamera ?? Camera.main;
-                if (cam != null)
-                {
-                    cam.transform.DOKill();
-                    cam.transform.DOShakePosition(0.35f, 0.2f, 25, 90f, false, true);
-                }
-            }
+            // NOTE: Jackpot effects (screen shake, jackpot sound, jackpot particles)
+            // are now triggered in PlayRollAnimation when the dice LANDS and shows the 6
 
             // Notify listeners
             OnRolled?.Invoke(this, finalMoney, isJackpot);
@@ -745,7 +720,7 @@ namespace Incredicer.Dice
                 currentDuration *= 0.7f;
             }
 
-            // Final settle - show the result
+            // Final settle - show the result AND trigger jackpot effects when dice lands!
             rollSequence.AppendCallback(() =>
             {
                 transform.rotation = Quaternion.identity;
@@ -763,6 +738,39 @@ namespace Incredicer.Dice
                 else
                 {
                     Debug.LogWarning($"[Dice] GameUI.Instance is null, cannot show floating text: {displayText}");
+                }
+
+                // === JACKPOT EFFECTS - triggered when dice lands and shows the 6! ===
+                if (isJackpot)
+                {
+                    // Play jackpot feedback
+                    if (jackpotFeedback != null)
+                    {
+                        jackpotFeedback.PlayFeedbacks();
+                    }
+
+                    // Play jackpot sound when dice shows 6
+                    if (Core.AudioManager.Instance != null)
+                    {
+                        Core.AudioManager.Instance.PlayJackpotSound();
+                    }
+
+                    // Spawn jackpot visual effect (radial burst) at the landed position
+                    SpawnRollEffect(true); // true = jackpot effect
+
+                    // Spawn jackpot particle effects at the landed position
+                    if (Core.VisualEffectsManager.Instance != null)
+                    {
+                        Core.VisualEffectsManager.Instance.SpawnJackpotEffect(transform.position);
+                    }
+
+                    // Screen shake when dice lands on 6!
+                    Camera cam = mainCamera ?? Camera.main;
+                    if (cam != null)
+                    {
+                        cam.transform.DOKill();
+                        cam.transform.DOShakePosition(0.4f, 0.25f, 30, 90f, false, true);
+                    }
                 }
             });
 

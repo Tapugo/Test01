@@ -14,10 +14,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   type: 4
   displayName: Emerald Dice
-  basePayout: 100
-  dmPerRoll: 0.2
+  basePayout: 250
+  dmPerRoll: 1
   sprite: {fileID: 0}
   tintColor: {r: 0.31, g: 0.78, b: 0.47, a: 1}
-  shopBaseCost: 5000
-  shopCostGrowth: 1.15
-  rollCooldown: 0.5
+  shopBaseCost: 15000
+  shopCostGrowth: 1.25
+  rollCooldown: 0.3

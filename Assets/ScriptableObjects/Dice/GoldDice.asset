@@ -14,10 +14,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   type: 3
   displayName: Gold Dice
-  basePayout: 20
-  dmPerRoll: 0.05
+  basePayout: 50
+  dmPerRoll: 0.2
   sprite: {fileID: 0}
   tintColor: {r: 1, g: 0.84, b: 0, a: 1}
-  shopBaseCost: 1000
-  shopCostGrowth: 1.15
-  rollCooldown: 0.5
+  shopBaseCost: 2500
+  shopCostGrowth: 1.22
+  rollCooldown: 0.35

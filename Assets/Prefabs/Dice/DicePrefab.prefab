@@ -147,6 +147,9 @@ MonoBehaviour:
   moveDistance: 2.5
   spinSpeed: 720
   bounceCount: 2
+  gravityForce: 0.5
+  precisionAimForce: 3
+  maxDriftSpeed: 2
 --- !u!1 &3460951200370379997
 GameObject:
   m_ObjectHideFlags: 0

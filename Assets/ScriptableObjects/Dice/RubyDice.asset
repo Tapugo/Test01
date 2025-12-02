@@ -14,10 +14,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   type: 5
   displayName: Ruby Dice
-  basePayout: 500
-  dmPerRoll: 1
+  basePayout: 1500
+  dmPerRoll: 5
   sprite: {fileID: 0}
   tintColor: {r: 0.88, g: 0.07, b: 0.37, a: 1}
-  shopBaseCost: 25000
-  shopCostGrowth: 1.15
-  rollCooldown: 0.5
+  shopBaseCost: 100000
+  shopCostGrowth: 1.28
+  rollCooldown: 0.25

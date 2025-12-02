@@ -14,10 +14,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   type: 6
   displayName: Diamond Dice
-  basePayout: 2000
-  dmPerRoll: 5
+  basePayout: 10000
+  dmPerRoll: 25
   sprite: {fileID: 0}
   tintColor: {r: 0.73, g: 0.95, b: 1, a: 1}
-  shopBaseCost: 100000
-  shopCostGrowth: 1.15
-  rollCooldown: 0.5
+  shopBaseCost: 1000000
+  shopCostGrowth: 1.3
+  rollCooldown: 0.2

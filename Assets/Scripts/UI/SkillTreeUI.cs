@@ -33,7 +33,8 @@ namespace Incredicer.UI
         [SerializeField] private GUISpriteAssets guiAssets;
 
         [Header("Visual Settings")]
-        [SerializeField] private float itemHeight = 100f;
+        [SerializeField] private float itemHeight = 280f; // MUCH bigger for mobile - 3x size
+        [SerializeField] private float headerHeight = 120f; // MUCH bigger branch headers
         [SerializeField] private Color unlockedColor = new Color(0.3f, 0.9f, 0.4f);
         [SerializeField] private Color availableColor = new Color(1f, 0.85f, 0.3f);
         [SerializeField] private Color lockedColor = new Color(0.4f, 0.4f, 0.45f);
@@ -154,8 +155,8 @@ namespace Incredicer.UI
             Color diceColor = branchColors[SkillBranch.DiceEvolution];
             Color skillColor = branchColors[SkillBranch.SkillsUtility];
 
-            // Core
-            AddNode(SkillNodeId.CORE_DarkMatterCore, "Dark Matter Core", "Unlocks the skill tree. Your journey begins here.", 0, SkillBranch.Core, coreColor);
+            // Core - costs 1 DM to unlock the skill tree
+            AddNode(SkillNodeId.CORE_DarkMatterCore, "Dark Matter Core", "Unlocks the skill tree. Your journey begins here.", 1, SkillBranch.Core, coreColor);
 
             // Money Engine
             AddNode(SkillNodeId.ME_LooseChange, "Loose Change", "+10% to all money gains", 5, SkillBranch.MoneyEngine, moneyColor, SkillNodeId.CORE_DarkMatterCore);
@@ -244,7 +245,7 @@ namespace Incredicer.UI
             float totalHeight = 20; // padding top + bottom
             int branchCount = 5;
             int skillCount = skillItems.Count;
-            totalHeight += branchCount * 58; // branch headers (50 + 8 spacing)
+            totalHeight += branchCount * (headerHeight + 8); // branch headers + spacing
             totalHeight += skillCount * (itemHeight + 8); // skill items + spacing
 
             if (contentContainer != null)
@@ -308,11 +309,11 @@ namespace Incredicer.UI
                     panelRect = skillTreePanel.AddComponent<RectTransform>();
             }
 
-            // Ensure panel fills screen with margins
+            // Ensure panel fills FULL screen (no margins)
             panelRect.anchorMin = Vector2.zero;
             panelRect.anchorMax = Vector2.one;
-            panelRect.offsetMin = new Vector2(20, 20);
-            panelRect.offsetMax = new Vector2(-20, -20);
+            panelRect.offsetMin = Vector2.zero;
+            panelRect.offsetMax = Vector2.zero;
 
             // Add background if missing
             Image panelBg = skillTreePanel.GetComponent<Image>();
@@ -342,7 +343,7 @@ namespace Incredicer.UI
             GameObject headerObj = new GameObject("Header");
             headerObj.transform.SetParent(skillTreePanel.transform, false);
             RectTransform headerRt = headerObj.AddComponent<RectTransform>();
-            headerRt.anchorMin = new Vector2(0, 0.9f);
+            headerRt.anchorMin = new Vector2(0, 0.88f); // Taller header
             headerRt.anchorMax = new Vector2(1, 1);
             headerRt.offsetMin = new Vector2(10, 5);
             headerRt.offsetMax = new Vector2(-10, -5);
@@ -371,7 +372,7 @@ namespace Incredicer.UI
 
             TextMeshProUGUI titleText = titleObj.AddComponent<TextMeshProUGUI>();
             titleText.text = "SKILLS";
-            titleText.fontSize = 28;
+            titleText.fontSize = 72; // 3x bigger for mobile
             titleText.fontStyle = FontStyles.Bold;
             titleText.alignment = TextAlignmentOptions.Left;
             titleText.color = Color.white;
@@ -387,7 +388,8 @@ namespace Incredicer.UI
 
             darkMatterText = dmObj.AddComponent<TextMeshProUGUI>();
             darkMatterText.text = "0 DM";
-            darkMatterText.fontSize = 22;
+            darkMatterText.fontSize = 56; // 3x bigger for mobile
+            darkMatterText.fontStyle = FontStyles.Bold;
             darkMatterText.alignment = TextAlignmentOptions.Center;
             darkMatterText.color = new Color(0.8f, 0.6f, 1f);
 
@@ -426,7 +428,7 @@ namespace Incredicer.UI
 
             TextMeshProUGUI closeText = closeTextObj.AddComponent<TextMeshProUGUI>();
             closeText.text = "X";
-            closeText.fontSize = 28;
+            closeText.fontSize = 72; // 3x bigger for mobile
             closeText.fontStyle = FontStyles.Bold;
             closeText.alignment = TextAlignmentOptions.Center;
             closeText.color = Color.white;
@@ -439,7 +441,7 @@ namespace Incredicer.UI
             scrollObj.transform.SetParent(skillTreePanel.transform, false);
             RectTransform scrollRt = scrollObj.AddComponent<RectTransform>();
             scrollRt.anchorMin = new Vector2(0, 0);
-            scrollRt.anchorMax = new Vector2(1, 0.9f);
+            scrollRt.anchorMax = new Vector2(1, 0.88f); // Match header
             scrollRt.offsetMin = new Vector2(10, 10);
             scrollRt.offsetMax = new Vector2(-10, -5);
 
@@ -497,11 +499,11 @@ namespace Incredicer.UI
             headerObj.transform.SetParent(contentContainer, false);
 
             RectTransform rt = headerObj.AddComponent<RectTransform>();
-            rt.sizeDelta = new Vector2(0, 50);
+            rt.sizeDelta = new Vector2(0, headerHeight);
 
             LayoutElement le = headerObj.AddComponent<LayoutElement>();
-            le.minHeight = 50;
-            le.preferredHeight = 50;
+            le.minHeight = headerHeight;
+            le.preferredHeight = headerHeight;
 
             Image bg = headerObj.AddComponent<Image>();
             bg.color = branchColors[branch];
@@ -512,12 +514,12 @@ namespace Incredicer.UI
             RectTransform textRt = textObj.AddComponent<RectTransform>();
             textRt.anchorMin = Vector2.zero;
             textRt.anchorMax = Vector2.one;
-            textRt.offsetMin = new Vector2(15, 5);
-            textRt.offsetMax = new Vector2(-15, -5);
+            textRt.offsetMin = new Vector2(20, 5);
+            textRt.offsetMax = new Vector2(-20, -5);
 
             TextMeshProUGUI text = textObj.AddComponent<TextMeshProUGUI>();
             text.text = branchNames[branch];
-            text.fontSize = 22;
+            text.fontSize = 56; // 3x bigger for mobile
             text.fontStyle = FontStyles.Bold;
             text.alignment = TextAlignmentOptions.Left;
             text.color = Color.white;
@@ -561,66 +563,57 @@ namespace Incredicer.UI
             barRt.anchorMax = new Vector2(0, 1);
             barRt.pivot = new Vector2(0, 0.5f);
             barRt.anchoredPosition = Vector2.zero;
-            barRt.sizeDelta = new Vector2(6, 0);
+            barRt.sizeDelta = new Vector2(12, 0);
 
             Image barImg = barObj.AddComponent<Image>();
             barImg.color = nodeDef.branchColor;
 
+            // === LEFT SIDE: Skill Info (wider for more description space) ===
             // Skill name
             GameObject nameObj = new GameObject("Name");
             nameObj.transform.SetParent(itemObj.transform, false);
             RectTransform nameRt = nameObj.AddComponent<RectTransform>();
-            nameRt.anchorMin = new Vector2(0, 0.55f);
+            nameRt.anchorMin = new Vector2(0, 0.58f);
             nameRt.anchorMax = new Vector2(0.65f, 1);
-            nameRt.offsetMin = new Vector2(15, 0);
-            nameRt.offsetMax = new Vector2(0, -5);
+            nameRt.offsetMin = new Vector2(24, 0);
+            nameRt.offsetMax = new Vector2(-5, -12);
 
             TextMeshProUGUI nameText = nameObj.AddComponent<TextMeshProUGUI>();
             nameText.text = nodeDef.name;
-            nameText.fontSize = 20;
+            nameText.fontSize = 46;
             nameText.fontStyle = FontStyles.Bold;
             nameText.alignment = TextAlignmentOptions.Left;
             nameText.color = Color.white;
+            nameText.enableAutoSizing = true;
+            nameText.fontSizeMin = 32;
+            nameText.fontSizeMax = 46;
 
-            // Description
+            // Description - BIGGER text, more space
             GameObject descObj = new GameObject("Description");
             descObj.transform.SetParent(itemObj.transform, false);
             RectTransform descRt = descObj.AddComponent<RectTransform>();
-            descRt.anchorMin = new Vector2(0, 0);
-            descRt.anchorMax = new Vector2(0.65f, 0.55f);
-            descRt.offsetMin = new Vector2(15, 5);
-            descRt.offsetMax = new Vector2(0, 0);
+            descRt.anchorMin = new Vector2(0, 0.08f);
+            descRt.anchorMax = new Vector2(0.65f, 0.58f);
+            descRt.offsetMin = new Vector2(24, 10);
+            descRt.offsetMax = new Vector2(-5, 0);
 
             TextMeshProUGUI descText = descObj.AddComponent<TextMeshProUGUI>();
             descText.text = nodeDef.description;
-            descText.fontSize = 14;
+            descText.fontSize = 38;
             descText.alignment = TextAlignmentOptions.TopLeft;
-            descText.color = new Color(0.7f, 0.7f, 0.75f);
+            descText.color = new Color(0.75f, 0.75f, 0.8f);
+            descText.enableAutoSizing = true;
+            descText.fontSizeMin = 28;
+            descText.fontSizeMax = 38;
 
-            // Cost text
-            GameObject costObj = new GameObject("Cost");
-            costObj.transform.SetParent(itemObj.transform, false);
-            RectTransform costRt = costObj.AddComponent<RectTransform>();
-            costRt.anchorMin = new Vector2(0.65f, 0.55f);
-            costRt.anchorMax = new Vector2(1, 1);
-            costRt.offsetMin = new Vector2(5, 0);
-            costRt.offsetMax = new Vector2(-10, -5);
-
-            TextMeshProUGUI costText = costObj.AddComponent<TextMeshProUGUI>();
-            costText.text = nodeDef.cost > 0 ? $"{GameUI.FormatNumber(nodeDef.cost)} DM" : "FREE";
-            costText.fontSize = 16;
-            costText.fontStyle = FontStyles.Bold;
-            costText.alignment = TextAlignmentOptions.Right;
-            costText.color = new Color(0.7f, 0.5f, 1f);
-
-            // Buy button
+            // === RIGHT SIDE: Narrower Buy Button with Price ===
             GameObject buyObj = new GameObject("BuyButton");
             buyObj.transform.SetParent(itemObj.transform, false);
             RectTransform buyRt = buyObj.AddComponent<RectTransform>();
-            buyRt.anchorMin = new Vector2(0.68f, 0.1f);
-            buyRt.anchorMax = new Vector2(0.98f, 0.5f);
-            buyRt.offsetMin = Vector2.zero;
-            buyRt.offsetMax = Vector2.zero;
+            buyRt.anchorMin = new Vector2(0.67f, 0.1f);
+            buyRt.anchorMax = new Vector2(0.98f, 0.9f);
+            buyRt.offsetMin = new Vector2(5, 10);
+            buyRt.offsetMax = new Vector2(-10, -10);
 
             Image buyBg = buyObj.AddComponent<Image>();
             // Use GUI button sprite if available
@@ -648,11 +641,17 @@ namespace Incredicer.UI
             buyTextRt.offsetMax = Vector2.zero;
 
             TextMeshProUGUI buyText = buyTextObj.AddComponent<TextMeshProUGUI>();
-            buyText.text = "UNLOCK";
-            buyText.fontSize = 16;
+            // Price displayed directly on the button
+            string priceText = nodeDef.cost > 0 ? $"{GameUI.FormatNumber(nodeDef.cost)} DM" : "FREE";
+            buyText.text = $"UNLOCK\n<size=80%>{priceText}</size>";
+            buyText.fontSize = 42;
             buyText.fontStyle = FontStyles.Bold;
             buyText.alignment = TextAlignmentOptions.Center;
             buyText.color = Color.white;
+            buyText.richText = true;
+            buyText.enableAutoSizing = true;
+            buyText.fontSizeMin = 28;
+            buyText.fontSizeMax = 42;
 
             skillItems[nodeDef.id] = new SkillItemUI
             {
@@ -661,7 +660,7 @@ namespace Incredicer.UI
                 background = bg,
                 nameText = nameText,
                 descText = descText,
-                costText = costText,
+                costText = null, // No separate cost text anymore
                 buyButton = buyBtn,
                 buyButtonText = buyText,
                 buyButtonBg = buyBg
@@ -770,14 +769,15 @@ namespace Incredicer.UI
 
             if (item.buyButtonText != null)
             {
+                string priceText = nodeDef.cost > 0 ? $"{GameUI.FormatNumber(nodeDef.cost)} DM" : "FREE";
                 if (unlocked)
-                    item.buyButtonText.text = "OWNED";
+                    item.buyButtonText.text = "<size=120%>✓</size>\nOWNED";
                 else if (!prereqsMet)
-                    item.buyButtonText.text = "LOCKED";
+                    item.buyButtonText.text = "<size=120%>🔒</size>\nLOCKED";
                 else if (canAfford)
-                    item.buyButtonText.text = "UNLOCK";
+                    item.buyButtonText.text = $"UNLOCK\n<size=85%>{priceText}</size>";
                 else
-                    item.buyButtonText.text = "NEED DM";
+                    item.buyButtonText.text = $"<color=#FF6666>{priceText}</color>\n<size=80%>NEED DM</size>";
             }
 
             if (item.buyButtonBg != null)

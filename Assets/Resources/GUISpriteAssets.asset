@@ -1,0 +1,37 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 50ed512888c6f40768d5808c21b0c715, type: 3}
+  m_Name: GUISpriteAssets
+  m_EditorClassIdentifier: 
+  popupBackground: {fileID: 21300000, guid: 370fec755724f4212a03c86bfadce990, type: 3}
+  popupBackgroundAlt: {fileID: 21300000, guid: 97ce45412ff524e61897958d42be2ca4, type: 3}
+  buttonGreen: {fileID: 21300000, guid: 949217e9c22e44fda92aff74ce0f24e3, type: 3}
+  buttonBlue: {fileID: 21300000, guid: 00b246f18d3354d5baad68986295716b, type: 3}
+  buttonYellow: {fileID: 21300000, guid: 40d10cf134e7d4b469ffd4f52cdcf21a, type: 3}
+  buttonGray: {fileID: 21300000, guid: a793324cd29d041e499596ae81bdbcfc, type: 3}
+  buttonRed: {fileID: 21300000, guid: d849eb66832ae43878a8bad5138b764c, type: 3}
+  buttonPurple: {fileID: 21300000, guid: a61ec4599917f4ddbb16e1933dfd3cc8, type: 3}
+  listFrame: {fileID: 21300000, guid: 39cba7c40821a4122891c4dd82645d59, type: 3}
+  itemFrame: {fileID: 21300000, guid: 695315d059c5a44a3ac75d6ff2b303f7, type: 3}
+  cardFrame: {fileID: 21300000, guid: 77696e2eaefc24456a1f21dfe2b5ee60, type: 3}
+  horizontalFrame: {fileID: 21300000, guid: e16893fb4ecdb4844bcaa6cd8cb4050d, type: 3}
+  iconClose: {fileID: 0}
+  iconLock: {fileID: 21300000, guid: 177c91d27d5534109a5f6b3bb3ccbb3b, type: 3}
+  iconStar: {fileID: 21300000, guid: 2065ff0dabc274004b9fb023c004769a, type: 3}
+  iconCoin: {fileID: 0}
+  iconAdd: {fileID: 21300000, guid: ffeafc38fb0654eb78d14da1ee37e496, type: 3}
+  ribbonYellow: {fileID: 0}
+  ribbonGreen: {fileID: 0}
+  ribbonBlue: {fileID: 0}
+  ribbonPurple: {fileID: 0}
+  sliderBackground: {fileID: 0}
+  sliderFill: {fileID: 0}

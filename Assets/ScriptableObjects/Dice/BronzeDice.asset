@@ -14,10 +14,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   type: 1
   displayName: Bronze Dice
-  basePayout: 2
+  basePayout: 3
   dmPerRoll: 0
   sprite: {fileID: 0}
   tintColor: {r: 0.8, g: 0.5, b: 0.2, a: 1}
-  shopBaseCost: 50
-  shopCostGrowth: 1.15
-  rollCooldown: 0.5
+  shopBaseCost: 100
+  shopCostGrowth: 1.18
+  rollCooldown: 0.45

@@ -152,8 +152,9 @@ namespace Incredicer.UI
             // Ensure panel fills screen with margins
             panelRect.anchorMin = Vector2.zero;
             panelRect.anchorMax = Vector2.one;
-            panelRect.offsetMin = new Vector2(20, 20);
-            panelRect.offsetMax = new Vector2(-20, -20);
+            // Fill FULL screen (no margins)
+            panelRect.offsetMin = Vector2.zero;
+            panelRect.offsetMax = Vector2.zero;
 
             // Add background if missing
             Image panelBg = shopPanel.GetComponent<Image>();
@@ -189,7 +190,7 @@ namespace Incredicer.UI
             GameObject headerObj = new GameObject("Header");
             headerObj.transform.SetParent(shopPanel.transform, false);
             RectTransform headerRt = headerObj.AddComponent<RectTransform>();
-            headerRt.anchorMin = new Vector2(0, 0.9f);
+            headerRt.anchorMin = new Vector2(0, 0.88f); // Taller header
             headerRt.anchorMax = new Vector2(1, 1);
             headerRt.offsetMin = new Vector2(10, 5);
             headerRt.offsetMax = new Vector2(-10, -5);
@@ -218,7 +219,7 @@ namespace Incredicer.UI
 
             TextMeshProUGUI titleText = titleObj.AddComponent<TextMeshProUGUI>();
             titleText.text = "DICE SHOP";
-            titleText.fontSize = 28;
+            titleText.fontSize = 72; // 3x bigger for mobile
             titleText.fontStyle = FontStyles.Bold;
             titleText.alignment = TextAlignmentOptions.Left;
             titleText.color = Color.white;
@@ -234,7 +235,8 @@ namespace Incredicer.UI
 
             moneyDisplayText = moneyObj.AddComponent<TextMeshProUGUI>();
             moneyDisplayText.text = "$0";
-            moneyDisplayText.fontSize = 22;
+            moneyDisplayText.fontSize = 56; // 3x bigger for mobile
+            moneyDisplayText.fontStyle = FontStyles.Bold;
             moneyDisplayText.alignment = TextAlignmentOptions.Center;
             moneyDisplayText.color = new Color(0.4f, 0.95f, 0.5f);
 
@@ -273,7 +275,7 @@ namespace Incredicer.UI
 
             TextMeshProUGUI closeText = closeTextObj.AddComponent<TextMeshProUGUI>();
             closeText.text = "X";
-            closeText.fontSize = 28;
+            closeText.fontSize = 72; // 3x bigger for mobile
             closeText.fontStyle = FontStyles.Bold;
             closeText.alignment = TextAlignmentOptions.Center;
             closeText.color = Color.white;
@@ -286,7 +288,7 @@ namespace Incredicer.UI
             scrollObj.transform.SetParent(shopPanel.transform, false);
             RectTransform scrollRt = scrollObj.AddComponent<RectTransform>();
             scrollRt.anchorMin = new Vector2(0, 0);
-            scrollRt.anchorMax = new Vector2(1, 0.9f);
+            scrollRt.anchorMax = new Vector2(1, 0.88f); // Match header
             scrollRt.offsetMin = new Vector2(10, 10);
             scrollRt.offsetMax = new Vector2(-10, -5);
 
@@ -353,16 +355,16 @@ namespace Incredicer.UI
 
             Debug.Log($"[DiceShopUI] Creating shop item for {type}: {data.displayName}");
 
-            // Create item container
+            // Create item container - MUCH BIGGER for mobile (3x)
             GameObject itemObj = new GameObject($"Item_{type}");
             itemObj.transform.SetParent(contentContainer, false);
 
             RectTransform rt = itemObj.AddComponent<RectTransform>();
-            rt.sizeDelta = new Vector2(0, 120);
+            rt.sizeDelta = new Vector2(0, 280); // 3x bigger for mobile
 
             LayoutElement le = itemObj.AddComponent<LayoutElement>();
-            le.minHeight = 120;
-            le.preferredHeight = 120;
+            le.minHeight = 280;
+            le.preferredHeight = 280;
             le.flexibleWidth = 1;
 
             // Use GUI list frame sprite if available
@@ -383,78 +385,73 @@ namespace Incredicer.UI
             btn.transition = Selectable.Transition.None;
             DiceType capturedType = type;
 
-            // Dice preview (left side)
+            // === LEFT SIDE: Dice Preview ===
             GameObject previewObj = new GameObject("Preview");
             previewObj.transform.SetParent(itemObj.transform, false);
             RectTransform previewRt = previewObj.AddComponent<RectTransform>();
-            previewRt.anchorMin = new Vector2(0, 0);
-            previewRt.anchorMax = new Vector2(0, 1);
+            previewRt.anchorMin = new Vector2(0, 0.1f);
+            previewRt.anchorMax = new Vector2(0, 0.9f);
             previewRt.pivot = new Vector2(0, 0.5f);
-            previewRt.anchoredPosition = new Vector2(10, 0);
-            previewRt.sizeDelta = new Vector2(50, 50);
+            previewRt.anchoredPosition = new Vector2(15, 0);
+            previewRt.sizeDelta = new Vector2(180, 0);
 
             Image previewImg = previewObj.AddComponent<Image>();
-            previewImg.color = data.tintColor;
+            previewImg.sprite = CreateDiceFaceSprite(6, data.tintColor);
+            previewImg.color = Color.white;
             previewImg.raycastTarget = false;
+            previewImg.preserveAspect = true;
 
-            // Name text
+            // === CENTER: Dice Info ===
+            // Name with multiplier
             GameObject nameObj = new GameObject("Name");
             nameObj.transform.SetParent(itemObj.transform, false);
             RectTransform nameRt = nameObj.AddComponent<RectTransform>();
-            nameRt.anchorMin = new Vector2(0, 0.5f);
-            nameRt.anchorMax = new Vector2(0.5f, 1);
-            nameRt.offsetMin = new Vector2(70, 0);
-            nameRt.offsetMax = new Vector2(0, -5);
+            nameRt.anchorMin = new Vector2(0, 0.55f);
+            nameRt.anchorMax = new Vector2(0.52f, 1);
+            nameRt.offsetMin = new Vector2(210, 0);
+            nameRt.offsetMax = new Vector2(-5, -15);
 
             TextMeshProUGUI nameTmp = nameObj.AddComponent<TextMeshProUGUI>();
-            nameTmp.text = data.displayName;
-            nameTmp.fontSize = 20;
+            string multiplierText = data.basePayout >= 1000 ? $"{data.basePayout/1000}K" : data.basePayout.ToString();
+            nameTmp.text = $"{data.displayName}";
+            nameTmp.fontSize = 44;
             nameTmp.fontStyle = FontStyles.Bold;
             nameTmp.alignment = TextAlignmentOptions.Left;
             nameTmp.color = data.tintColor;
             nameTmp.raycastTarget = false;
+            nameTmp.enableAutoSizing = true;
+            nameTmp.fontSizeMin = 32;
+            nameTmp.fontSizeMax = 44;
 
-            // Owned count
-            GameObject ownedObj = new GameObject("Owned");
+            // Stats: Multiplier and DM bonus
+            GameObject ownedObj = new GameObject("Stats");
             ownedObj.transform.SetParent(itemObj.transform, false);
             RectTransform ownedRt = ownedObj.AddComponent<RectTransform>();
-            ownedRt.anchorMin = new Vector2(0, 0);
-            ownedRt.anchorMax = new Vector2(0.5f, 0.5f);
-            ownedRt.offsetMin = new Vector2(70, 5);
-            ownedRt.offsetMax = new Vector2(0, 0);
+            ownedRt.anchorMin = new Vector2(0, 0.08f);
+            ownedRt.anchorMax = new Vector2(0.52f, 0.55f);
+            ownedRt.offsetMin = new Vector2(210, 10);
+            ownedRt.offsetMax = new Vector2(-5, 0);
 
             TextMeshProUGUI ownedTmp = ownedObj.AddComponent<TextMeshProUGUI>();
-            ownedTmp.text = "Owned: 0";
-            ownedTmp.fontSize = 14;
-            ownedTmp.alignment = TextAlignmentOptions.Left;
-            ownedTmp.color = new Color(0.7f, 0.7f, 0.7f);
+            string dmBonus = data.dmPerRoll > 0 ? $" • <color=#9966FF>+{data.dmPerRoll} DM</color>" : "";
+            ownedTmp.text = $"<color=#FFD700>{multiplierText}x Money</color>{dmBonus}\nOwned: 0";
+            ownedTmp.fontSize = 32;
+            ownedTmp.alignment = TextAlignmentOptions.TopLeft;
+            ownedTmp.color = new Color(0.7f, 0.7f, 0.75f);
             ownedTmp.raycastTarget = false;
+            ownedTmp.richText = true;
+            ownedTmp.enableAutoSizing = true;
+            ownedTmp.fontSizeMin = 24;
+            ownedTmp.fontSizeMax = 32;
 
-            // Price text (center)
-            GameObject priceObj = new GameObject("Price");
-            priceObj.transform.SetParent(itemObj.transform, false);
-            RectTransform priceRt = priceObj.AddComponent<RectTransform>();
-            priceRt.anchorMin = new Vector2(0.45f, 0.5f);
-            priceRt.anchorMax = new Vector2(0.7f, 1);
-            priceRt.offsetMin = new Vector2(0, 5);
-            priceRt.offsetMax = new Vector2(0, -5);
-
-            TextMeshProUGUI priceTmp = priceObj.AddComponent<TextMeshProUGUI>();
-            priceTmp.text = "$0";
-            priceTmp.fontSize = 20;
-            priceTmp.fontStyle = FontStyles.Bold;
-            priceTmp.alignment = TextAlignmentOptions.Center;
-            priceTmp.color = affordableColor;
-            priceTmp.raycastTarget = false;
-
-            // BUY BUTTON (right side - prominent)
+            // === RIGHT SIDE: Big Buy Button with Price ===
             GameObject buyBtnObj = new GameObject("BuyButton");
             buyBtnObj.transform.SetParent(itemObj.transform, false);
             RectTransform buyBtnRt = buyBtnObj.AddComponent<RectTransform>();
-            buyBtnRt.anchorMin = new Vector2(0.72f, 0.15f);
-            buyBtnRt.anchorMax = new Vector2(0.98f, 0.85f);
-            buyBtnRt.offsetMin = Vector2.zero;
-            buyBtnRt.offsetMax = Vector2.zero;
+            buyBtnRt.anchorMin = new Vector2(0.54f, 0.08f);
+            buyBtnRt.anchorMax = new Vector2(0.98f, 0.92f);
+            buyBtnRt.offsetMin = new Vector2(5, 10);
+            buyBtnRt.offsetMax = new Vector2(-10, -10);
 
             Image buyBtnBg = buyBtnObj.AddComponent<Image>();
             // Use GUI button sprite if available
@@ -488,12 +485,17 @@ namespace Incredicer.UI
             buyTextRt.offsetMax = Vector2.zero;
 
             TextMeshProUGUI buyTextTmp = buyTextObj.AddComponent<TextMeshProUGUI>();
-            buyTextTmp.text = "BUY";
-            buyTextTmp.fontSize = 24;
+            double initialPrice = DiceManager.Instance != null ? DiceManager.Instance.GetCurrentPrice(type) : 0;
+            buyTextTmp.text = $"BUY\n<size=80%>${GameUI.FormatNumber(initialPrice)}</size>";
+            buyTextTmp.fontSize = 42;
             buyTextTmp.fontStyle = FontStyles.Bold;
             buyTextTmp.alignment = TextAlignmentOptions.Center;
             buyTextTmp.color = Color.white;
             buyTextTmp.raycastTarget = false;
+            buyTextTmp.richText = true;
+            buyTextTmp.enableAutoSizing = true;
+            buyTextTmp.fontSizeMin = 28;
+            buyTextTmp.fontSizeMax = 42;
 
             shopItems[type] = new DiceShopItem
             {
@@ -501,7 +503,7 @@ namespace Incredicer.UI
                 button = btn,
                 background = bg,
                 nameText = nameTmp,
-                priceText = priceTmp,
+                priceText = null, // Price now on button
                 ownedText = ownedTmp,
                 dicePreview = previewImg,
                 buyButton = buyBtn,
@@ -609,16 +611,14 @@ namespace Incredicer.UI
             double price = DiceManager.Instance.GetCurrentPrice(type);
             int owned = DiceManager.Instance.GetOwnedCount(type);
             bool canAfford = currentMoney >= price;
+            DiceData data = DiceManager.Instance.GetDiceData(type);
 
-            // Update texts
-            if (item.priceText != null)
-            {
-                item.priceText.text = isUnlocked ? $"${GameUI.FormatNumber(price)}" : "LOCKED";
-            }
-
+            // Update owned count text
             if (item.ownedText != null)
             {
-                item.ownedText.text = $"Owned: {owned}";
+                string multiplierText = (data != null && data.basePayout >= 1000) ? $"{data.basePayout/1000}K" : (data?.basePayout.ToString() ?? "1");
+                string dmBonus = (data != null && data.dmPerRoll > 0) ? $" • <color=#9966FF>+{data.dmPerRoll} DM</color>" : "";
+                item.ownedText.text = $"<color=#FFD700>{multiplierText}x Money</color>{dmBonus}\nOwned: {owned}";
             }
 
             // Update buy button
@@ -627,14 +627,16 @@ namespace Incredicer.UI
                 item.buyButton.interactable = isUnlocked && canAfford;
             }
 
+            // Update button text with price directly on button
             if (item.buyButtonText != null)
             {
+                string priceStr = $"${GameUI.FormatNumber(price)}";
                 if (!isUnlocked)
-                    item.buyButtonText.text = "LOCKED";
+                    item.buyButtonText.text = "<size=120%>🔒</size>\nLOCKED";
                 else if (canAfford)
-                    item.buyButtonText.text = "BUY";
+                    item.buyButtonText.text = $"BUY\n<size=85%>{priceStr}</size>";
                 else
-                    item.buyButtonText.text = "NEED $";
+                    item.buyButtonText.text = $"<color=#FF6666>{priceStr}</color>\n<size=80%>NEED $</size>";
             }
 
             if (item.buyButtonBg != null)
@@ -739,6 +741,138 @@ namespace Incredicer.UI
                     item.buyButton.transform.DOKill();
                     item.buyButton.transform.DOShakePosition(0.2f, 3f, 15);
                 }
+            }
+        }
+
+        /// <summary>
+        /// Creates a dice face sprite with dots for the shop preview.
+        /// </summary>
+        private Sprite CreateDiceFaceSprite(int faceValue, Color tintColor)
+        {
+            int size = 128;
+            Texture2D texture = new Texture2D(size, size);
+            Color[] pixels = new Color[size * size];
+
+            // Fill with tinted background and rounded corners
+            Color bgColor = new Color(
+                Mathf.Lerp(0.95f, tintColor.r, 0.3f),
+                Mathf.Lerp(0.95f, tintColor.g, 0.3f),
+                Mathf.Lerp(0.95f, tintColor.b, 0.3f)
+            );
+            Color borderColor = new Color(
+                tintColor.r * 0.6f,
+                tintColor.g * 0.6f,
+                tintColor.b * 0.6f
+            );
+            int cornerRadius = 16;
+            int borderWidth = 5;
+
+            for (int y = 0; y < size; y++)
+            {
+                for (int x = 0; x < size; x++)
+                {
+                    bool inside = IsInsideRoundedRect(x, y, size, size, cornerRadius);
+                    bool border = inside && !IsInsideRoundedRect(x, y, size, size, cornerRadius, borderWidth);
+
+                    if (border)
+                        pixels[y * size + x] = borderColor;
+                    else if (inside)
+                        pixels[y * size + x] = bgColor;
+                    else
+                        pixels[y * size + x] = Color.clear;
+                }
+            }
+
+            // Draw dots based on face value
+            DrawDots(pixels, size, faceValue, tintColor);
+
+            texture.SetPixels(pixels);
+            texture.Apply();
+            texture.filterMode = FilterMode.Bilinear;
+
+            return Sprite.Create(texture, new Rect(0, 0, size, size), new Vector2(0.5f, 0.5f), 128f);
+        }
+
+        private bool IsInsideRoundedRect(int x, int y, int width, int height, int radius, int inset = 0)
+        {
+            int left = inset;
+            int right = width - 1 - inset;
+            int bottom = inset;
+            int top = height - 1 - inset;
+            int r = radius - inset;
+
+            if (r <= 0) r = 1;
+
+            // Check corners
+            if (x < left + r && y < bottom + r)
+                return (x - (left + r)) * (x - (left + r)) + (y - (bottom + r)) * (y - (bottom + r)) <= r * r;
+            if (x > right - r && y < bottom + r)
+                return (x - (right - r)) * (x - (right - r)) + (y - (bottom + r)) * (y - (bottom + r)) <= r * r;
+            if (x < left + r && y > top - r)
+                return (x - (left + r)) * (x - (left + r)) + (y - (top - r)) * (y - (top - r)) <= r * r;
+            if (x > right - r && y > top - r)
+                return (x - (right - r)) * (x - (right - r)) + (y - (top - r)) * (y - (top - r)) <= r * r;
+
+            // Check main rect
+            return x >= left && x <= right && y >= bottom && y <= top;
+        }
+
+        private void DrawDots(Color[] pixels, int size, int faceValue, Color tintColor)
+        {
+            int dotRadius = 12;
+            Color dotColor = new Color(tintColor.r * 0.3f, tintColor.g * 0.3f, tintColor.b * 0.3f);
+
+            Vector2[] positions = GetDotPositions(faceValue);
+
+            foreach (Vector2 pos in positions)
+            {
+                int cx = Mathf.RoundToInt(pos.x * (size - 36) + 18);
+                int cy = Mathf.RoundToInt(pos.y * (size - 36) + 18);
+
+                // Draw filled circle with anti-aliasing
+                for (int y = -dotRadius - 1; y <= dotRadius + 1; y++)
+                {
+                    for (int x = -dotRadius - 1; x <= dotRadius + 1; x++)
+                    {
+                        float dist = Mathf.Sqrt(x * x + y * y);
+                        if (dist <= dotRadius + 0.5f)
+                        {
+                            int px = cx + x;
+                            int py = cy + y;
+                            if (px >= 0 && px < size && py >= 0 && py < size)
+                            {
+                                float alpha = Mathf.Clamp01(dotRadius + 0.5f - dist);
+                                Color existing = pixels[py * size + px];
+                                pixels[py * size + px] = Color.Lerp(existing, dotColor, alpha);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        private Vector2[] GetDotPositions(int face)
+        {
+            switch (face)
+            {
+                case 1:
+                    return new Vector2[] { new Vector2(0.5f, 0.5f) };
+                case 2:
+                    return new Vector2[] { new Vector2(0.25f, 0.75f), new Vector2(0.75f, 0.25f) };
+                case 3:
+                    return new Vector2[] { new Vector2(0.25f, 0.75f), new Vector2(0.5f, 0.5f), new Vector2(0.75f, 0.25f) };
+                case 4:
+                    return new Vector2[] { new Vector2(0.25f, 0.25f), new Vector2(0.25f, 0.75f),
+                                          new Vector2(0.75f, 0.25f), new Vector2(0.75f, 0.75f) };
+                case 5:
+                    return new Vector2[] { new Vector2(0.25f, 0.25f), new Vector2(0.25f, 0.75f),
+                                          new Vector2(0.5f, 0.5f),
+                                          new Vector2(0.75f, 0.25f), new Vector2(0.75f, 0.75f) };
+                case 6:
+                    return new Vector2[] { new Vector2(0.25f, 0.2f), new Vector2(0.25f, 0.5f), new Vector2(0.25f, 0.8f),
+                                          new Vector2(0.75f, 0.2f), new Vector2(0.75f, 0.5f), new Vector2(0.75f, 0.8f) };
+                default:
+                    return new Vector2[] { new Vector2(0.5f, 0.5f) };
             }
         }
     }
