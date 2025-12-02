@@ -780,6 +780,21 @@ namespace Incredicer.Core
             SpawnParticle(sparkleParticlePrefab, position);
         }
 
+        public void SpawnSparkleEffect(Vector3 position, Color color)
+        {
+            if (!effectsEnabled) return;
+            if (sparkleParticlePrefab == null) return;
+
+            GameObject effect = Instantiate(sparkleParticlePrefab, position, Quaternion.identity);
+            ParticleSystem ps = effect.GetComponent<ParticleSystem>();
+            if (ps != null)
+            {
+                var main = ps.main;
+                main.startColor = color;
+            }
+            Destroy(effect, 2f);
+        }
+
         public void SpawnComboEffect(Vector3 position)
         {
             SpawnParticle(comboParticlePrefab, position);

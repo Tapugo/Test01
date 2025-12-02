@@ -712,6 +712,7 @@ namespace Incredicer.UI
 
         /// <summary>
         /// Shows a big celebration banner when Dark Matter is unlocked.
+        /// Polished with rays, particles, and beautiful animations!
         /// </summary>
         private void ShowDarkMatterUnlockedCelebration()
         {
@@ -725,97 +726,223 @@ namespace Incredicer.UI
             overlayRt.offsetMin = Vector2.zero;
             overlayRt.offsetMax = Vector2.zero;
 
-            // Semi-transparent dark background
+            // Semi-transparent dark background with purple tint
             Image overlayBg = overlayObj.AddComponent<Image>();
-            overlayBg.color = new Color(0f, 0f, 0f, 0f);
+            overlayBg.color = new Color(0.05f, 0f, 0.1f, 0f);
             overlayBg.raycastTarget = true;
 
-            // Banner container
+            // === CELEBRATION RAYS (spinning light beams behind banner) ===
+            GameObject raysObj = new GameObject("CelebrationRays");
+            raysObj.transform.SetParent(overlayObj.transform, false);
+            RectTransform raysRt = raysObj.AddComponent<RectTransform>();
+            raysRt.anchorMin = new Vector2(0.5f, 0.5f);
+            raysRt.anchorMax = new Vector2(0.5f, 0.5f);
+            raysRt.sizeDelta = new Vector2(1200, 1200);
+            raysRt.localScale = Vector3.zero;
+
+            // Create rays as multiple rotated images
+            for (int i = 0; i < 12; i++)
+            {
+                GameObject rayObj = new GameObject($"Ray_{i}");
+                rayObj.transform.SetParent(raysObj.transform, false);
+                RectTransform rayRt = rayObj.AddComponent<RectTransform>();
+                rayRt.anchorMin = new Vector2(0.5f, 0.5f);
+                rayRt.anchorMax = new Vector2(0.5f, 0.5f);
+                rayRt.sizeDelta = new Vector2(40, 600);
+                rayRt.pivot = new Vector2(0.5f, 0f);
+                rayRt.localRotation = Quaternion.Euler(0, 0, i * 30);
+
+                Image rayImg = rayObj.AddComponent<Image>();
+                // Gradient from center outward - purple to transparent
+                rayImg.color = new Color(0.7f, 0.4f, 1f, 0.4f);
+            }
+
+            // === GLOW CIRCLE behind banner ===
+            GameObject glowObj = new GameObject("GlowCircle");
+            glowObj.transform.SetParent(overlayObj.transform, false);
+            RectTransform glowRt = glowObj.AddComponent<RectTransform>();
+            glowRt.anchorMin = new Vector2(0.5f, 0.5f);
+            glowRt.anchorMax = new Vector2(0.5f, 0.5f);
+            glowRt.sizeDelta = new Vector2(600, 400);
+            glowRt.localScale = Vector3.zero;
+
+            Image glowImg = glowObj.AddComponent<Image>();
+            glowImg.color = new Color(0.6f, 0.3f, 0.9f, 0.5f);
+
+            // === BANNER CONTAINER with gradient background ===
             GameObject bannerObj = new GameObject("Banner");
             bannerObj.transform.SetParent(overlayObj.transform, false);
 
             RectTransform bannerRt = bannerObj.AddComponent<RectTransform>();
-            bannerRt.anchorMin = new Vector2(0.1f, 0.35f);
-            bannerRt.anchorMax = new Vector2(0.9f, 0.65f);
+            bannerRt.anchorMin = new Vector2(0.05f, 0.35f);
+            bannerRt.anchorMax = new Vector2(0.95f, 0.65f);
             bannerRt.offsetMin = Vector2.zero;
             bannerRt.offsetMax = Vector2.zero;
             bannerRt.localScale = Vector3.zero;
 
+            // Beautiful gradient background (purple to dark blue)
             Image bannerBg = bannerObj.AddComponent<Image>();
-            bannerBg.color = new Color(0.15f, 0.1f, 0.25f, 0.95f);
+            bannerBg.color = new Color(0.2f, 0.1f, 0.35f, 0.98f);
 
-            // Add glow outline
-            Outline bannerOutline = bannerObj.AddComponent<Outline>();
-            bannerOutline.effectColor = new Color(0.8f, 0.5f, 1f, 1f);
-            bannerOutline.effectDistance = new Vector2(4, 4);
+            // Add multiple outlines for glow effect
+            Outline outerOutline = bannerObj.AddComponent<Outline>();
+            outerOutline.effectColor = new Color(1f, 0.7f, 1f, 0.8f);
+            outerOutline.effectDistance = new Vector2(6, 6);
 
-            // Title text
+            // Inner bright border
+            GameObject borderObj = new GameObject("InnerBorder");
+            borderObj.transform.SetParent(bannerObj.transform, false);
+            RectTransform borderRt = borderObj.AddComponent<RectTransform>();
+            borderRt.anchorMin = Vector2.zero;
+            borderRt.anchorMax = Vector2.one;
+            borderRt.offsetMin = new Vector2(4, 4);
+            borderRt.offsetMax = new Vector2(-4, -4);
+            Image borderImg = borderObj.AddComponent<Image>();
+            borderImg.color = new Color(0.25f, 0.15f, 0.4f, 1f);
+            Outline innerOutline = borderObj.AddComponent<Outline>();
+            innerOutline.effectColor = new Color(0.9f, 0.6f, 1f, 1f);
+            innerOutline.effectDistance = new Vector2(2, 2);
+
+            // === STAR/SPARKLE DECORATIONS ===
+            CreateDecorationStar(bannerObj.transform, new Vector2(-0.42f, 0.5f), 40f, new Color(1f, 0.9f, 0.5f));
+            CreateDecorationStar(bannerObj.transform, new Vector2(0.42f, 0.5f), 40f, new Color(1f, 0.9f, 0.5f));
+            CreateDecorationStar(bannerObj.transform, new Vector2(-0.38f, -0.4f), 30f, new Color(0.9f, 0.7f, 1f));
+            CreateDecorationStar(bannerObj.transform, new Vector2(0.38f, -0.4f), 30f, new Color(0.9f, 0.7f, 1f));
+
+            // === TITLE TEXT with gradient effect ===
             GameObject titleObj = new GameObject("Title");
             titleObj.transform.SetParent(bannerObj.transform, false);
 
             RectTransform titleRt = titleObj.AddComponent<RectTransform>();
             titleRt.anchorMin = new Vector2(0, 0.5f);
             titleRt.anchorMax = new Vector2(1, 1f);
-            titleRt.offsetMin = new Vector2(20, 0);
-            titleRt.offsetMax = new Vector2(-20, -10);
+            titleRt.offsetMin = new Vector2(20, 5);
+            titleRt.offsetMax = new Vector2(-20, -15);
 
             TextMeshProUGUI titleText = titleObj.AddComponent<TextMeshProUGUI>();
-            titleText.text = "DARK MATTER";
-            titleText.fontSize = 72;
+            titleText.text = "✦ DARK MATTER ✦";
+            titleText.fontSize = 68;
             titleText.fontStyle = FontStyles.Bold;
             titleText.alignment = TextAlignmentOptions.Center;
-            titleText.color = new Color(0.9f, 0.7f, 1f);
-            ApplyTextOutline(titleText, 0.2f);
+            titleText.color = new Color(0.95f, 0.8f, 1f);
+            if (floatingTextFont != null) titleText.font = floatingTextFont;
+            ApplyTextOutline(titleText, 0.25f);
 
-            // Subtitle text
+            // === SUBTITLE with golden color ===
             GameObject subtitleObj = new GameObject("Subtitle");
             subtitleObj.transform.SetParent(bannerObj.transform, false);
 
             RectTransform subtitleRt = subtitleObj.AddComponent<RectTransform>();
             subtitleRt.anchorMin = new Vector2(0, 0);
             subtitleRt.anchorMax = new Vector2(1, 0.5f);
-            subtitleRt.offsetMin = new Vector2(20, 10);
-            subtitleRt.offsetMax = new Vector2(-20, 0);
+            subtitleRt.offsetMin = new Vector2(20, 15);
+            subtitleRt.offsetMax = new Vector2(-20, -5);
 
             TextMeshProUGUI subtitleText = subtitleObj.AddComponent<TextMeshProUGUI>();
             subtitleText.text = "UNLOCKED!";
-            subtitleText.fontSize = 56;
+            subtitleText.fontSize = 52;
             subtitleText.fontStyle = FontStyles.Bold;
             subtitleText.alignment = TextAlignmentOptions.Center;
             subtitleText.color = new Color(1f, 0.85f, 0.3f);
+            if (floatingTextFont != null) subtitleText.font = floatingTextFont;
             ApplyTextOutline(subtitleText, 0.2f);
 
-            // Animation sequence
+            // === ANIMATION SEQUENCE ===
             Sequence celebrationSeq = DOTween.Sequence();
 
             // Fade in background
-            celebrationSeq.Append(overlayBg.DOFade(0.7f, 0.3f));
+            celebrationSeq.Append(overlayBg.DOFade(0.85f, 0.4f).SetEase(Ease.OutQuad));
 
-            // Pop in banner
-            celebrationSeq.Join(bannerRt.DOScale(1f, 0.4f).SetEase(Ease.OutBack));
+            // Scale up rays with spin
+            celebrationSeq.Join(raysRt.DOScale(1f, 0.6f).SetEase(Ease.OutBack));
+            raysObj.transform.DORotate(new Vector3(0, 0, 360), 20f, RotateMode.FastBeyond360)
+                .SetLoops(-1, LoopType.Restart)
+                .SetEase(Ease.Linear);
+
+            // Scale up glow
+            celebrationSeq.Join(glowRt.DOScale(1.2f, 0.5f).SetEase(Ease.OutQuad));
+            glowImg.DOFade(0.6f, 0.8f).SetLoops(-1, LoopType.Yoyo);
+
+            // Pop in banner with dramatic effect
+            celebrationSeq.Join(bannerRt.DOScale(1.15f, 0.35f).SetEase(Ease.OutBack));
+            celebrationSeq.Append(bannerRt.DOScale(1f, 0.15f).SetEase(Ease.InOutSine));
+
+            // Title color shimmer
+            titleText.DOColor(new Color(1f, 0.9f, 1f), 0.4f)
+                .SetLoops(-1, LoopType.Yoyo)
+                .SetDelay(0.5f);
 
             // Spawn fireworks particles
-            celebrationSeq.InsertCallback(0.2f, () =>
+            celebrationSeq.InsertCallback(0.3f, () => SpawnCelebrationFireworks());
+            celebrationSeq.InsertCallback(0.8f, () => SpawnCelebrationFireworks());
+            celebrationSeq.InsertCallback(1.3f, () => SpawnCelebrationFireworks());
+
+            // Screen flash
+            celebrationSeq.InsertCallback(0.35f, () =>
             {
-                SpawnCelebrationFireworks();
+                if (VisualEffectsManager.Instance != null)
+                {
+                    VisualEffectsManager.Instance.FlashScreen(new Color(0.8f, 0.5f, 1f, 0.4f), 0.3f);
+                }
             });
 
-            // Pulse the banner
-            celebrationSeq.Append(bannerRt.DOScale(1.05f, 0.3f).SetEase(Ease.InOutSine));
-            celebrationSeq.Append(bannerRt.DOScale(1f, 0.3f).SetEase(Ease.InOutSine));
+            // Camera shake for impact
+            celebrationSeq.InsertCallback(0.35f, () =>
+            {
+                Camera cam = Camera.main;
+                if (cam != null)
+                {
+                    cam.transform.DOShakePosition(0.4f, 0.15f, 20, 90f, false, true);
+                }
+            });
 
-            // Wait a moment
-            celebrationSeq.AppendInterval(1.5f);
+            // Gentle pulse
+            celebrationSeq.Append(bannerRt.DOScale(1.03f, 0.5f).SetEase(Ease.InOutSine));
+            celebrationSeq.Append(bannerRt.DOScale(1f, 0.5f).SetEase(Ease.InOutSine));
 
-            // Fade out
-            celebrationSeq.Append(overlayBg.DOFade(0f, 0.3f));
-            celebrationSeq.Join(bannerRt.DOScale(0f, 0.3f).SetEase(Ease.InBack));
+            // Wait for player to appreciate
+            celebrationSeq.AppendInterval(1.8f);
+
+            // Fade out elegantly
+            celebrationSeq.Append(overlayBg.DOFade(0f, 0.4f).SetEase(Ease.InQuad));
+            celebrationSeq.Join(bannerRt.DOScale(0f, 0.35f).SetEase(Ease.InBack));
+            celebrationSeq.Join(raysRt.DOScale(0f, 0.4f));
+            celebrationSeq.Join(glowRt.DOScale(0f, 0.35f));
 
             // Cleanup
             celebrationSeq.OnComplete(() =>
             {
                 Destroy(overlayObj);
             });
+        }
+
+        /// <summary>
+        /// Creates a decorative star/sparkle for the celebration banner.
+        /// </summary>
+        private void CreateDecorationStar(Transform parent, Vector2 anchorPos, float size, Color color)
+        {
+            GameObject starObj = new GameObject("Star");
+            starObj.transform.SetParent(parent, false);
+
+            RectTransform starRt = starObj.AddComponent<RectTransform>();
+            starRt.anchorMin = new Vector2(0.5f + anchorPos.x, 0.5f + anchorPos.y);
+            starRt.anchorMax = starRt.anchorMin;
+            starRt.sizeDelta = new Vector2(size, size);
+
+            TextMeshProUGUI starText = starObj.AddComponent<TextMeshProUGUI>();
+            starText.text = "★";
+            starText.fontSize = size;
+            starText.alignment = TextAlignmentOptions.Center;
+            starText.color = color;
+
+            // Twinkle animation
+            starText.DOFade(0.5f, 0.3f + UnityEngine.Random.Range(0f, 0.3f))
+                .SetLoops(-1, LoopType.Yoyo)
+                .SetDelay(UnityEngine.Random.Range(0f, 0.5f));
+
+            starRt.DOScale(1.2f, 0.4f + UnityEngine.Random.Range(0f, 0.2f))
+                .SetLoops(-1, LoopType.Yoyo)
+                .SetDelay(UnityEngine.Random.Range(0f, 0.3f));
         }
 
         /// <summary>

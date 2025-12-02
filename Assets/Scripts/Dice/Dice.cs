@@ -418,16 +418,52 @@ namespace Incredicer.Dice
 
         /// <summary>
         /// Sets up Feel feedbacks if not already assigned.
+        /// Creates MMF_Player objects for satisfying game feel.
+        /// Note: Feedbacks are added via the Feel API at runtime.
         /// </summary>
         private void SetupFeedbacks()
         {
+            // Setup Roll Feedback (plays when dice is tapped)
             if (rollFeedback == null)
             {
                 GameObject feedbackObj = new GameObject("RollFeedback");
                 feedbackObj.transform.SetParent(transform);
                 feedbackObj.transform.localPosition = Vector3.zero;
                 rollFeedback = feedbackObj.AddComponent<MMF_Player>();
-                rollFeedback.InitializationMode = MMF_Player.InitializationModes.Awake;
+                rollFeedback.InitializationMode = MMF_Player.InitializationModes.Script;
+
+                // Add feedbacks through the MMF_Player's list
+                // Create a scale feedback for tap punch effect
+                var scaleFeedback = new MoreMountains.Feedbacks.MMF_Scale();
+                scaleFeedback.Label = "TapPunch";
+                scaleFeedback.AnimateScaleTarget = transform;
+                scaleFeedback.RemapCurveZero = 1f;
+                scaleFeedback.RemapCurveOne = 1.15f;
+                scaleFeedback.AnimateScaleDuration = 0.1f;
+                rollFeedback.AddFeedback(scaleFeedback);
+
+                rollFeedback.Initialization();
+            }
+
+            // Setup Jackpot Feedback (plays when rolling a 6)
+            if (jackpotFeedback == null)
+            {
+                GameObject jackpotFeedbackObj = new GameObject("JackpotFeedback");
+                jackpotFeedbackObj.transform.SetParent(transform);
+                jackpotFeedbackObj.transform.localPosition = Vector3.zero;
+                jackpotFeedback = jackpotFeedbackObj.AddComponent<MMF_Player>();
+                jackpotFeedback.InitializationMode = MMF_Player.InitializationModes.Script;
+
+                // Add intense scale feedback for jackpot
+                var jackpotScale = new MoreMountains.Feedbacks.MMF_Scale();
+                jackpotScale.Label = "JackpotPunch";
+                jackpotScale.AnimateScaleTarget = transform;
+                jackpotScale.RemapCurveZero = 1f;
+                jackpotScale.RemapCurveOne = 1.4f;
+                jackpotScale.AnimateScaleDuration = 0.2f;
+                jackpotFeedback.AddFeedback(jackpotScale);
+
+                jackpotFeedback.Initialization();
             }
         }
 
@@ -749,38 +785,8 @@ namespace Incredicer.Dice
                     }
                 }
 
-                // === JACKPOT EFFECTS - triggered when dice lands and shows the 6! ===
-                if (isJackpot)
-                {
-                    // Play jackpot feedback
-                    if (jackpotFeedback != null)
-                    {
-                        jackpotFeedback.PlayFeedbacks();
-                    }
-
-                    // Play jackpot sound when dice shows 6
-                    if (Core.AudioManager.Instance != null)
-                    {
-                        Core.AudioManager.Instance.PlayJackpotSound();
-                    }
-
-                    // Spawn jackpot visual effect (radial burst) at the landed position
-                    SpawnRollEffect(true); // true = jackpot effect
-
-                    // Spawn jackpot particle effects at the landed position
-                    if (Core.VisualEffectsManager.Instance != null)
-                    {
-                        Core.VisualEffectsManager.Instance.SpawnJackpotEffect(transform.position);
-                    }
-
-                    // Screen shake when dice lands on 6!
-                    Camera cam = mainCamera ?? Camera.main;
-                    if (cam != null)
-                    {
-                        cam.transform.DOKill();
-                        cam.transform.DOShakePosition(0.4f, 0.25f, 30, 90f, false, true);
-                    }
-                }
+                // === VALUE-BASED EFFECTS - higher numbers = better effects! ===
+                SpawnValueBasedEffects(currentFaceValue, isJackpot);
             });
 
             // Final punch effect (relative to initial scale)
@@ -820,6 +826,136 @@ namespace Incredicer.Dice
             {
                 GameObject effect = Instantiate(prefab, transform.position, Quaternion.identity);
                 Destroy(effect, 2f);
+            }
+        }
+
+        /// <summary>
+        /// Spawns visual and audio effects based on the dice value.
+        /// Higher values produce more impressive effects!
+        /// </summary>
+        private void SpawnValueBasedEffects(int value, bool isJackpot)
+        {
+            Camera cam = mainCamera ?? Camera.main;
+
+            // Base intensity scales with value (1-6)
+            float intensity = value / 6f;
+
+            // Colors that become more vibrant with higher values
+            Color[] valueColors = new Color[]
+            {
+                new Color(0.6f, 0.6f, 0.6f),     // 1 - Gray (muted)
+                new Color(0.5f, 0.7f, 1f),       // 2 - Light blue
+                new Color(0.4f, 1f, 0.5f),       // 3 - Green
+                new Color(1f, 0.85f, 0.3f),      // 4 - Gold
+                new Color(1f, 0.5f, 0.8f),       // 5 - Pink/Magenta
+                new Color(1f, 0.9f, 0.2f),       // 6 - Bright Gold (Jackpot!)
+            };
+            Color effectColor = valueColors[Mathf.Clamp(value - 1, 0, 5)];
+
+            // Value 1-2: Subtle effect (small particles)
+            if (value >= 1)
+            {
+                if (Core.VisualEffectsManager.Instance != null)
+                {
+                    Core.VisualEffectsManager.Instance.SpawnRollEffect(transform.position);
+                }
+            }
+
+            // Value 3-4: Medium effect (sparkles + scale punch)
+            if (value >= 3)
+            {
+                if (Core.VisualEffectsManager.Instance != null)
+                {
+                    Core.VisualEffectsManager.Instance.SpawnSparkleEffect(transform.position, effectColor);
+                }
+
+                // Small punch scale
+                transform.DOPunchScale(initialScale * 0.1f, 0.1f, 4, 0.5f);
+            }
+
+            // Value 4: Nice sparkle burst
+            if (value >= 4)
+            {
+                if (Core.VisualEffectsManager.Instance != null)
+                {
+                    Core.VisualEffectsManager.Instance.SpawnMoneyCollectEffect(transform.position);
+                }
+
+                // Color flash
+                spriteRenderer.DOColor(effectColor, 0.06f)
+                    .SetLoops(2, LoopType.Yoyo)
+                    .OnComplete(() => spriteRenderer.color = data != null ? data.tintColor : Color.white);
+            }
+
+            // Value 5: Great effect (combo burst + mild shake)
+            if (value >= 5)
+            {
+                if (Core.VisualEffectsManager.Instance != null)
+                {
+                    Core.VisualEffectsManager.Instance.SpawnComboEffect(transform.position);
+                }
+
+                // Mild screen shake
+                if (cam != null)
+                {
+                    cam.transform.DOKill();
+                    cam.transform.DOShakePosition(0.15f, 0.08f, 15, 90f, false, true);
+                }
+
+                // Play a sound
+                if (Core.AudioManager.Instance != null)
+                {
+                    Core.AudioManager.Instance.PlayRollSound();
+                }
+            }
+
+            // Value 6: JACKPOT! Maximum effects!
+            if (isJackpot)
+            {
+                // Play jackpot feedback
+                if (jackpotFeedback != null)
+                {
+                    jackpotFeedback.PlayFeedbacks();
+                }
+
+                // Play jackpot sound when dice shows 6
+                if (Core.AudioManager.Instance != null)
+                {
+                    Core.AudioManager.Instance.PlayJackpotSound();
+                }
+
+                // Spawn jackpot visual effect (radial burst) at the landed position
+                SpawnRollEffect(true); // true = jackpot effect
+
+                // Spawn jackpot particle effects at the landed position
+                if (Core.VisualEffectsManager.Instance != null)
+                {
+                    Core.VisualEffectsManager.Instance.SpawnJackpotEffect(transform.position);
+
+                    // Extra celebration sparkles around the dice
+                    for (int i = 0; i < 4; i++)
+                    {
+                        float angle = i * 90f * Mathf.Deg2Rad;
+                        Vector3 offset = new Vector3(Mathf.Cos(angle), Mathf.Sin(angle), 0) * 0.5f;
+                        DOVirtual.DelayedCall(i * 0.05f, () =>
+                        {
+                            Core.VisualEffectsManager.Instance.SpawnSparkleEffect(transform.position + offset, effectColor);
+                        });
+                    }
+                }
+
+                // Screen shake when dice lands on 6!
+                if (cam != null)
+                {
+                    cam.transform.DOKill();
+                    cam.transform.DOShakePosition(0.4f, 0.25f, 30, 90f, false, true);
+                }
+
+                // Flash screen briefly
+                if (Core.VisualEffectsManager.Instance != null)
+                {
+                    Core.VisualEffectsManager.Instance.FlashScreen(new Color(1f, 0.9f, 0.4f, 0.3f), 0.15f);
+                }
             }
         }
 

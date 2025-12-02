@@ -69,10 +69,19 @@ namespace Incredicer.Dice
             mainCamera = Camera.main;
             CalculateScreenBounds();
 
-            Debug.Log($"[DiceManager] Start called. AllDiceData count: {allDiceData.Count}");
+            Debug.Log($"[DiceManager] Start called. AllDiceData count: {allDiceData.Count}, DiceRestored: {diceRestored}");
 
-            // Spawn initial basic die if no dice exist
-            if (activeDice.Count == 0)
+            // Wait a frame to allow SaveSystem to load data first
+            StartCoroutine(SpawnInitialDiceDelayed());
+        }
+
+        private System.Collections.IEnumerator SpawnInitialDiceDelayed()
+        {
+            // Wait for save system to potentially restore dice
+            yield return new WaitForSeconds(0.2f);
+
+            // Spawn initial basic die only if no dice exist and none were restored from save
+            if (activeDice.Count == 0 && !diceRestored)
             {
                 DiceData basicData = GetDiceData(DiceType.Basic);
                 Debug.Log($"[DiceManager] Basic dice data: {(basicData != null ? basicData.displayName : "NULL")}");
@@ -401,6 +410,48 @@ namespace Incredicer.Dice
         {
             return new Dictionary<DiceType, int>(ownedDiceCount);
         }
+
+        /// <summary>
+        /// Restores saved dice from save data.
+        /// </summary>
+        public void RestoreSavedDice(List<Core.SavedDice> savedDice)
+        {
+            if (savedDice == null || savedDice.Count == 0) return;
+
+            // Clear existing dice first
+            foreach (var dice in new List<Dice>(activeDice))
+            {
+                if (dice != null)
+                {
+                    dice.OnDarkMatterGenerated -= HandleDarkMatterGenerated;
+                    Destroy(dice.gameObject);
+                }
+            }
+            activeDice.Clear();
+
+            // Reset owned counts
+            foreach (DiceType type in System.Enum.GetValues(typeof(DiceType)))
+            {
+                ownedDiceCount[type] = 0;
+            }
+
+            // Spawn saved dice
+            foreach (var saved in savedDice)
+            {
+                DiceData data = GetDiceData(saved.type);
+                if (data != null)
+                {
+                    SpawnDice(data, saved.position);
+                }
+            }
+
+            diceRestored = true;
+            Debug.Log($"[DiceManager] Restored {savedDice.Count} dice from save");
+        }
+
+        // Flag to prevent double-spawning on load
+        private bool diceRestored = false;
+        public bool DiceRestored => diceRestored;
 
         // Events
         public event System.Action<Dice> OnDiceSpawned;

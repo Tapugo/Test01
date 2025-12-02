@@ -38,6 +38,7 @@ namespace Incredicer.Core
         // Prestige
         public int prestigeLevel;
         public double totalPrestigeDarkMatterEarned;
+        public bool hasAscended;
     }
 
     /// <summary>
@@ -268,6 +269,14 @@ namespace Incredicer.Core
                 data.diceValueUpgradeLevel = GameStats.Instance.DiceValueUpgradeLevel;
             }
 
+            // Prestige state
+            if (PrestigeManager.Instance != null)
+            {
+                data.prestigeLevel = PrestigeManager.Instance.AscensionLevel;
+                data.totalPrestigeDarkMatterEarned = PrestigeManager.Instance.TotalDarkMatterEarned;
+                data.hasAscended = PrestigeManager.Instance.HasAscended;
+            }
+
             return data;
         }
 
@@ -301,7 +310,13 @@ namespace Incredicer.Core
                 SkillTreeManager.Instance.ReapplyAllEffects();
             }
 
-            // Dice - unlock types
+            // Prestige state (before dice so DarkMatterUnlocked is handled correctly)
+            if (PrestigeManager.Instance != null)
+            {
+                PrestigeManager.Instance.SetPrestigeState(data.prestigeLevel, data.totalPrestigeDarkMatterEarned);
+            }
+
+            // Dice - unlock types and restore saved dice
             if (DiceManager.Instance != null)
             {
                 DiceManager.Instance.DarkMatterUnlocked = data.darkMatterUnlocked;
@@ -311,8 +326,11 @@ namespace Incredicer.Core
                     DiceManager.Instance.UnlockDiceType(type);
                 }
 
-                // Note: Dice spawning is handled by DiceManager.Start()
-                // We could restore exact positions in a more advanced implementation
+                // Restore saved dice (spawn them from saved data)
+                if (data.ownedDice != null && data.ownedDice.Count > 0)
+                {
+                    DiceManager.Instance.RestoreSavedDice(data.ownedDice);
+                }
             }
         }
 
