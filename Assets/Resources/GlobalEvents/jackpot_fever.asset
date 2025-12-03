@@ -1,0 +1,47 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 09e3aaf5299fc46ceafd945bde8e0098, type: 3}
+  m_Name: jackpot_fever
+  m_EditorClassIdentifier: 
+  eventId: jackpot_fever
+  eventName: Jackpot Fever
+  description: Hit as many jackpots as possible!
+  durationHours: 48
+  contributionType: 3
+  communityGoal: 10000
+  tierRewards:
+  - progressThreshold: 0.25
+    tierName: Lucky
+    timeShardsReward: 12
+    darkMatterReward: 0
+    specialReward: 
+    tierColor: {r: 0.4, g: 0.7, b: 0.4, a: 1}
+  - progressThreshold: 0.5
+    tierName: Fortune
+    timeShardsReward: 30
+    darkMatterReward: 0
+    specialReward: 
+    tierColor: {r: 0.2, g: 0.8, b: 0.4, a: 1}
+  - progressThreshold: 0.75
+    tierName: Blessed
+    timeShardsReward: 55
+    darkMatterReward: 0
+    specialReward: 
+    tierColor: {r: 0.1, g: 0.9, b: 0.5, a: 1}
+  - progressThreshold: 1
+    tierName: Legendary
+    timeShardsReward: 120
+    darkMatterReward: 75
+    specialReward: 
+    tierColor: {r: 1, g: 0.9, b: 0.2, a: 1}
+  eventIcon: {fileID: 0}
+  eventColor: {r: 0.2, g: 0.9, b: 0.5, a: 1}

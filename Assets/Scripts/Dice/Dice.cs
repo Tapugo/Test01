@@ -1,6 +1,7 @@
 using UnityEngine;
 using Incredicer.Core;
 using Incredicer.UI;
+using Incredicer.Overclock;
 using DG.Tweening;
 using MoreMountains.Feedbacks;
 using TMPro;
@@ -519,6 +520,12 @@ namespace Incredicer.Dice
 
             // Apply any global multipliers from dice data
             double finalMoney = baseMoney * moneyMultiplier;
+
+            // Apply overclock multiplier if dice is overclocked
+            if (OverclockManager.Instance != null)
+            {
+                finalMoney *= OverclockManager.Instance.GetPayoutMultiplier(this);
+            }
 
             // Check for jackpot (rolling a 6)
             bool isJackpot = currentFaceValue == 6;

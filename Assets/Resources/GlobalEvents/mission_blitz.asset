@@ -1,0 +1,47 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 09e3aaf5299fc46ceafd945bde8e0098, type: 3}
+  m_Name: mission_blitz
+  m_EditorClassIdentifier: 
+  eventId: mission_blitz
+  eventName: Mission Blitz
+  description: Complete missions together!
+  durationHours: 48
+  contributionType: 5
+  communityGoal: 25000
+  tierRewards:
+  - progressThreshold: 0.25
+    tierName: Recruit
+    timeShardsReward: 10
+    darkMatterReward: 0
+    specialReward: 
+    tierColor: {r: 0.6, g: 0.4, b: 0.2, a: 1}
+  - progressThreshold: 0.5
+    tierName: Veteran
+    timeShardsReward: 25
+    darkMatterReward: 0
+    specialReward: 
+    tierColor: {r: 0.7, g: 0.5, b: 0.2, a: 1}
+  - progressThreshold: 0.75
+    tierName: Elite
+    timeShardsReward: 50
+    darkMatterReward: 0
+    specialReward: 
+    tierColor: {r: 0.9, g: 0.6, b: 0.2, a: 1}
+  - progressThreshold: 1
+    tierName: Commander
+    timeShardsReward: 100
+    darkMatterReward: 50
+    specialReward: 
+    tierColor: {r: 1, g: 0.7, b: 0.3, a: 1}
+  eventIcon: {fileID: 0}
+  eventColor: {r: 1, g: 0.6, b: 0.2, a: 1}

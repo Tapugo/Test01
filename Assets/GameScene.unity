@@ -798,6 +798,176 @@ MonoBehaviour:
   unlockedColor: {r: 0.3, g: 0.9, b: 0.4, a: 1}
   availableColor: {r: 1, g: 0.85, b: 0.3, a: 1}
   lockedColor: {r: 0.35, g: 0.35, b: 0.4, a: 1}
+--- !u!1 &443546991
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 443546993}
+  - component: {fileID: 443546992}
+  - component: {fileID: 443546999}
+  - component: {fileID: 443546998}
+  - component: {fileID: 443546997}
+  - component: {fileID: 443546996}
+  - component: {fileID: 443546995}
+  - component: {fileID: 443546994}
+  m_Layer: 0
+  m_Name: Managers
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &443546992
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 443546991}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 953f848792f7b4e4ba64d97f86ab051e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  rewardConfig: {fileID: 0}
+  debugMode: 0
+--- !u!4 &443546993
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 443546991}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &443546994
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 443546991}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8743e602a109c4f54ab8be42e425c02c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  baseMoneyRequired: 10000
+  moneyRequiredGrowth: 2.5
+  baseDarkMatterRequired: 100
+  baseTimeShardsReward: 10
+  timeShardsPerLevel: 5
+  timeShardsFromDMPercent: 0.1
+  moneyMultiplierPerLevel: 0.1
+  dmMultiplierPerLevel: 0.05
+  diceValueBonusPerLevel: 1
+  skillCostReductionPerLevel: 0.02
+  startingMoneyPerLevel: 100
+  fractureLevel: 0
+  totalFractures: 0
+  totalTimeShardsEarned: 0
+  debugMode: 0
+--- !u!114 &443546995
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 443546991}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 36ca9bca5fea64861a1684147e92997d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  config:
+    payoutMultiplier: 2.5
+    heatPerRoll: 0.1
+    dmBonusOnDestroy: 10
+    overclockTint: {r: 1, g: 0.5, b: 0.2, a: 1}
+    pulseSpeed: 2
+    pulseIntensity: 0.1
+  debugMode: 0
+--- !u!114 &443546996
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 443546991}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e4f8a71438ac5484cb903648adce35eb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  entriesPerLeaderboard: 100
+  refreshCooldownSeconds: 60
+  scoreUpdateInterval: 30
+--- !u!114 &443546997
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 443546991}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f29470d8fa8cb4fd19eb879af314856e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  communityProgressMultiplier: 50
+  progressUpdateInterval: 5
+  availableEvents: []
+--- !u!114 &443546998
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 443546991}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6d4c1cfca6dcb46e1861d9344465dc1e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  milestonesResourcePath: Milestones
+  totalDiceRolls: 0
+  totalJackpots: 0
+  maxDiceOwned: 0
+  totalSkillNodesUnlocked: 0
+  totalDiceTypesUnlocked: 0
+  totalPlayTimeMinutes: 0
+  highestLoginStreak: 0
+  totalMissionsCompleted: 0
+  permanentMoneyBoost: 0
+  permanentDMBoost: 0
+  debugMode: 0
+--- !u!114 &443546999
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 443546991}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b1c0722b5b4264894b5e956e80451dde, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  dailyMissionCount: 3
+  weeklyMissionCount: 5
+  dailyMissionPool: []
+  weeklyMissionPool: []
+  debugMode: 0
 --- !u!1 &468808212
 GameObject:
   m_ObjectHideFlags: 0
@@ -1028,8 +1198,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   money: 0
   darkMatter: 0
+  timeShards: 0
   lifetimeMoney: 0
   lifetimeDarkMatter: 0
+  lifetimeTimeShards: 0
 --- !u!114 &561118995
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1061,6 +1233,12 @@ MonoBehaviour:
   hyperburstActive: 0
   cursorRollRadius: 1
   diceValueUpgradeLevel: 0
+  temporaryMoneyBoost: 0
+  temporaryDMBoost: 0
+  fractureMoneyMultiplier: 1
+  fractureDMMultiplier: 1
+  fractureDiceValueBonus: 0
+  baseMoneyPerRoll: 10
 --- !u!4 &561118996
 Transform:
   m_ObjectHideFlags: 0
@@ -1247,10 +1425,10 @@ RectTransform:
   - {fileID: 1623899379}
   m_Father: {fileID: 573822856}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 0, y: 0}
-  m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 400, y: 0}
+  m_AnchorMin: {x: 0, y: 1}
+  m_AnchorMax: {x: 0, y: 1}
+  m_AnchoredPosition: {x: 230, y: -90}
+  m_SizeDelta: {x: 400, y: 150}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &572803811
 MonoBehaviour:
@@ -1898,6 +2076,14 @@ GameObject:
   - component: {fileID: 929496638}
   - component: {fileID: 929496637}
   - component: {fileID: 929496642}
+  - component: {fileID: 929496643}
+  - component: {fileID: 929496650}
+  - component: {fileID: 929496649}
+  - component: {fileID: 929496648}
+  - component: {fileID: 929496647}
+  - component: {fileID: 929496646}
+  - component: {fileID: 929496645}
+  - component: {fileID: 929496644}
   m_Layer: 0
   m_Name: GameCanvas
   m_TagString: Untagged
@@ -2056,6 +2242,170 @@ MonoBehaviour:
   particleSize: 40
   particleStagger: 0.05
   currencyEffectPrefab: {fileID: 0}
+--- !u!114 &929496643
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 929496636}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b3801ed3ee4404d889ed50728b11ba42, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  mainPanel: {fileID: 0}
+  panelCanvasGroup: {fileID: 0}
+  titleText: {fileID: 0}
+  subtitleText: {fileID: 0}
+  diceContainer: {fileID: 0}
+  diceImage: {fileID: 0}
+  diceShadow: {fileID: 0}
+  streakContainer: {fileID: 0}
+  streakNodes: []
+  streakFilledColor: {r: 1, g: 0.85, b: 0.2, a: 1}
+  streakEmptyColor: {r: 0.3, g: 0.3, b: 0.35, a: 1}
+  streakTodayColor: {r: 0.4, g: 1, b: 0.5, a: 1}
+  rollButton: {fileID: 0}
+  rollButtonText: {fileID: 0}
+  rollButtonBg: {fileID: 0}
+  rewardPanel: {fileID: 0}
+  rewardCanvasGroup: {fileID: 0}
+  rewardIcon: {fileID: 0}
+  rewardTitleText: {fileID: 0}
+  rewardDescText: {fileID: 0}
+  rewardAmountText: {fileID: 0}
+  collectButton: {fileID: 0}
+  collectButtonText: {fileID: 0}
+  hudIcon: {fileID: 0}
+  hudIconImage: {fileID: 0}
+  hudBadge: {fileID: 0}
+  guiAssets: {fileID: 0}
+  moneyIcon: {fileID: 0}
+  darkMatterIcon: {fileID: 0}
+  boostIcon: {fileID: 0}
+  tokenIcon: {fileID: 0}
+  diceSpinDuration: 1
+  diceJumpHeight: 100
+  diceSpinRotations: 2
+--- !u!114 &929496644
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 929496636}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e7f8cccfc70bb4bac98bf89ba796bb6e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  canvas: {fileID: 0}
+  animationDuration: 0.3
+--- !u!114 &929496645
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 929496636}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 15568e9af8a884100b19ae85bf471162, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  canvas: {fileID: 0}
+  panelSlideDistance: 300
+  animationDuration: 0.3
+--- !u!114 &929496646
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 929496636}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2b697096ba47340ac80eb4a60fd08d41, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  buttonWidth: 140
+  buttonHeight: 50
+  buttonSpacing: 8
+--- !u!114 &929496647
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 929496636}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ba7f0add3c7dc41d583d8098ff7d0e58, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  panelWidth: 800
+  panelHeight: 650
+--- !u!114 &929496648
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 929496636}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 27d7416a5502749f1b591c6f6238a770, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  panelWidth: 800
+  panelHeight: 600
+--- !u!114 &929496649
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 929496636}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fdbf2d8a69b644d9ebb0448b1cbb969e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  canvas: {fileID: 0}
+  animationDuration: 0.3
+--- !u!114 &929496650
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 929496636}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3bc94869cfd10422bb283a25f47f2e3f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  mainPanel: {fileID: 0}
+  panelCanvasGroup: {fileID: 0}
+  titleText: {fileID: 0}
+  closeButton: {fileID: 0}
+  dailyTabButton: {fileID: 0}
+  weeklyTabButton: {fileID: 0}
+  dailyTabBg: {fileID: 0}
+  weeklyTabBg: {fileID: 0}
+  dailyTabText: {fileID: 0}
+  weeklyTabText: {fileID: 0}
+  scrollRect: {fileID: 0}
+  contentContainer: {fileID: 0}
+  hudButton: {fileID: 0}
+  hudBadge: {fileID: 0}
+  hudBadgeText: {fileID: 0}
+  guiAssets: {fileID: 0}
+  tabActiveColor: {r: 0.3, g: 0.8, b: 0.4, a: 1}
+  tabInactiveColor: {r: 0.3, g: 0.3, b: 0.35, a: 1}
+  progressBarFillColor: {r: 0.4, g: 0.9, b: 0.5, a: 1}
+  progressBarBgColor: {r: 0.2, g: 0.2, b: 0.25, a: 1}
 --- !u!1 &1000703326
 GameObject:
   m_ObjectHideFlags: 0
@@ -2233,10 +2583,10 @@ RectTransform:
   - {fileID: 562528667}
   m_Father: {fileID: 573822856}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 0, y: 0}
-  m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 400, y: 0}
+  m_AnchorMin: {x: 0, y: 1}
+  m_AnchorMax: {x: 0, y: 1}
+  m_AnchoredPosition: {x: 650, y: -90}
+  m_SizeDelta: {x: 400, y: 150}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1067784474
 MonoBehaviour:
@@ -2507,10 +2857,10 @@ RectTransform:
   m_Children: []
   m_Father: {fileID: 401842343}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 0, y: 0}
-  m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 0, y: 0}
+  m_AnchorMin: {x: 0, y: 1}
+  m_AnchorMax: {x: 0, y: 1}
+  m_AnchoredPosition: {x: 110, y: -42.5}
+  m_SizeDelta: {x: 180, y: 45}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1135372094
 MonoBehaviour:
@@ -3291,10 +3641,10 @@ RectTransform:
   - {fileID: 686617707}
   m_Father: {fileID: 401842343}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 0, y: 0}
-  m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 0, y: 0}
+  m_AnchorMin: {x: 0, y: 1}
+  m_AnchorMax: {x: 0, y: 1}
+  m_AnchoredPosition: {x: 110, y: -90}
+  m_SizeDelta: {x: 180, y: 40}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1417193741
 MonoBehaviour:
@@ -4281,3 +4631,4 @@ SceneRoots:
   - {fileID: 1490148728}
   - {fileID: 1847045498}
   - {fileID: 415933307}
+  - {fileID: 443546993}

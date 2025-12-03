@@ -1,3 +1,4 @@
+using System.Collections;
 using UnityEngine;
 
 namespace Incredicer.Core
@@ -47,7 +48,22 @@ namespace Incredicer.Core
         [Header("Dice Value Upgrades")]
         [SerializeField] private int diceValueUpgradeLevel = 0;
 
+        [Header("Temporary Boosts")]
+        [SerializeField] private float temporaryMoneyBoost = 0f;
+        [SerializeField] private float temporaryDMBoost = 0f;
+
+        [Header("Time Fracture Bonuses")]
+        [SerializeField] private float fractureMoneyMultiplier = 1f;
+        [SerializeField] private float fractureDMMultiplier = 1f;
+        [SerializeField] private int fractureDiceValueBonus = 0;
+
+        [Header("Base Stats")]
+        [SerializeField] private double baseMoneyPerRoll = 10;
+
         // Properties for external access
+        public double BaseMoneyPerRoll { get => baseMoneyPerRoll; set => baseMoneyPerRoll = value; }
+        public float TemporaryMoneyBoost => temporaryMoneyBoost;
+        public float TemporaryDMBoost => temporaryDMBoost;
         public int DiceValueUpgradeLevel { get => diceValueUpgradeLevel; set => diceValueUpgradeLevel = value; }
         public double GlobalMoneyMultiplier { get => globalMoneyMultiplier; set => globalMoneyMultiplier = value; }
         public double ManualMoneyMultiplier { get => manualMoneyMultiplier; set => manualMoneyMultiplier = value; }
@@ -67,6 +83,9 @@ namespace Incredicer.Core
         public bool PrecisionAimActive { get => precisionAimActive; set => precisionAimActive = value; }
         public bool HyperburstActive { get => hyperburstActive; set => hyperburstActive = value; }
         public float CursorRollRadius { get => cursorRollRadius; set => cursorRollRadius = value; }
+        public float FractureMoneyMultiplier => fractureMoneyMultiplier;
+        public float FractureDMMultiplier => fractureDMMultiplier;
+        public int FractureDiceValueBonus => fractureDiceValueBonus;
 
         private void Awake()
         {
@@ -193,6 +212,93 @@ namespace Incredicer.Core
             precisionAimActive = false;
             hyperburstActive = false;
             cursorRollRadius = 1.0f;
+            temporaryMoneyBoost = 0f;
+            temporaryDMBoost = 0f;
         }
+
+        /// <summary>
+        /// Applies a temporary money boost for a duration.
+        /// </summary>
+        /// <param name="boostPercent">Boost amount as decimal (0.5 = 50% boost)</param>
+        /// <param name="durationSeconds">Duration in seconds</param>
+        public void ApplyTemporaryMoneyBoost(float boostPercent, float durationSeconds)
+        {
+            StartCoroutine(TemporaryMoneyBoostCoroutine(boostPercent, durationSeconds));
+        }
+
+        private IEnumerator TemporaryMoneyBoostCoroutine(float boostPercent, float durationSeconds)
+        {
+            temporaryMoneyBoost += boostPercent;
+            globalMoneyMultiplier *= (1f + boostPercent);
+            Debug.Log($"[GameStats] Money boost started: +{boostPercent * 100}% for {durationSeconds}s");
+
+            yield return new WaitForSeconds(durationSeconds);
+
+            temporaryMoneyBoost -= boostPercent;
+            globalMoneyMultiplier /= (1f + boostPercent);
+            Debug.Log($"[GameStats] Money boost ended");
+        }
+
+        /// <summary>
+        /// Applies a temporary dark matter boost for a duration.
+        /// </summary>
+        /// <param name="boostPercent">Boost amount as decimal (1.0 = 100% boost)</param>
+        /// <param name="durationSeconds">Duration in seconds</param>
+        public void ApplyTemporaryDMBoost(float boostPercent, float durationSeconds)
+        {
+            StartCoroutine(TemporaryDMBoostCoroutine(boostPercent, durationSeconds));
+        }
+
+        private IEnumerator TemporaryDMBoostCoroutine(float boostPercent, float durationSeconds)
+        {
+            temporaryDMBoost += boostPercent;
+            darkMatterGainMultiplier *= (1f + boostPercent);
+            Debug.Log($"[GameStats] DM boost started: +{boostPercent * 100}% for {durationSeconds}s");
+
+            yield return new WaitForSeconds(durationSeconds);
+
+            temporaryDMBoost -= boostPercent;
+            darkMatterGainMultiplier /= (1f + boostPercent);
+            Debug.Log($"[GameStats] DM boost ended");
+        }
+
+        #region Time Fracture
+
+        /// <summary>
+        /// Sets the fracture money multiplier bonus.
+        /// </summary>
+        public void SetFractureMoneyMultiplier(float multiplier)
+        {
+            fractureMoneyMultiplier = multiplier;
+            // Apply to global multiplier
+            globalMoneyMultiplier = multiplier;
+        }
+
+        /// <summary>
+        /// Sets the fracture dark matter multiplier bonus.
+        /// </summary>
+        public void SetFractureDMMultiplier(float multiplier)
+        {
+            fractureDMMultiplier = multiplier;
+            darkMatterGainMultiplier = multiplier;
+        }
+
+        /// <summary>
+        /// Sets the fracture dice value bonus.
+        /// </summary>
+        public void SetFractureDiceValueBonus(int bonus)
+        {
+            fractureDiceValueBonus = bonus;
+        }
+
+        /// <summary>
+        /// Resets upgrade levels (for Time Fracture reset).
+        /// </summary>
+        public void ResetUpgradeLevels()
+        {
+            diceValueUpgradeLevel = 0;
+        }
+
+        #endregion
     }
 }

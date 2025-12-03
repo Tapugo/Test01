@@ -1,0 +1,70 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 800dec0f2474e4847a78bdec251988ed, type: 3}
+  m_Name: DailyRewardConfig
+  m_EditorClassIdentifier: 
+  streakLength: 7
+  resetStreakOnMiss: 0
+  gracePeriodDays: 2
+  dayRewards:
+  - dayNumber: 1
+    rewardType: 0
+    baseAmount: 100
+    streakMultiplier: 1
+    boostDurationSeconds: 0
+    rewardTitle: Welcome Back!
+    rewardDescription: A small reward to start your streak.
+  - dayNumber: 2
+    rewardType: 0
+    baseAmount: 200
+    streakMultiplier: 1.5
+    boostDurationSeconds: 0
+    rewardTitle: Keep It Rolling!
+    rewardDescription: Your streak grows stronger!
+  - dayNumber: 3
+    rewardType: 1
+    baseAmount: 10
+    streakMultiplier: 1
+    boostDurationSeconds: 0
+    rewardTitle: Dark Matter Bonus!
+    rewardDescription: Precious dark matter for your collection.
+  - dayNumber: 4
+    rewardType: 2
+    baseAmount: 50
+    streakMultiplier: 1
+    boostDurationSeconds: 600
+    rewardTitle: Money Frenzy!
+    rewardDescription: +50% money for 10 minutes!
+  - dayNumber: 5
+    rewardType: 0
+    baseAmount: 500
+    streakMultiplier: 2
+    boostDurationSeconds: 0
+    rewardTitle: Halfway There!
+    rewardDescription: A big reward for your dedication!
+  - dayNumber: 6
+    rewardType: 3
+    baseAmount: 100
+    streakMultiplier: 1
+    boostDurationSeconds: 600
+    rewardTitle: Dark Matter Surge!
+    rewardDescription: +100% dark matter for 10 minutes!
+  - dayNumber: 7
+    rewardType: 0
+    baseAmount: 1000
+    streakMultiplier: 3
+    boostDurationSeconds: 0
+    rewardTitle: JACKPOT DAY!
+    rewardDescription: Maximum streak! Massive rewards!
+  moneyRewardMinutesWorth: 10
+  baseDarkMatterReward: 5
+  dmYesterdayBonusPercent: 0.1

@@ -15,22 +15,27 @@ namespace Incredicer.Core
         [Header("Current Currencies")]
         [SerializeField] private double money = 0;
         [SerializeField] private double darkMatter = 0;
+        [SerializeField] private double timeShards = 0;
 
         [Header("Lifetime Stats")]
         [SerializeField] private double lifetimeMoney = 0;
         [SerializeField] private double lifetimeDarkMatter = 0;
+        [SerializeField] private double lifetimeTimeShards = 0;
 
         // Events for UI updates
         public event Action<double> OnMoneyChanged;
         public event Action<double> OnDarkMatterChanged;
+        public event Action<double> OnTimeShardsChanged;
         public event Action<double> OnLifetimeMoneyChanged;
         public event Action<double> OnLifetimeDarkMatterChanged;
 
         // Properties
         public double Money => money;
         public double DarkMatter => darkMatter;
+        public double TimeShards => timeShards;
         public double LifetimeMoney => lifetimeMoney;
         public double LifetimeDarkMatter => lifetimeDarkMatter;
+        public double LifetimeTimeShards => lifetimeTimeShards;
 
         private void Awake()
         {
@@ -45,8 +50,10 @@ namespace Incredicer.Core
             // Always start fresh with 0 currency - SaveSystem will load saved values if they exist
             money = 0;
             darkMatter = 0;
+            timeShards = 0;
             lifetimeMoney = 0;
             lifetimeDarkMatter = 0;
+            lifetimeTimeShards = 0;
         }
 
         /// <summary>
@@ -211,6 +218,44 @@ namespace Incredicer.Core
             return darkMatter >= amount;
         }
 
+        #region Time Shards
+
+        /// <summary>
+        /// Adds time shards to the player's balance.
+        /// </summary>
+        public void AddTimeShards(double amount)
+        {
+            if (amount <= 0) return;
+
+            timeShards += amount;
+            lifetimeTimeShards += amount;
+
+            OnTimeShardsChanged?.Invoke(timeShards);
+        }
+
+        /// <summary>
+        /// Attempts to spend time shards.
+        /// </summary>
+        public bool SpendTimeShards(double amount)
+        {
+            if (amount <= 0) return true;
+            if (timeShards < amount) return false;
+
+            timeShards -= amount;
+            OnTimeShardsChanged?.Invoke(timeShards);
+            return true;
+        }
+
+        /// <summary>
+        /// Checks if the player can afford a time shards purchase.
+        /// </summary>
+        public bool CanAffordTimeShards(double amount)
+        {
+            return timeShards >= amount;
+        }
+
+        #endregion
+
         /// <summary>
         /// Sets currency values directly (used for save/load).
         /// </summary>
@@ -228,17 +273,53 @@ namespace Incredicer.Core
         }
 
         /// <summary>
+        /// Sets all currency values including Time Shards (used for save/load).
+        /// </summary>
+        public void SetAllCurrencies(double newMoney, double newDarkMatter, double newTimeShards,
+            double newLifetimeMoney, double newLifetimeDarkMatter, double newLifetimeTimeShards)
+        {
+            money = newMoney;
+            darkMatter = newDarkMatter;
+            timeShards = newTimeShards;
+            lifetimeMoney = newLifetimeMoney;
+            lifetimeDarkMatter = newLifetimeDarkMatter;
+            lifetimeTimeShards = newLifetimeTimeShards;
+
+            OnMoneyChanged?.Invoke(money);
+            OnDarkMatterChanged?.Invoke(darkMatter);
+            OnTimeShardsChanged?.Invoke(timeShards);
+            OnLifetimeMoneyChanged?.Invoke(lifetimeMoney);
+            OnLifetimeDarkMatterChanged?.Invoke(lifetimeDarkMatter);
+        }
+
+        /// <summary>
+        /// Resets money and dark matter but keeps Time Shards (for Time Fracture).
+        /// </summary>
+        public void ResetForTimeFracture()
+        {
+            money = 0;
+            darkMatter = 0;
+            // Time shards are NOT reset - they persist through fractures
+
+            OnMoneyChanged?.Invoke(money);
+            OnDarkMatterChanged?.Invoke(darkMatter);
+        }
+
+        /// <summary>
         /// Resets all currencies to zero.
         /// </summary>
         public void ResetAll()
         {
             money = 0;
             darkMatter = 0;
+            timeShards = 0;
             lifetimeMoney = 0;
             lifetimeDarkMatter = 0;
+            lifetimeTimeShards = 0;
 
             OnMoneyChanged?.Invoke(money);
             OnDarkMatterChanged?.Invoke(darkMatter);
+            OnTimeShardsChanged?.Invoke(timeShards);
             OnLifetimeMoneyChanged?.Invoke(lifetimeMoney);
             OnLifetimeDarkMatterChanged?.Invoke(lifetimeDarkMatter);
         }

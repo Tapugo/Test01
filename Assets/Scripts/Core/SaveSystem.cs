@@ -4,6 +4,13 @@ using System.IO;
 using UnityEngine;
 using Incredicer.Dice;
 using Incredicer.Skills;
+using Incredicer.DailyLogin;
+using Incredicer.Missions;
+using Incredicer.Overclock;
+using Incredicer.TimeFracture;
+using Incredicer.Milestones;
+using Incredicer.GlobalEvents;
+using Incredicer.Leaderboards;
 
 namespace Incredicer.Core
 {
@@ -39,6 +46,49 @@ namespace Incredicer.Core
         public int prestigeLevel;
         public double totalPrestigeDarkMatterEarned;
         public bool hasAscended;
+
+        // Daily Login
+        public string lastLoginDateStr; // DateTime stored as string for JSON serialization
+        public int currentStreakDay;
+        public bool hasRolledToday;
+        public int totalLoginDays;
+        public double yesterdayDMEarned;
+
+        // Missions
+        public List<MissionInstance> dailyMissions = new List<MissionInstance>();
+        public List<MissionInstance> weeklyMissions = new List<MissionInstance>();
+        public string lastDailyResetDateStr;
+        public string lastWeeklyResetDateStr;
+
+        // Overclock
+        public int totalDiceDestroyed;
+        public double totalDMFromDestruction;
+
+        // Time Fracture
+        public double timeShards;
+        public double lifetimeTimeShards;
+        public int fractureLevel;
+        public int totalFractures;
+        public double totalTimeShardsEarned;
+
+        // Milestones
+        public List<MilestoneProgress> milestoneProgress = new List<MilestoneProgress>();
+        public double milestoneTotalDiceRolls;
+        public double milestoneTotalJackpots;
+        public int milestoneMaxDiceOwned;
+        public int milestoneTotalSkillNodes;
+        public int milestoneTotalDiceTypes;
+        public double milestoneTotalPlayTime;
+        public int milestoneHighestStreak;
+        public int milestoneTotalMissions;
+        public float milestonePermanentMoneyBoost;
+        public float milestonePermanentDMBoost;
+
+        // Global Events
+        public GlobalEventSaveData globalEventData;
+
+        // Leaderboards
+        public LeaderboardSaveData leaderboardData;
     }
 
     /// <summary>
@@ -277,6 +327,84 @@ namespace Incredicer.Core
                 data.hasAscended = PrestigeManager.Instance.HasAscended;
             }
 
+            // Daily Login state
+            if (DailyLoginManager.Instance != null)
+            {
+                DateTime lastLogin;
+                int streakDay, totalLogins;
+                bool hasRolled;
+                double yesterdayDM;
+                DailyLoginManager.Instance.GetSaveData(out lastLogin, out streakDay, out hasRolled, out totalLogins, out yesterdayDM);
+
+                data.lastLoginDateStr = lastLogin.ToString("o"); // ISO 8601 format
+                data.currentStreakDay = streakDay;
+                data.hasRolledToday = hasRolled;
+                data.totalLoginDays = totalLogins;
+                data.yesterdayDMEarned = yesterdayDM;
+            }
+
+            // Missions
+            if (MissionManager.Instance != null)
+            {
+                var missionData = MissionManager.Instance.GetSaveData();
+                data.dailyMissions = missionData.dailyMissions;
+                data.weeklyMissions = missionData.weeklyMissions;
+                data.lastDailyResetDateStr = missionData.lastDailyResetStr;
+                data.lastWeeklyResetDateStr = missionData.lastWeeklyResetStr;
+            }
+
+            // Overclock
+            if (OverclockManager.Instance != null)
+            {
+                var overclockData = OverclockManager.Instance.GetSaveData();
+                data.totalDiceDestroyed = overclockData.totalDiceDestroyed;
+                data.totalDMFromDestruction = overclockData.totalDMFromDestruction;
+            }
+
+            // Time Fracture
+            if (CurrencyManager.Instance != null)
+            {
+                data.timeShards = CurrencyManager.Instance.TimeShards;
+                data.lifetimeTimeShards = CurrencyManager.Instance.LifetimeTimeShards;
+            }
+
+            if (TimeFractureManager.Instance != null)
+            {
+                var fractureData = TimeFractureManager.Instance.GetSaveData();
+                data.fractureLevel = fractureData.fractureLevel;
+                data.totalFractures = fractureData.totalFractures;
+                data.totalTimeShardsEarned = fractureData.totalTimeShardsEarned;
+            }
+
+            // Milestones
+            if (MilestoneManager.Instance != null)
+            {
+                var milestoneData = MilestoneManager.Instance.GetSaveData();
+                data.milestoneProgress = milestoneData.progressList;
+                data.milestoneTotalDiceRolls = milestoneData.totalDiceRolls;
+                data.milestoneTotalJackpots = milestoneData.totalJackpots;
+                data.milestoneMaxDiceOwned = milestoneData.maxDiceOwned;
+                data.milestoneTotalSkillNodes = milestoneData.totalSkillNodesUnlocked;
+                data.milestoneTotalDiceTypes = milestoneData.totalDiceTypesUnlocked;
+                data.milestoneTotalPlayTime = milestoneData.totalPlayTimeMinutes;
+                data.milestoneHighestStreak = milestoneData.highestLoginStreak;
+                data.milestoneTotalMissions = milestoneData.totalMissionsCompleted;
+                data.milestonePermanentMoneyBoost = milestoneData.permanentMoneyBoost;
+                data.milestonePermanentDMBoost = milestoneData.permanentDMBoost;
+            }
+
+            // Global Events
+            if (GlobalEventManager.Instance != null)
+            {
+                data.globalEventData = GlobalEventManager.Instance.GetSaveData();
+            }
+
+            // Leaderboards
+            if (LeaderboardManager.Instance != null)
+            {
+                data.leaderboardData = LeaderboardManager.Instance.GetSaveData();
+            }
+
             return data;
         }
 
@@ -331,6 +459,103 @@ namespace Incredicer.Core
                 {
                     DiceManager.Instance.RestoreSavedDice(data.ownedDice);
                 }
+            }
+
+            // Daily Login state
+            if (DailyLoginManager.Instance != null && !string.IsNullOrEmpty(data.lastLoginDateStr))
+            {
+                DateTime lastLogin;
+                if (DateTime.TryParse(data.lastLoginDateStr, out lastLogin))
+                {
+                    DailyLoginManager.Instance.SetSaveData(
+                        lastLogin,
+                        data.currentStreakDay,
+                        data.hasRolledToday,
+                        data.totalLoginDays,
+                        data.yesterdayDMEarned
+                    );
+                }
+            }
+
+            // Missions
+            if (MissionManager.Instance != null)
+            {
+                var missionData = new MissionSaveData
+                {
+                    dailyMissions = data.dailyMissions,
+                    weeklyMissions = data.weeklyMissions,
+                    lastDailyResetStr = data.lastDailyResetDateStr,
+                    lastWeeklyResetStr = data.lastWeeklyResetDateStr
+                };
+                MissionManager.Instance.SetSaveData(missionData);
+            }
+
+            // Overclock
+            if (OverclockManager.Instance != null)
+            {
+                var overclockData = new OverclockSaveData
+                {
+                    totalDiceDestroyed = data.totalDiceDestroyed,
+                    totalDMFromDestruction = data.totalDMFromDestruction
+                };
+                OverclockManager.Instance.SetSaveData(overclockData);
+            }
+
+            // Time Fracture - load fracture manager first so bonuses are applied
+            if (TimeFractureManager.Instance != null)
+            {
+                var fractureData = new TimeFractureSaveData
+                {
+                    fractureLevel = data.fractureLevel,
+                    totalFractures = data.totalFractures,
+                    totalTimeShardsEarned = data.totalTimeShardsEarned
+                };
+                TimeFractureManager.Instance.SetSaveData(fractureData);
+            }
+
+            // Load Time Shards into currency (after fracture manager so bonuses are set)
+            if (CurrencyManager.Instance != null && data.timeShards > 0)
+            {
+                CurrencyManager.Instance.SetAllCurrencies(
+                    data.money,
+                    data.darkMatter,
+                    data.timeShards,
+                    data.lifetimeMoney,
+                    data.lifetimeDarkMatter,
+                    data.lifetimeTimeShards
+                );
+            }
+
+            // Milestones
+            if (MilestoneManager.Instance != null)
+            {
+                var milestoneData = new MilestoneSaveData
+                {
+                    progressList = data.milestoneProgress,
+                    totalDiceRolls = data.milestoneTotalDiceRolls,
+                    totalJackpots = data.milestoneTotalJackpots,
+                    maxDiceOwned = data.milestoneMaxDiceOwned,
+                    totalSkillNodesUnlocked = data.milestoneTotalSkillNodes,
+                    totalDiceTypesUnlocked = data.milestoneTotalDiceTypes,
+                    totalPlayTimeMinutes = data.milestoneTotalPlayTime,
+                    highestLoginStreak = data.milestoneHighestStreak,
+                    totalMissionsCompleted = data.milestoneTotalMissions,
+                    permanentMoneyBoost = data.milestonePermanentMoneyBoost,
+                    permanentDMBoost = data.milestonePermanentDMBoost
+                };
+                MilestoneManager.Instance.SetSaveData(milestoneData);
+            }
+
+            // Global Events
+            if (GlobalEventManager.Instance != null && data.globalEventData != null)
+            {
+                GlobalEventManager.Instance.LoadSaveData(data.globalEventData);
+            }
+
+            // Leaderboards
+            if (LeaderboardManager.Instance != null && data.leaderboardData != null)
+            {
+                LeaderboardManager.Instance.LoadSaveData(data.leaderboardData);
             }
         }
 
