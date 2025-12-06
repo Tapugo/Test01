@@ -54,11 +54,11 @@ namespace Incredicer.Editor
                 rt.anchoredPosition = new Vector2(20, -100);
             }
 
-            // Style Ascend button - positioned underneath Skills button
+            // Style Ascend button - positioned underneath Skills button (orange to differentiate from Skills)
             GameObject ascendBtn = GameObject.Find("AscendButton");
             if (ascendBtn != null)
             {
-                StyleButton(ascendBtn, purpleSprite, new Vector2(260, 130), textFont, "Ascend\n<size=60%>$1K</size>", 40);
+                StyleButton(ascendBtn, orangeSprite, new Vector2(260, 130), textFont, "Ascend\n<size=60%>$1K</size>", 40);
                 RectTransform rt = ascendBtn.GetComponent<RectTransform>();
                 rt.anchoredPosition = new Vector2(20, -240);
             }

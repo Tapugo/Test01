@@ -59,24 +59,46 @@ namespace Incredicer.UI
         public static readonly Color AccentEvents = new Color(0.3f, 0.7f, 1f);
         public static readonly Color AccentLeaderboard = new Color(0.9f, 0.7f, 0.2f);
 
+        // Alias Colors (for backwards compatibility and clarity)
+        public static readonly Color AccentGold = new Color(1f, 0.85f, 0.2f);          // Same as PrimaryGold
+        public static readonly Color AccentPurple = new Color(0.6f, 0.4f, 1f);         // Same as PrimaryPurple
+        public static readonly Color AccentOrange = new Color(1f, 0.5f, 0.2f);         // Same as PrimaryOrange
+        public static readonly Color OverclockOrange = new Color(1f, 0.4f, 0.15f);     // Same as AccentOverclock
+        public static readonly Color EventBlue = new Color(0.3f, 0.7f, 1f);            // Same as AccentEvents
+        public static readonly Color LeaderboardGold = new Color(0.9f, 0.7f, 0.2f);    // Same as AccentLeaderboard
+
+        // Panel Background Aliases
+        public static readonly Color PanelBgDark = new Color(0.06f, 0.05f, 0.1f, 0.98f);   // Same as PanelDark
+        public static readonly Color PanelBgMedium = new Color(0.1f, 0.08f, 0.15f, 0.95f); // Same as PanelMedium
+
+        // Button Aliases
+        public static readonly Color ButtonSuccess = new Color(0.3f, 0.7f, 0.4f);      // Same as ButtonPrimary (green)
+
+        // State Aliases
+        public static readonly Color StateError = new Color(0.9f, 0.3f, 0.3f);         // Same as ErrorRed
+
         #endregion
 
         #region Typography - Font Sizes
 
-        // Title sizes (for panel headers)
-        public const float FontSizeHero = 72f;        // Main splash screens
-        public const float FontSizeTitle = 56f;       // Panel titles
-        public const float FontSizeSubtitle = 40f;    // Section headers
+        // Title sizes (for panel headers) - Large and bold for mobile readability
+        public const float FontSizeHero = 80f;        // Main splash screens, big announcements
+        public const float FontSizeTitle = 64f;       // Panel titles
+        public const float FontSizeSubtitle = 48f;    // Section headers
 
-        // Body sizes
-        public const float FontSizeLarge = 32f;       // Important info
-        public const float FontSizeBody = 28f;        // Regular content
-        public const float FontSizeSmall = 24f;       // Secondary info
+        // Body sizes - Readable on mobile devices
+        public const float FontSizeLarge = 40f;       // Important info, stats
+        public const float FontSizeBody = 36f;        // Regular content
+        public const float FontSizeSmall = 32f;       // Secondary info
 
         // UI Element sizes
-        public const float FontSizeButton = 28f;      // Button text
-        public const float FontSizeLabel = 20f;       // Small labels
-        public const float FontSizeCaption = 18f;     // Tiny text (use sparingly)
+        public const float FontSizeButton = 36f;      // Button text - large for touch
+        public const float FontSizeButtonLarge = 42f; // Large button text
+        public const float FontSizeLabel = 28f;       // Small labels
+        public const float FontSizeCaption = 24f;     // Tiny text (use sparingly)
+
+        // Alias sizes
+        public const float FontSizeHeader = 64f;      // Same as FontSizeTitle
 
         #endregion
 
@@ -108,6 +130,9 @@ namespace Incredicer.UI
 
         // Panel Margins (from screen edge)
         public const float MarginScreen = 0.03f;      // 3% from edges (anchor-based)
+
+        // Safe Area
+        public const float SafeAreaPadding = 20f;     // Padding for safe area on devices with notches
 
         // Card/Item Sizes
         public const float CardHeightSmall = 120f;

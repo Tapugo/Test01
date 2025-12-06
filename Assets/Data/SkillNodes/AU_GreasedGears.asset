@@ -14,16 +14,16 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   nodeId: 10
   displayName: Greased Gears
-  description: Helper Hands roll 25% faster.
+  description: Helper Hands roll 20% faster.
   icon: {fileID: 0}
   branch: 2
-  tier: 2
+  tier: 1
   treePosition: {x: -50, y: -250}
-  darkMatterCost: 3
-  prerequisites: 09000000
+  darkMatterCost: 15000
+  prerequisites: 00000000
   effects:
   - effectType: 8
-    value: 1.25
+    value: 1.2
     targetDiceType: 0
     unlockSkill: 0
     specialFlag: 0

@@ -14,16 +14,16 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   nodeId: 3
   displayName: Compound Interest
-  description: All dice earn +25% more money.
+  description: +50% money from all rolls (multiplicative).
   icon: {fileID: 0}
   branch: 1
   tier: 2
   treePosition: {x: -200, y: -200}
-  darkMatterCost: 3
+  darkMatterCost: 50000
   prerequisites: 01000000
   effects:
   - effectType: 1
-    value: 1.25
+    value: 1.5
     targetDiceType: 0
     unlockSkill: 0
     specialFlag: 0

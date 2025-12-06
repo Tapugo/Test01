@@ -5,6 +5,7 @@ using Incredicer.Core;
 using Incredicer.Dice;
 using Incredicer.Skills;
 using Incredicer.Missions;
+using Incredicer.Helpers;
 
 namespace Incredicer.TimeFracture
 {
@@ -39,9 +40,9 @@ namespace Incredicer.TimeFracture
         public static TimeFractureManager Instance { get; private set; }
 
         [Header("Requirements")]
-        [SerializeField] private double baseMoneyRequired = 10000;
-        [SerializeField] private float moneyRequiredGrowth = 2.5f;
-        [SerializeField] private double baseDarkMatterRequired = 100;
+        [SerializeField] private double baseMoneyRequired = 100000;
+        [SerializeField] private float moneyRequiredGrowth = 3.0f;
+        [SerializeField] private double baseDarkMatterRequired = 500;
 
         [Header("Rewards")]
         [SerializeField] private double baseTimeShardsReward = 10;
@@ -302,6 +303,12 @@ namespace Incredicer.TimeFracture
             if (SkillTreeManager.Instance != null)
             {
                 SkillTreeManager.Instance.ResetSkillTree(refundDarkMatter: false);
+            }
+
+            // Reset helper hands - this ensures they are removed even if skill removal didn't work properly
+            if (HelperHandManager.Instance != null)
+            {
+                HelperHandManager.Instance.ResetForTimeFracture();
             }
 
             // Reset upgrade levels in GameStats

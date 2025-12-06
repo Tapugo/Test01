@@ -17,9 +17,9 @@ MonoBehaviour:
   description: Hold mouse to gently pull dice toward cursor.
   icon: {fileID: 0}
   branch: 4
-  tier: 4
+  tier: 3
   treePosition: {x: -200, y: -400}
-  darkMatterCost: 8
+  darkMatterCost: 500000
   prerequisites: 1f000000
   effects:
   - effectType: 16

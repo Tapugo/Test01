@@ -24,7 +24,7 @@ namespace Incredicer.Helpers
         [SerializeField] private Vector2 handsAreaOffset = new Vector2(0, 3f);
 
         [Header("Offline Simulation")]
-        [SerializeField] private float offlineEfficiency = 1f; // 0-1, can be upgraded via skills
+        [SerializeField] private float offlineEfficiency = 0.25f; // 0-1, can be upgraded via skills (default 25%, upgradeable to 100%)
         [SerializeField] private double lastPlayTime;
 
         // Active hands
@@ -161,6 +161,65 @@ namespace Incredicer.Helpers
         }
 
         /// <summary>
+        /// Removes a specific helper hand.
+        /// </summary>
+        public void RemoveHand(HelperHand hand)
+        {
+            if (hand == null || !activeHands.Contains(hand)) return;
+
+            activeHands.Remove(hand);
+
+            // Animate and destroy
+            hand.transform.DOScale(Vector3.zero, 0.3f).SetEase(Ease.InBack)
+                .OnComplete(() => Destroy(hand.gameObject));
+        }
+
+        /// <summary>
+        /// Removes all helper hands.
+        /// </summary>
+        public void RemoveAllHands()
+        {
+            foreach (var hand in activeHands)
+            {
+                if (hand != null)
+                {
+                    Destroy(hand.gameObject);
+                }
+            }
+            activeHands.Clear();
+            Debug.Log("[HelperHandManager] All helper hands removed");
+        }
+
+        /// <summary>
+        /// Resets helper hands to initial state (for Time Fracture).
+        /// </summary>
+        public void ResetForTimeFracture()
+        {
+            RemoveAllHands();
+            maxHands = 0;
+            offlineEfficiency = 0.25f;
+            OnMaxHandsChanged?.Invoke(maxHands);
+            Debug.Log("[HelperHandManager] Reset for Time Fracture");
+        }
+
+        /// <summary>
+        /// Removes excess hands when max hands is reduced.
+        /// </summary>
+        public void TrimToMaxHands()
+        {
+            while (activeHands.Count > maxHands)
+            {
+                var handToRemove = activeHands[activeHands.Count - 1];
+                activeHands.RemoveAt(activeHands.Count - 1);
+                if (handToRemove != null)
+                {
+                    handToRemove.transform.DOScale(Vector3.zero, 0.3f).SetEase(Ease.InBack)
+                        .OnComplete(() => Destroy(handToRemove.gameObject));
+                }
+            }
+        }
+
+        /// <summary>
         /// Sets all hands active or inactive.
         /// </summary>
         public void SetAllHandsActive(bool active)
@@ -205,7 +264,7 @@ namespace Incredicer.Helpers
             if (allDice.Count == 0) return;
 
             // Calculate rolls per second per hand
-            float baseCooldown = 2f; // Default hand cooldown
+            float baseCooldown = 4f; // Default hand cooldown
             float effectiveCooldown = baseCooldown / (float)GameStats.Instance.HelperHandSpeedMultiplier;
             float rollsPerSecondPerHand = 1f / effectiveCooldown;
             

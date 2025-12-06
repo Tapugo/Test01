@@ -17,9 +17,9 @@ MonoBehaviour:
   description: Silver dice earn +50% more money.
   icon: {fileID: 0}
   branch: 3
-  tier: 3
+  tier: 2
   treePosition: {x: 200, y: -300}
-  darkMatterCost: 6
+  darkMatterCost: 100000
   prerequisites: 13000000
   effects:
   - effectType: 6

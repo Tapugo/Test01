@@ -18,6 +18,9 @@ namespace Incredicer.GlobalEvents
         [SerializeField] private float panelWidth = 1000f;  // 2x larger
         [SerializeField] private float panelHeight = 900f;   // 2x larger
 
+        [Header("GUI Assets")]
+        [SerializeField] private GUISpriteAssets guiAssets;
+
         // UI References
         private GameObject panel;
         private CanvasGroup panelCanvasGroup;
@@ -33,6 +36,8 @@ namespace Incredicer.GlobalEvents
         private GameObject noEventPanel;
         private Button startEventButton;
         private Button closeButton;
+        private GameObject titleRibbonObj;
+        private Image progressBarGlow;
 
         private bool isVisible = false;
 
@@ -60,7 +65,18 @@ namespace Incredicer.GlobalEvents
 
         private void Start()
         {
-            CreateUI();
+            // Load GUI assets if not assigned
+            if (guiAssets == null)
+                guiAssets = GUISpriteAssets.Instance;
+
+            // Try to load from prefab first, fallback to runtime creation
+            bool loadedFromPrefab = LoadFromPrefab();
+            if (!loadedFromPrefab)
+            {
+                Debug.Log("[GlobalEventUI] Prefab not found, creating UI at runtime");
+                CreateUI();
+            }
+
             // Hide the overlay (parent of panel)
             overlay = panel.transform.parent.gameObject;
             overlay.SetActive(false);
@@ -73,6 +89,128 @@ namespace Incredicer.GlobalEvents
                 GlobalEventManager.Instance.OnProgressUpdated += OnProgressUpdated;
                 GlobalEventManager.Instance.OnTierReached += OnTierReached;
                 GlobalEventManager.Instance.OnTierClaimed += OnTierClaimed;
+            }
+        }
+
+        private bool LoadFromPrefab()
+        {
+            // Try to load prefab from Resources
+            GameObject prefab = Resources.Load<GameObject>("Prefabs/UI/GlobalEventPanel");
+            if (prefab == null)
+            {
+                return false;
+            }
+
+            // Instantiate the prefab
+            overlay = Instantiate(prefab, transform);
+            overlay.name = "GlobalEventOverlay";
+
+            // Find and cache UI references from the prefab
+            panel = overlay.transform.Find("GlobalEventPanel")?.gameObject;
+            if (panel == null)
+            {
+                Debug.LogError("[GlobalEventUI] Could not find GlobalEventPanel in prefab");
+                Destroy(overlay);
+                return false;
+            }
+
+            panelCanvasGroup = panel.GetComponent<CanvasGroup>();
+
+            // Find header elements
+            Transform header = panel.transform.Find("Header");
+            if (header != null)
+            {
+                titleRibbonObj = header.Find("TitleRibbon")?.gameObject;
+                if (titleRibbonObj != null)
+                {
+                    eventNameText = titleRibbonObj.transform.Find("Title")?.GetComponent<TextMeshProUGUI>();
+                }
+                eventDescText = header.Find("Description")?.GetComponent<TextMeshProUGUI>();
+                Transform timeContainer = header.Find("TimeContainer");
+                if (timeContainer != null)
+                {
+                    timeRemainingText = timeContainer.Find("TimeRemaining")?.GetComponent<TextMeshProUGUI>();
+                }
+            }
+
+            // Find progress section elements
+            Transform progressSection = panel.transform.Find("ProgressSection");
+            if (progressSection != null)
+            {
+                Transform progressBg = progressSection.Find("ProgressBarBg");
+                if (progressBg != null)
+                {
+                    Transform fillMask = progressBg.Find("FillMask");
+                    if (fillMask != null)
+                    {
+                        progressBarFill = fillMask.Find("ProgressBarFill")?.GetComponent<Image>();
+                    }
+                    playerContributionMarker = progressBg.Find("PlayerMarker")?.GetComponent<Image>();
+                }
+                progressText = progressSection.Find("ProgressText")?.GetComponent<TextMeshProUGUI>();
+                playerContributionText = progressSection.Find("ContributionText")?.GetComponent<TextMeshProUGUI>();
+            }
+
+            // Find contributors section
+            Transform contributorsSection = panel.transform.Find("ContributorsSection");
+            if (contributorsSection != null)
+            {
+                contributorsContainer = contributorsSection.Find("ContributorsList")?.gameObject;
+            }
+
+            // Find tiers section
+            Transform tiersSection = panel.transform.Find("TiersSection");
+            if (tiersSection != null)
+            {
+                Transform tiersScroll = tiersSection.Find("TiersScroll");
+                if (tiersScroll != null)
+                {
+                    Transform viewport = tiersScroll.Find("Viewport");
+                    if (viewport != null)
+                    {
+                        tiersContainer = viewport.Find("TiersContent")?.gameObject;
+                    }
+                }
+            }
+
+            // Find no event panel and its button
+            noEventPanel = panel.transform.Find("NoEventPanel")?.gameObject;
+            if (noEventPanel != null)
+            {
+                startEventButton = noEventPanel.transform.Find("StartEventButton")?.GetComponent<Button>();
+                if (startEventButton != null)
+                {
+                    startEventButton.onClick.AddListener(OnStartEventClicked);
+                }
+            }
+
+            // Find close button
+            closeButton = panel.transform.Find("CloseButton")?.GetComponent<Button>();
+            if (closeButton != null)
+            {
+                closeButton.onClick.AddListener(Hide);
+            }
+
+            // Apply shared font to all text
+            ApplySharedFontToAll();
+
+            // Initialize fake contributors
+            if (contributorsContainer != null)
+            {
+                InitializeFakeContributors();
+            }
+
+            Debug.Log("[GlobalEventUI] Successfully loaded from prefab");
+            return true;
+        }
+
+        private void ApplySharedFontToAll()
+        {
+            // Apply shared font to all TextMeshProUGUI components in the panel
+            var allTexts = panel.GetComponentsInChildren<TextMeshProUGUI>(true);
+            foreach (var text in allTexts)
+            {
+                ApplySharedFont(text);
             }
         }
 
@@ -128,7 +266,7 @@ namespace Incredicer.GlobalEvents
             overlayRect.offsetMax = Vector2.zero;
 
             Image overlayBg = overlay.AddComponent<Image>();
-            overlayBg.color = new Color(0, 0, 0, 0.85f);
+            overlayBg.color = UIDesignSystem.OverlayDark;
 
             // Main panel - fullscreen with padding
             panel = new GameObject("GlobalEventPanel");
@@ -140,20 +278,25 @@ namespace Incredicer.GlobalEvents
             panelRect.offsetMin = Vector2.zero;
             panelRect.offsetMax = Vector2.zero;
 
+            // Use popup background from GUI assets
             Image panelBg = panel.AddComponent<Image>();
-            panelBg.color = new Color(0.06f, 0.06f, 0.1f, 0.98f);
-
-            // Add outline for polish
-            Outline outline = panel.AddComponent<Outline>();
-            outline.effectColor = new Color(0.3f, 0.7f, 1f, 0.6f);
-            outline.effectDistance = new Vector2(3, -3);
+            if (guiAssets != null && guiAssets.popupBackground != null)
+            {
+                panelBg.sprite = guiAssets.popupBackground;
+                panelBg.type = Image.Type.Sliced;
+                panelBg.color = Color.white;
+            }
+            else
+            {
+                panelBg.color = UIDesignSystem.PanelDark;
+            }
 
             panelCanvasGroup = panel.AddComponent<CanvasGroup>();
 
             // Close button (create first so it's on top)
             CreateCloseButton();
 
-            // Header
+            // Header with ribbon
             CreateHeader();
 
             // Progress section
@@ -177,60 +320,119 @@ namespace Incredicer.GlobalEvents
             RectTransform headerRect = header.AddComponent<RectTransform>();
             headerRect.anchorMin = new Vector2(0, 0.88f);
             headerRect.anchorMax = new Vector2(1, 1);
-            headerRect.offsetMin = new Vector2(30, 0);
-            headerRect.offsetMax = new Vector2(-100, -20);
+            headerRect.offsetMin = new Vector2(UIDesignSystem.SpacingL, 0);
+            headerRect.offsetMax = new Vector2(-100, -UIDesignSystem.SpacingM);
 
-            // Title
+            // Title ribbon
+            titleRibbonObj = new GameObject("TitleRibbon");
+            titleRibbonObj.transform.SetParent(header.transform, false);
+            RectTransform ribbonRect = titleRibbonObj.AddComponent<RectTransform>();
+            ribbonRect.anchorMin = new Vector2(0.5f, 0.6f);
+            ribbonRect.anchorMax = new Vector2(0.5f, 0.6f);
+            ribbonRect.sizeDelta = new Vector2(500, 90);
+            ribbonRect.anchoredPosition = new Vector2(0, 10);
+
+            Image ribbonBg = titleRibbonObj.AddComponent<Image>();
+            if (guiAssets != null && guiAssets.ribbonBlue != null)
+            {
+                ribbonBg.sprite = guiAssets.ribbonBlue;
+                ribbonBg.type = Image.Type.Sliced;
+                ribbonBg.color = Color.white;
+            }
+            else
+            {
+                ribbonBg.color = UIDesignSystem.EventBlue;
+            }
+
+            // Glow behind ribbon
+            GameObject ribbonGlowObj = new GameObject("RibbonGlow");
+            ribbonGlowObj.transform.SetParent(header.transform, false);
+            ribbonGlowObj.transform.SetSiblingIndex(0);  // Behind ribbon
+            RectTransform ribbonGlowRect = ribbonGlowObj.AddComponent<RectTransform>();
+            ribbonGlowRect.anchorMin = new Vector2(0.5f, 0.6f);
+            ribbonGlowRect.anchorMax = new Vector2(0.5f, 0.6f);
+            ribbonGlowRect.sizeDelta = new Vector2(580, 120);
+            ribbonGlowRect.anchoredPosition = new Vector2(0, 10);
+
+            Image ribbonGlowImg = ribbonGlowObj.AddComponent<Image>();
+            ribbonGlowImg.color = new Color(0.3f, 0.7f, 1f, 0.3f);
+            ribbonGlowObj.transform.DOScale(1.1f, UIDesignSystem.AnimGlow).SetLoops(-1, LoopType.Yoyo).SetEase(Ease.InOutSine);
+
+            // Title inside ribbon
             GameObject titleObj = new GameObject("Title");
-            titleObj.transform.SetParent(header.transform, false);
+            titleObj.transform.SetParent(titleRibbonObj.transform, false);
 
             RectTransform titleRect = titleObj.AddComponent<RectTransform>();
-            titleRect.anchorMin = new Vector2(0, 0.5f);
-            titleRect.anchorMax = new Vector2(1, 1);
-            titleRect.offsetMin = new Vector2(30, 0);
-            titleRect.offsetMax = new Vector2(-100, -15);
+            titleRect.anchorMin = Vector2.zero;
+            titleRect.anchorMax = Vector2.one;
+            titleRect.offsetMin = new Vector2(15, 5);
+            titleRect.offsetMax = new Vector2(-15, -5);
 
             eventNameText = titleObj.AddComponent<TextMeshProUGUI>();
             eventNameText.text = "COMMUNITY EVENT";
-            eventNameText.fontSize = 48;
+            eventNameText.fontSize = UIDesignSystem.FontSizeTitle;
             eventNameText.fontStyle = FontStyles.Bold;
-            eventNameText.color = new Color(0.3f, 0.7f, 1f);
-            eventNameText.alignment = TextAlignmentOptions.Left;
+            eventNameText.color = Color.white;
+            eventNameText.alignment = TextAlignmentOptions.Center;
+            eventNameText.enableAutoSizing = true;
+            eventNameText.fontSizeMin = 36;
+            eventNameText.fontSizeMax = 64;
             ApplySharedFont(eventNameText);
 
-            // Description
+            // Description below ribbon
             GameObject descObj = new GameObject("Description");
             descObj.transform.SetParent(header.transform, false);
 
             RectTransform descRect = descObj.AddComponent<RectTransform>();
             descRect.anchorMin = new Vector2(0, 0);
-            descRect.anchorMax = new Vector2(0.7f, 0.5f);
-            descRect.offsetMin = new Vector2(30, 15);
+            descRect.anchorMax = new Vector2(0.65f, 0.35f);
+            descRect.offsetMin = new Vector2(UIDesignSystem.SpacingL, 0);
             descRect.offsetMax = new Vector2(0, 0);
 
             eventDescText = descObj.AddComponent<TextMeshProUGUI>();
             eventDescText.text = "Work together with the community!";
-            eventDescText.fontSize = 24;
-            eventDescText.color = new Color(0.7f, 0.7f, 0.7f);
+            eventDescText.fontSize = UIDesignSystem.FontSizeLarge;
+            eventDescText.color = UIDesignSystem.TextSecondary;
             eventDescText.alignment = TextAlignmentOptions.Left;
             ApplySharedFont(eventDescText);
 
-            // Time remaining
+            // Time remaining with icon-like background
+            GameObject timeContainerObj = new GameObject("TimeContainer");
+            timeContainerObj.transform.SetParent(header.transform, false);
+
+            RectTransform timeContainerRect = timeContainerObj.AddComponent<RectTransform>();
+            timeContainerRect.anchorMin = new Vector2(0.65f, 0);
+            timeContainerRect.anchorMax = new Vector2(1, 0.4f);
+            timeContainerRect.offsetMin = new Vector2(UIDesignSystem.SpacingM, 0);
+            timeContainerRect.offsetMax = new Vector2(-80, 0);
+
+            Image timeContainerBg = timeContainerObj.AddComponent<Image>();
+            if (guiAssets != null && guiAssets.cardFrame != null)
+            {
+                timeContainerBg.sprite = guiAssets.cardFrame;
+                timeContainerBg.type = Image.Type.Sliced;
+                timeContainerBg.color = new Color(0.2f, 0.15f, 0.25f);
+            }
+            else
+            {
+                timeContainerBg.color = new Color(0.15f, 0.1f, 0.2f, 0.8f);
+            }
+
             GameObject timeObj = new GameObject("TimeRemaining");
-            timeObj.transform.SetParent(header.transform, false);
+            timeObj.transform.SetParent(timeContainerObj.transform, false);
 
             RectTransform timeRect = timeObj.AddComponent<RectTransform>();
-            timeRect.anchorMin = new Vector2(0.7f, 0);
-            timeRect.anchorMax = new Vector2(1, 0.5f);
-            timeRect.offsetMin = new Vector2(0, 15);
-            timeRect.offsetMax = new Vector2(-100, 0);
+            timeRect.anchorMin = Vector2.zero;
+            timeRect.anchorMax = Vector2.one;
+            timeRect.offsetMin = new Vector2(UIDesignSystem.SpacingS, 0);
+            timeRect.offsetMax = new Vector2(-UIDesignSystem.SpacingS, 0);
 
             timeRemainingText = timeObj.AddComponent<TextMeshProUGUI>();
             timeRemainingText.text = "2d 12h remaining";
-            timeRemainingText.fontSize = 24;
+            timeRemainingText.fontSize = UIDesignSystem.FontSizeBody;
             timeRemainingText.fontStyle = FontStyles.Bold;
             timeRemainingText.color = Color.white;
-            timeRemainingText.alignment = TextAlignmentOptions.Right;
+            timeRemainingText.alignment = TextAlignmentOptions.Center;
             ApplySharedFont(timeRemainingText);
         }
 
@@ -242,10 +444,23 @@ namespace Incredicer.GlobalEvents
             RectTransform sectionRect = progressSection.AddComponent<RectTransform>();
             sectionRect.anchorMin = new Vector2(0, 0.75f);
             sectionRect.anchorMax = new Vector2(1, 0.88f);
-            sectionRect.offsetMin = new Vector2(30, 0);
-            sectionRect.offsetMax = new Vector2(-30, 0);
+            sectionRect.offsetMin = new Vector2(UIDesignSystem.SpacingL, 0);
+            sectionRect.offsetMax = new Vector2(-UIDesignSystem.SpacingL, 0);
 
-            // Progress bar background
+            // Glow behind progress bar
+            GameObject progressGlowObj = new GameObject("ProgressGlow");
+            progressGlowObj.transform.SetParent(progressSection.transform, false);
+
+            RectTransform glowRect = progressGlowObj.AddComponent<RectTransform>();
+            glowRect.anchorMin = new Vector2(0, 0.5f);
+            glowRect.anchorMax = new Vector2(1, 0.5f);
+            glowRect.sizeDelta = new Vector2(-60, 80);
+            glowRect.anchoredPosition = new Vector2(0, 15);
+
+            progressBarGlow = progressGlowObj.AddComponent<Image>();
+            progressBarGlow.color = new Color(0.3f, 0.7f, 1f, 0.2f);
+
+            // Progress bar background frame
             GameObject progressBg = new GameObject("ProgressBarBg");
             progressBg.transform.SetParent(progressSection.transform, false);
 
@@ -256,11 +471,33 @@ namespace Incredicer.GlobalEvents
             bgRect.anchoredPosition = new Vector2(0, 15);
 
             Image bgImage = progressBg.AddComponent<Image>();
-            bgImage.color = new Color(0.15f, 0.15f, 0.2f);
+            if (guiAssets != null && guiAssets.horizontalFrame != null)
+            {
+                bgImage.sprite = guiAssets.horizontalFrame;
+                bgImage.type = Image.Type.Sliced;
+                bgImage.color = new Color(0.2f, 0.2f, 0.3f);
+            }
+            else
+            {
+                bgImage.color = new Color(0.15f, 0.15f, 0.2f);
+            }
+
+            // Progress bar fill container (mask)
+            GameObject fillMask = new GameObject("FillMask");
+            fillMask.transform.SetParent(progressBg.transform, false);
+
+            RectTransform maskRect = fillMask.AddComponent<RectTransform>();
+            maskRect.anchorMin = new Vector2(0.02f, 0.15f);
+            maskRect.anchorMax = new Vector2(0.98f, 0.85f);
+            maskRect.offsetMin = Vector2.zero;
+            maskRect.offsetMax = Vector2.zero;
+
+            Image maskImage = fillMask.AddComponent<Image>();
+            maskImage.color = new Color(0.1f, 0.1f, 0.15f);
 
             // Progress bar fill
             GameObject progressFill = new GameObject("ProgressBarFill");
-            progressFill.transform.SetParent(progressBg.transform, false);
+            progressFill.transform.SetParent(fillMask.transform, false);
 
             RectTransform fillRect = progressFill.AddComponent<RectTransform>();
             fillRect.anchorMin = Vector2.zero;
@@ -269,9 +506,23 @@ namespace Incredicer.GlobalEvents
             fillRect.offsetMax = Vector2.zero;
 
             progressBarFill = progressFill.AddComponent<Image>();
-            progressBarFill.color = new Color(0.3f, 0.7f, 1f);
+            // Use a gradient-like color
+            progressBarFill.color = UIDesignSystem.EventBlue;
 
-            // Player contribution marker
+            // Shine effect on progress bar
+            GameObject shineObj = new GameObject("Shine");
+            shineObj.transform.SetParent(progressFill.transform, false);
+
+            RectTransform shineRect = shineObj.AddComponent<RectTransform>();
+            shineRect.anchorMin = new Vector2(0, 0.6f);
+            shineRect.anchorMax = new Vector2(1, 0.9f);
+            shineRect.offsetMin = Vector2.zero;
+            shineRect.offsetMax = Vector2.zero;
+
+            Image shineImage = shineObj.AddComponent<Image>();
+            shineImage.color = new Color(1f, 1f, 1f, 0.2f);
+
+            // Player contribution marker with better visibility
             GameObject markerObj = new GameObject("PlayerMarker");
             markerObj.transform.SetParent(progressBg.transform, false);
 
@@ -279,11 +530,25 @@ namespace Incredicer.GlobalEvents
             markerRect.anchorMin = new Vector2(0, 0.5f);
             markerRect.anchorMax = new Vector2(0, 0.5f);
             markerRect.pivot = new Vector2(0.5f, 0.5f);
-            markerRect.sizeDelta = new Vector2(8, 70);
+            markerRect.sizeDelta = new Vector2(6, 75);
             markerRect.anchoredPosition = new Vector2(0, 0);
 
             playerContributionMarker = markerObj.AddComponent<Image>();
-            playerContributionMarker.color = new Color(1f, 0.8f, 0.2f);
+            playerContributionMarker.color = UIDesignSystem.AccentGold;
+
+            // Marker glow
+            GameObject markerGlowObj = new GameObject("MarkerGlow");
+            markerGlowObj.transform.SetParent(markerObj.transform, false);
+            markerGlowObj.transform.SetAsFirstSibling();
+
+            RectTransform markerGlowRect = markerGlowObj.AddComponent<RectTransform>();
+            markerGlowRect.anchorMin = Vector2.zero;
+            markerGlowRect.anchorMax = Vector2.one;
+            markerGlowRect.offsetMin = new Vector2(-6, -6);
+            markerGlowRect.offsetMax = new Vector2(6, 6);
+
+            Image markerGlowImg = markerGlowObj.AddComponent<Image>();
+            markerGlowImg.color = new Color(1f, 0.8f, 0.2f, 0.4f);
 
             // Progress text
             GameObject progressTextObj = new GameObject("ProgressText");
@@ -293,11 +558,11 @@ namespace Incredicer.GlobalEvents
             textRect.anchorMin = new Vector2(0.5f, 0);
             textRect.anchorMax = new Vector2(0.5f, 0.5f);
             textRect.sizeDelta = new Vector2(500, 40);
-            textRect.anchoredPosition = new Vector2(0, 5);
+            textRect.anchoredPosition = new Vector2(0, 0);
 
             progressText = progressTextObj.AddComponent<TextMeshProUGUI>();
             progressText.text = "0 / 1,000,000";
-            progressText.fontSize = 28;
+            progressText.fontSize = UIDesignSystem.FontSizeSubtitle;
             progressText.fontStyle = FontStyles.Bold;
             progressText.color = Color.white;
             progressText.alignment = TextAlignmentOptions.Center;
@@ -312,12 +577,12 @@ namespace Incredicer.GlobalEvents
             contribRect.anchorMax = new Vector2(0.5f, 0);
             contribRect.pivot = new Vector2(0.5f, 1);
             contribRect.sizeDelta = new Vector2(500, 35);
-            contribRect.anchoredPosition = new Vector2(0, 15);
+            contribRect.anchoredPosition = new Vector2(0, 10);
 
             playerContributionText = contribTextObj.AddComponent<TextMeshProUGUI>();
             playerContributionText.text = "Your contribution: 0 (0%)";
-            playerContributionText.fontSize = 22;
-            playerContributionText.color = new Color(1f, 0.8f, 0.2f);
+            playerContributionText.fontSize = UIDesignSystem.FontSizeBody;
+            playerContributionText.color = UIDesignSystem.AccentGold;
             playerContributionText.alignment = TextAlignmentOptions.Center;
             ApplySharedFont(playerContributionText);
         }
@@ -330,8 +595,8 @@ namespace Incredicer.GlobalEvents
             RectTransform sectionRect = contributorsSection.AddComponent<RectTransform>();
             sectionRect.anchorMin = new Vector2(0, 0.55f);
             sectionRect.anchorMax = new Vector2(1, 0.75f);
-            sectionRect.offsetMin = new Vector2(30, 10);
-            sectionRect.offsetMax = new Vector2(-30, -10);
+            sectionRect.offsetMin = new Vector2(UIDesignSystem.SpacingL, UIDesignSystem.SpacingS);
+            sectionRect.offsetMax = new Vector2(-UIDesignSystem.SpacingL, -UIDesignSystem.SpacingS);
 
             // Section label
             GameObject labelObj = new GameObject("Label");
@@ -346,28 +611,37 @@ namespace Incredicer.GlobalEvents
 
             TextMeshProUGUI labelText = labelObj.AddComponent<TextMeshProUGUI>();
             labelText.text = "RECENT CONTRIBUTORS";
-            labelText.fontSize = 24;
+            labelText.fontSize = UIDesignSystem.FontSizeLarge;
             labelText.fontStyle = FontStyles.Bold;
-            labelText.color = new Color(0.6f, 0.8f, 1f);
+            labelText.color = UIDesignSystem.EventBlue;
             labelText.alignment = TextAlignmentOptions.Center;
             ApplySharedFont(labelText);
 
-            // Contributors list container
+            // Contributors list container with frame
             contributorsContainer = new GameObject("ContributorsList");
             contributorsContainer.transform.SetParent(contributorsSection.transform, false);
 
             RectTransform contRect = contributorsContainer.AddComponent<RectTransform>();
             contRect.anchorMin = new Vector2(0, 0);
             contRect.anchorMax = new Vector2(1, 1);
-            contRect.offsetMin = new Vector2(40, 10);
-            contRect.offsetMax = new Vector2(-40, -40);
+            contRect.offsetMin = new Vector2(UIDesignSystem.SpacingXL, UIDesignSystem.SpacingS);
+            contRect.offsetMax = new Vector2(-UIDesignSystem.SpacingXL, -40);
 
             Image contBg = contributorsContainer.AddComponent<Image>();
-            contBg.color = new Color(0.05f, 0.05f, 0.08f, 0.6f);
+            if (guiAssets != null && guiAssets.listFrame != null)
+            {
+                contBg.sprite = guiAssets.listFrame;
+                contBg.type = Image.Type.Sliced;
+                contBg.color = new Color(0.15f, 0.18f, 0.25f);
+            }
+            else
+            {
+                contBg.color = new Color(0.08f, 0.08f, 0.12f, 0.8f);
+            }
 
             VerticalLayoutGroup layout = contributorsContainer.AddComponent<VerticalLayoutGroup>();
-            layout.padding = new RectOffset(15, 15, 10, 10);
-            layout.spacing = 5;
+            layout.padding = new RectOffset(20, 20, 15, 15);
+            layout.spacing = 8;
             layout.childAlignment = TextAnchor.UpperCenter;
             layout.childControlWidth = true;
             layout.childControlHeight = false;
@@ -386,10 +660,29 @@ namespace Incredicer.GlobalEvents
             RectTransform sectionRect = tiersSection.AddComponent<RectTransform>();
             sectionRect.anchorMin = new Vector2(0, 0);
             sectionRect.anchorMax = new Vector2(1, 0.55f);
-            sectionRect.offsetMin = new Vector2(30, 70);
-            sectionRect.offsetMax = new Vector2(-30, -20);
+            sectionRect.offsetMin = new Vector2(UIDesignSystem.SpacingL, 70);
+            sectionRect.offsetMax = new Vector2(-UIDesignSystem.SpacingL, -UIDesignSystem.SpacingM);
 
-            // Scroll view
+            // Section label
+            GameObject tiersLabelObj = new GameObject("TiersLabel");
+            tiersLabelObj.transform.SetParent(tiersSection.transform, false);
+
+            RectTransform tiersLabelRect = tiersLabelObj.AddComponent<RectTransform>();
+            tiersLabelRect.anchorMin = new Vector2(0, 1);
+            tiersLabelRect.anchorMax = new Vector2(1, 1);
+            tiersLabelRect.pivot = new Vector2(0.5f, 0);
+            tiersLabelRect.sizeDelta = new Vector2(0, 35);
+            tiersLabelRect.anchoredPosition = new Vector2(0, 5);
+
+            TextMeshProUGUI tiersLabelText = tiersLabelObj.AddComponent<TextMeshProUGUI>();
+            tiersLabelText.text = "REWARD TIERS";
+            tiersLabelText.fontSize = UIDesignSystem.FontSizeLarge;
+            tiersLabelText.fontStyle = FontStyles.Bold;
+            tiersLabelText.color = UIDesignSystem.AccentGold;
+            tiersLabelText.alignment = TextAlignmentOptions.Center;
+            ApplySharedFont(tiersLabelText);
+
+            // Scroll view with frame
             GameObject scrollView = new GameObject("TiersScroll");
             scrollView.transform.SetParent(tiersSection.transform, false);
 
@@ -397,7 +690,7 @@ namespace Incredicer.GlobalEvents
             scrollRect.anchorMin = Vector2.zero;
             scrollRect.anchorMax = Vector2.one;
             scrollRect.offsetMin = Vector2.zero;
-            scrollRect.offsetMax = Vector2.zero;
+            scrollRect.offsetMax = new Vector2(0, -40);
 
             ScrollRect scroll = scrollView.AddComponent<ScrollRect>();
             scroll.horizontal = false;
@@ -405,7 +698,16 @@ namespace Incredicer.GlobalEvents
             scroll.scrollSensitivity = 30f;
 
             Image scrollBg = scrollView.AddComponent<Image>();
-            scrollBg.color = new Color(0.05f, 0.05f, 0.08f, 0.5f);
+            if (guiAssets != null && guiAssets.listFrame != null)
+            {
+                scrollBg.sprite = guiAssets.listFrame;
+                scrollBg.type = Image.Type.Sliced;
+                scrollBg.color = new Color(0.12f, 0.12f, 0.18f);
+            }
+            else
+            {
+                scrollBg.color = new Color(0.08f, 0.08f, 0.12f, 0.7f);
+            }
 
             scrollView.AddComponent<Mask>().showMaskGraphic = true;
 
@@ -416,8 +718,8 @@ namespace Incredicer.GlobalEvents
             RectTransform viewportRect = viewport.AddComponent<RectTransform>();
             viewportRect.anchorMin = Vector2.zero;
             viewportRect.anchorMax = Vector2.one;
-            viewportRect.offsetMin = Vector2.zero;
-            viewportRect.offsetMax = Vector2.zero;
+            viewportRect.offsetMin = new Vector2(8, 8);
+            viewportRect.offsetMax = new Vector2(-8, -8);
 
             viewport.AddComponent<Image>().color = Color.clear;
             viewport.AddComponent<Mask>().showMaskGraphic = false;
@@ -436,8 +738,8 @@ namespace Incredicer.GlobalEvents
             contentRect.anchoredPosition = Vector2.zero;
 
             VerticalLayoutGroup layout = tiersContainer.AddComponent<VerticalLayoutGroup>();
-            layout.spacing = 10;
-            layout.padding = new RectOffset(10, 10, 10, 10);
+            layout.spacing = UIDesignSystem.SpacingM;
+            layout.padding = new RectOffset((int)UIDesignSystem.SpacingS, (int)UIDesignSystem.SpacingS, (int)UIDesignSystem.SpacingS, (int)UIDesignSystem.SpacingS);
             layout.childForceExpandWidth = true;
             layout.childForceExpandHeight = false;
             layout.childControlWidth = true;
@@ -457,51 +759,93 @@ namespace Incredicer.GlobalEvents
             RectTransform noEventRect = noEventPanel.AddComponent<RectTransform>();
             noEventRect.anchorMin = Vector2.zero;
             noEventRect.anchorMax = Vector2.one;
-            noEventRect.offsetMin = new Vector2(30, 70);
-            noEventRect.offsetMax = new Vector2(-30, -130);
+            noEventRect.offsetMin = new Vector2(UIDesignSystem.SpacingL, 70);
+            noEventRect.offsetMax = new Vector2(-UIDesignSystem.SpacingL, -130);
+
+            // Icon for no event
+            GameObject iconObj = new GameObject("NoEventIcon");
+            iconObj.transform.SetParent(noEventPanel.transform, false);
+
+            RectTransform iconRect = iconObj.AddComponent<RectTransform>();
+            iconRect.anchorMin = new Vector2(0.5f, 0.7f);
+            iconRect.anchorMax = new Vector2(0.5f, 0.7f);
+            iconRect.sizeDelta = new Vector2(120, 120);
+
+            Image iconImg = iconObj.AddComponent<Image>();
+            if (guiAssets != null && guiAssets.iconStar != null)
+            {
+                iconImg.sprite = guiAssets.iconStar;
+                iconImg.color = UIDesignSystem.TextMuted;
+            }
+            else
+            {
+                iconImg.color = UIDesignSystem.TextMuted;
+            }
+
+            // Slow rotation on icon
+            iconObj.transform.DORotate(new Vector3(0, 0, 360), 10f, RotateMode.FastBeyond360).SetLoops(-1, LoopType.Restart).SetEase(Ease.Linear);
 
             // Message
             GameObject msgObj = new GameObject("Message");
             msgObj.transform.SetParent(noEventPanel.transform, false);
 
             RectTransform msgRect = msgObj.AddComponent<RectTransform>();
-            msgRect.anchorMin = new Vector2(0.5f, 0.6f);
-            msgRect.anchorMax = new Vector2(0.5f, 0.6f);
+            msgRect.anchorMin = new Vector2(0.5f, 0.5f);
+            msgRect.anchorMax = new Vector2(0.5f, 0.5f);
             msgRect.sizeDelta = new Vector2(600, 100);
 
             TextMeshProUGUI msgText = msgObj.AddComponent<TextMeshProUGUI>();
             msgText.text = "No active community event.\nCheck back later for the next challenge!";
-            msgText.fontSize = 32;
-            msgText.color = new Color(0.6f, 0.6f, 0.6f);
+            msgText.fontSize = UIDesignSystem.FontSizeSubtitle;
+            msgText.color = UIDesignSystem.TextMuted;
             msgText.alignment = TextAlignmentOptions.Center;
             ApplySharedFont(msgText);
 
-            // Start event button (for testing)
+            // Start event button (for testing) with GUI styling
             GameObject btnObj = new GameObject("StartEventButton");
             btnObj.transform.SetParent(noEventPanel.transform, false);
 
             RectTransform btnRect = btnObj.AddComponent<RectTransform>();
-            btnRect.anchorMin = new Vector2(0.5f, 0.4f);
-            btnRect.anchorMax = new Vector2(0.5f, 0.4f);
-            btnRect.sizeDelta = new Vector2(300, 70);
+            btnRect.anchorMin = new Vector2(0.5f, 0.3f);
+            btnRect.anchorMax = new Vector2(0.5f, 0.3f);
+            btnRect.sizeDelta = new Vector2(320, UIDesignSystem.ButtonHeightLarge);
 
             Image btnImage = btnObj.AddComponent<Image>();
-            btnImage.color = new Color(0.3f, 0.7f, 1f);
+            if (guiAssets != null && guiAssets.buttonBlue != null)
+            {
+                btnImage.sprite = guiAssets.buttonBlue;
+                btnImage.type = Image.Type.Sliced;
+                btnImage.color = Color.white;
+            }
+            else
+            {
+                btnImage.color = UIDesignSystem.EventBlue;
+            }
 
             startEventButton = btnObj.AddComponent<Button>();
             startEventButton.targetGraphic = btnImage;
             startEventButton.onClick.AddListener(OnStartEventClicked);
 
-            // Button colors
             var colors = startEventButton.colors;
-            colors.highlightedColor = new Color(0.4f, 0.8f, 1f);
-            colors.pressedColor = new Color(0.2f, 0.5f, 0.8f);
+            colors.normalColor = Color.white;
+            colors.highlightedColor = new Color(1.1f, 1.1f, 1.1f);
+            colors.pressedColor = new Color(0.85f, 0.85f, 0.85f);
             startEventButton.colors = colors;
 
-            // Add outline
-            Outline btnOutline = btnObj.AddComponent<Outline>();
-            btnOutline.effectColor = new Color(0, 0, 0, 0.5f);
-            btnOutline.effectDistance = new Vector2(2, -2);
+            // Button glow
+            GameObject btnGlowObj = new GameObject("ButtonGlow");
+            btnGlowObj.transform.SetParent(btnObj.transform, false);
+            btnGlowObj.transform.SetAsFirstSibling();
+
+            RectTransform btnGlowRect = btnGlowObj.AddComponent<RectTransform>();
+            btnGlowRect.anchorMin = Vector2.zero;
+            btnGlowRect.anchorMax = Vector2.one;
+            btnGlowRect.offsetMin = new Vector2(-15, -15);
+            btnGlowRect.offsetMax = new Vector2(15, 15);
+
+            Image btnGlowImg = btnGlowObj.AddComponent<Image>();
+            btnGlowImg.color = new Color(0.3f, 0.7f, 1f, 0.3f);
+            btnGlowObj.transform.DOScale(1.1f, UIDesignSystem.AnimGlow).SetLoops(-1, LoopType.Yoyo).SetEase(Ease.InOutSine);
 
             GameObject btnTextObj = new GameObject("Text");
             btnTextObj.transform.SetParent(btnObj.transform, false);
@@ -514,7 +858,7 @@ namespace Incredicer.GlobalEvents
 
             TextMeshProUGUI btnText = btnTextObj.AddComponent<TextMeshProUGUI>();
             btnText.text = "START EVENT";
-            btnText.fontSize = 28;
+            btnText.fontSize = UIDesignSystem.FontSizeLarge;
             btnText.fontStyle = FontStyles.Bold;
             btnText.color = Color.white;
             btnText.alignment = TextAlignmentOptions.Center;
@@ -532,43 +876,58 @@ namespace Incredicer.GlobalEvents
             closeRect.anchorMin = new Vector2(1, 1);
             closeRect.anchorMax = new Vector2(1, 1);
             closeRect.pivot = new Vector2(1, 1);
-            closeRect.sizeDelta = new Vector2(70, 70);
-            closeRect.anchoredPosition = new Vector2(-15, -15);
+            closeRect.sizeDelta = new Vector2(UIDesignSystem.ButtonHeightLarge, UIDesignSystem.ButtonHeightLarge);
+            closeRect.anchoredPosition = new Vector2(-UIDesignSystem.SafeAreaPadding, -UIDesignSystem.SafeAreaPadding);
 
             Image closeImage = closeObj.AddComponent<Image>();
-            closeImage.color = new Color(0.5f, 0.3f, 0.3f, 0.9f);
+            if (guiAssets != null && guiAssets.buttonRed != null)
+            {
+                closeImage.sprite = guiAssets.buttonRed;
+                closeImage.type = Image.Type.Sliced;
+                closeImage.color = Color.white;
+            }
+            else
+            {
+                closeImage.color = UIDesignSystem.ButtonDanger;
+            }
 
             closeButton = closeObj.AddComponent<Button>();
             closeButton.targetGraphic = closeImage;
             closeButton.onClick.AddListener(Hide);
 
-            // Button colors
             var colors = closeButton.colors;
-            colors.highlightedColor = new Color(0.7f, 0.4f, 0.4f);
-            colors.pressedColor = new Color(0.4f, 0.2f, 0.2f);
+            colors.normalColor = Color.white;
+            colors.highlightedColor = new Color(1.1f, 1.1f, 1.1f);
+            colors.pressedColor = new Color(0.85f, 0.85f, 0.85f);
             closeButton.colors = colors;
 
-            // Add outline
-            Outline btnOutline = closeObj.AddComponent<Outline>();
-            btnOutline.effectColor = new Color(0, 0, 0, 0.5f);
-            btnOutline.effectDistance = new Vector2(2, -2);
+            // X icon or text
+            GameObject closeContent = new GameObject("X");
+            closeContent.transform.SetParent(closeObj.transform, false);
 
-            GameObject closeText = new GameObject("X");
-            closeText.transform.SetParent(closeObj.transform, false);
-
-            RectTransform xRect = closeText.AddComponent<RectTransform>();
+            RectTransform xRect = closeContent.AddComponent<RectTransform>();
             xRect.anchorMin = Vector2.zero;
             xRect.anchorMax = Vector2.one;
             xRect.offsetMin = Vector2.zero;
             xRect.offsetMax = Vector2.zero;
 
-            TextMeshProUGUI xText = closeText.AddComponent<TextMeshProUGUI>();
-            xText.text = "X";
-            xText.fontSize = 40;
-            xText.fontStyle = FontStyles.Bold;
-            xText.color = Color.white;
-            xText.alignment = TextAlignmentOptions.Center;
-            ApplySharedFont(xText);
+            if (guiAssets != null && guiAssets.iconClose != null)
+            {
+                Image xImg = closeContent.AddComponent<Image>();
+                xImg.sprite = guiAssets.iconClose;
+                xImg.preserveAspect = true;
+                xImg.color = Color.white;
+            }
+            else
+            {
+                TextMeshProUGUI xText = closeContent.AddComponent<TextMeshProUGUI>();
+                xText.text = "X";
+                xText.fontSize = UIDesignSystem.FontSizeTitle;
+                xText.fontStyle = FontStyles.Bold;
+                xText.color = Color.white;
+                xText.alignment = TextAlignmentOptions.Center;
+                ApplySharedFont(xText);
+            }
         }
 
         #region Event Handlers
@@ -708,91 +1067,139 @@ namespace Incredicer.GlobalEvents
             card.transform.SetParent(tiersContainer.transform, false);
 
             RectTransform cardRect = card.AddComponent<RectTransform>();
-            cardRect.sizeDelta = new Vector2(0, 80);
+            cardRect.sizeDelta = new Vector2(0, 120);
 
+            // Use card frame from GUI assets
             Image cardBg = card.AddComponent<Image>();
-            if (isClaimed)
-                cardBg.color = new Color(0.2f, 0.3f, 0.2f, 0.9f);
-            else if (isUnlocked)
-                cardBg.color = new Color(0.15f, 0.2f, 0.25f, 0.9f);
+            if (guiAssets != null && guiAssets.cardFrame != null)
+            {
+                cardBg.sprite = guiAssets.cardFrame;
+                cardBg.type = Image.Type.Sliced;
+                if (isClaimed)
+                    cardBg.color = new Color(0.25f, 0.4f, 0.25f);
+                else if (isUnlocked)
+                    cardBg.color = new Color(0.2f, 0.3f, 0.4f);
+                else
+                    cardBg.color = new Color(0.15f, 0.15f, 0.2f);
+            }
             else
-                cardBg.color = new Color(0.1f, 0.1f, 0.15f, 0.9f);
+            {
+                if (isClaimed)
+                    cardBg.color = new Color(0.2f, 0.3f, 0.2f, 0.9f);
+                else if (isUnlocked)
+                    cardBg.color = new Color(0.15f, 0.2f, 0.25f, 0.9f);
+                else
+                    cardBg.color = new Color(0.1f, 0.1f, 0.15f, 0.9f);
+            }
 
-            // Tier name and threshold
+            // Glow for claimable tiers
+            if (canClaim)
+            {
+                GameObject glowObj = new GameObject("Glow");
+                glowObj.transform.SetParent(card.transform, false);
+                glowObj.transform.SetAsFirstSibling();
+
+                RectTransform glowRect = glowObj.AddComponent<RectTransform>();
+                glowRect.anchorMin = Vector2.zero;
+                glowRect.anchorMax = Vector2.one;
+                glowRect.offsetMin = new Vector2(-8, -8);
+                glowRect.offsetMax = new Vector2(8, 8);
+
+                Image glowImg = glowObj.AddComponent<Image>();
+                glowImg.color = new Color(tier.tierColor.r, tier.tierColor.g, tier.tierColor.b, 0.3f);
+                glowObj.transform.DOScale(1.03f, UIDesignSystem.AnimGlow).SetLoops(-1, LoopType.Yoyo).SetEase(Ease.InOutSine);
+            }
+
+            // Tier name with TMP
             GameObject tierNameObj = new GameObject("TierName");
             tierNameObj.transform.SetParent(card.transform, false);
 
             RectTransform nameRect = tierNameObj.AddComponent<RectTransform>();
             nameRect.anchorMin = new Vector2(0, 0.5f);
-            nameRect.anchorMax = new Vector2(0.4f, 1);
-            nameRect.offsetMin = new Vector2(15, 5);
+            nameRect.anchorMax = new Vector2(0.35f, 1);
+            nameRect.offsetMin = new Vector2(UIDesignSystem.SpacingM, 5);
             nameRect.offsetMax = new Vector2(0, -5);
 
-            Text nameText = tierNameObj.AddComponent<Text>();
+            TextMeshProUGUI nameText = tierNameObj.AddComponent<TextMeshProUGUI>();
             nameText.text = tier.tierName;
-            nameText.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
-            nameText.fontSize = 22;
-            nameText.fontStyle = FontStyle.Bold;
+            nameText.fontSize = UIDesignSystem.FontSizeBody;
+            nameText.fontStyle = FontStyles.Bold;
             nameText.color = tier.tierColor;
-            nameText.alignment = TextAnchor.MiddleLeft;
+            nameText.alignment = TextAlignmentOptions.Left;
+            ApplySharedFont(nameText);
 
-            // Threshold text
+            // Threshold text with TMP
             GameObject thresholdObj = new GameObject("Threshold");
             thresholdObj.transform.SetParent(card.transform, false);
 
             RectTransform thresholdRect = thresholdObj.AddComponent<RectTransform>();
             thresholdRect.anchorMin = new Vector2(0, 0);
-            thresholdRect.anchorMax = new Vector2(0.4f, 0.5f);
-            thresholdRect.offsetMin = new Vector2(15, 5);
+            thresholdRect.anchorMax = new Vector2(0.35f, 0.5f);
+            thresholdRect.offsetMin = new Vector2(UIDesignSystem.SpacingM, 5);
             thresholdRect.offsetMax = new Vector2(0, 0);
 
-            Text thresholdText = thresholdObj.AddComponent<Text>();
+            TextMeshProUGUI thresholdText = thresholdObj.AddComponent<TextMeshProUGUI>();
             thresholdText.text = $"At {tier.progressThreshold * 100:F0}%";
-            thresholdText.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
-            thresholdText.fontSize = 16;
-            thresholdText.color = new Color(0.6f, 0.6f, 0.6f);
-            thresholdText.alignment = TextAnchor.MiddleLeft;
+            thresholdText.fontSize = UIDesignSystem.FontSizeSmall;
+            thresholdText.color = UIDesignSystem.TextMuted;
+            thresholdText.alignment = TextAlignmentOptions.Left;
+            ApplySharedFont(thresholdText);
 
-            // Rewards
+            // Rewards with TMP
             GameObject rewardsObj = new GameObject("Rewards");
             rewardsObj.transform.SetParent(card.transform, false);
 
             RectTransform rewardsRect = rewardsObj.AddComponent<RectTransform>();
-            rewardsRect.anchorMin = new Vector2(0.4f, 0);
+            rewardsRect.anchorMin = new Vector2(0.35f, 0);
             rewardsRect.anchorMax = new Vector2(0.7f, 1);
-            rewardsRect.offsetMin = new Vector2(10, 10);
-            rewardsRect.offsetMax = new Vector2(-10, -10);
+            rewardsRect.offsetMin = new Vector2(UIDesignSystem.SpacingS, UIDesignSystem.SpacingS);
+            rewardsRect.offsetMax = new Vector2(-UIDesignSystem.SpacingS, -UIDesignSystem.SpacingS);
 
-            Text rewardsText = rewardsObj.AddComponent<Text>();
+            TextMeshProUGUI rewardsText = rewardsObj.AddComponent<TextMeshProUGUI>();
             string rewards = "";
-            if (tier.timeShardsReward > 0) rewards += $"⏱ {tier.timeShardsReward} Time Shards\n";
-            if (tier.darkMatterReward > 0) rewards += $"◆ {tier.darkMatterReward} DM\n";
-            if (!string.IsNullOrEmpty(tier.specialReward)) rewards += tier.specialReward;
+            if (tier.timeShardsReward > 0) rewards += $"<color=#AA88FF>{tier.timeShardsReward} Time Shards</color>\n";
+            if (tier.darkMatterReward > 0) rewards += $"<color=#BB66FF>{tier.darkMatterReward} DM</color>\n";
+            if (!string.IsNullOrEmpty(tier.specialReward)) rewards += $"<color=#FFD700>{tier.specialReward}</color>";
             rewardsText.text = rewards.TrimEnd('\n');
-            rewardsText.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
-            rewardsText.fontSize = 16;
+            rewardsText.fontSize = UIDesignSystem.FontSizeSmall;
             rewardsText.color = Color.white;
-            rewardsText.alignment = TextAnchor.MiddleLeft;
+            rewardsText.alignment = TextAlignmentOptions.Left;
+            rewardsText.richText = true;
+            ApplySharedFont(rewardsText);
 
             // Status / Claim button
             if (isClaimed)
             {
+                // Checkmark container
                 GameObject claimedObj = new GameObject("Claimed");
                 claimedObj.transform.SetParent(card.transform, false);
 
                 RectTransform claimedRect = claimedObj.AddComponent<RectTransform>();
-                claimedRect.anchorMin = new Vector2(0.7f, 0.2f);
-                claimedRect.anchorMax = new Vector2(0.95f, 0.8f);
+                claimedRect.anchorMin = new Vector2(0.7f, 0.15f);
+                claimedRect.anchorMax = new Vector2(0.98f, 0.85f);
                 claimedRect.offsetMin = Vector2.zero;
                 claimedRect.offsetMax = Vector2.zero;
 
-                Text claimedText = claimedObj.AddComponent<Text>();
-                claimedText.text = "✓ CLAIMED";
-                claimedText.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
-                claimedText.fontSize = 18;
-                claimedText.fontStyle = FontStyle.Bold;
-                claimedText.color = new Color(0.4f, 0.8f, 0.4f);
-                claimedText.alignment = TextAnchor.MiddleCenter;
+                // Background for claimed status
+                Image claimedBg = claimedObj.AddComponent<Image>();
+                if (guiAssets != null && guiAssets.cardFrame != null)
+                {
+                    claimedBg.sprite = guiAssets.cardFrame;
+                    claimedBg.type = Image.Type.Sliced;
+                    claimedBg.color = new Color(0.2f, 0.35f, 0.2f);
+                }
+                else
+                {
+                    claimedBg.color = new Color(0.2f, 0.3f, 0.2f, 0.8f);
+                }
+
+                TextMeshProUGUI claimedText = claimedObj.AddComponent<TextMeshProUGUI>();
+                claimedText.text = "CLAIMED";
+                claimedText.fontSize = UIDesignSystem.FontSizeBody;
+                claimedText.fontStyle = FontStyles.Bold;
+                claimedText.color = UIDesignSystem.SuccessGreen;
+                claimedText.alignment = TextAlignmentOptions.Center;
+                ApplySharedFont(claimedText);
             }
             else if (canClaim)
             {
@@ -800,18 +1207,33 @@ namespace Incredicer.GlobalEvents
                 claimBtn.transform.SetParent(card.transform, false);
 
                 RectTransform btnRect = claimBtn.AddComponent<RectTransform>();
-                btnRect.anchorMin = new Vector2(0.7f, 0.2f);
-                btnRect.anchorMax = new Vector2(0.95f, 0.8f);
+                btnRect.anchorMin = new Vector2(0.7f, 0.15f);
+                btnRect.anchorMax = new Vector2(0.98f, 0.85f);
                 btnRect.offsetMin = Vector2.zero;
                 btnRect.offsetMax = Vector2.zero;
 
                 Image btnImage = claimBtn.AddComponent<Image>();
-                btnImage.color = tier.tierColor;
+                if (guiAssets != null && guiAssets.buttonGreen != null)
+                {
+                    btnImage.sprite = guiAssets.buttonGreen;
+                    btnImage.type = Image.Type.Sliced;
+                    btnImage.color = Color.white;
+                }
+                else
+                {
+                    btnImage.color = tier.tierColor;
+                }
 
                 Button btn = claimBtn.AddComponent<Button>();
                 btn.targetGraphic = btnImage;
                 int tierIndex = index;
                 btn.onClick.AddListener(() => OnClaimTier(tierIndex));
+
+                var btnColors = btn.colors;
+                btnColors.normalColor = Color.white;
+                btnColors.highlightedColor = new Color(1.1f, 1.1f, 1.1f);
+                btnColors.pressedColor = new Color(0.85f, 0.85f, 0.85f);
+                btn.colors = btnColors;
 
                 GameObject btnTextObj = new GameObject("Text");
                 btnTextObj.transform.SetParent(claimBtn.transform, false);
@@ -822,35 +1244,59 @@ namespace Incredicer.GlobalEvents
                 btnTextRect.offsetMin = Vector2.zero;
                 btnTextRect.offsetMax = Vector2.zero;
 
-                Text btnText = btnTextObj.AddComponent<Text>();
+                TextMeshProUGUI btnText = btnTextObj.AddComponent<TextMeshProUGUI>();
                 btnText.text = "CLAIM";
-                btnText.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
-                btnText.fontSize = 18;
-                btnText.fontStyle = FontStyle.Bold;
-                btnText.color = Color.black;
-                btnText.alignment = TextAnchor.MiddleCenter;
+                btnText.fontSize = UIDesignSystem.FontSizeBody;
+                btnText.fontStyle = FontStyles.Bold;
+                btnText.color = Color.white;
+                btnText.alignment = TextAlignmentOptions.Center;
+                ApplySharedFont(btnText);
 
                 // Pulse animation
-                claimBtn.transform.DOScale(1.05f, 0.5f).SetLoops(-1, LoopType.Yoyo);
+                claimBtn.transform.DOScale(1.05f, UIDesignSystem.AnimPulse).SetLoops(-1, LoopType.Yoyo).SetEase(Ease.InOutSine);
             }
             else
             {
-                // Locked
+                // Locked status
                 GameObject lockedObj = new GameObject("Locked");
                 lockedObj.transform.SetParent(card.transform, false);
 
                 RectTransform lockedRect = lockedObj.AddComponent<RectTransform>();
-                lockedRect.anchorMin = new Vector2(0.7f, 0.2f);
-                lockedRect.anchorMax = new Vector2(0.95f, 0.8f);
+                lockedRect.anchorMin = new Vector2(0.7f, 0.15f);
+                lockedRect.anchorMax = new Vector2(0.98f, 0.85f);
                 lockedRect.offsetMin = Vector2.zero;
                 lockedRect.offsetMax = Vector2.zero;
 
-                Text lockedText = lockedObj.AddComponent<Text>();
-                lockedText.text = "🔒 LOCKED";
-                lockedText.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
-                lockedText.fontSize = 16;
-                lockedText.color = new Color(0.5f, 0.5f, 0.5f);
-                lockedText.alignment = TextAnchor.MiddleCenter;
+                // Background for locked status
+                Image lockedBg = lockedObj.AddComponent<Image>();
+                if (guiAssets != null && guiAssets.cardFrame != null)
+                {
+                    lockedBg.sprite = guiAssets.cardFrame;
+                    lockedBg.type = Image.Type.Sliced;
+                    lockedBg.color = new Color(0.12f, 0.12f, 0.15f);
+                }
+                else
+                {
+                    lockedBg.color = new Color(0.1f, 0.1f, 0.12f, 0.8f);
+                }
+
+                // Locked text on child object
+                GameObject lockedTextObj = new GameObject("LockedText");
+                lockedTextObj.transform.SetParent(lockedObj.transform, false);
+
+                RectTransform lockedTextRect = lockedTextObj.AddComponent<RectTransform>();
+                lockedTextRect.anchorMin = Vector2.zero;
+                lockedTextRect.anchorMax = Vector2.one;
+                lockedTextRect.offsetMin = Vector2.zero;
+                lockedTextRect.offsetMax = Vector2.zero;
+
+                TextMeshProUGUI lockedText = lockedTextObj.AddComponent<TextMeshProUGUI>();
+                lockedText.text = "LOCKED";
+                lockedText.fontSize = UIDesignSystem.FontSizeBody;
+                lockedText.fontStyle = FontStyles.Bold;
+                lockedText.color = UIDesignSystem.TextMuted;
+                lockedText.alignment = TextAlignmentOptions.Center;
+                ApplySharedFont(lockedText);
             }
         }
 
@@ -878,22 +1324,44 @@ namespace Incredicer.GlobalEvents
             overlay.SetActive(true);
             isVisible = true;
 
+            // Ensure popup is rendered on top of other UI elements (like menu button)
+            overlay.transform.SetAsLastSibling();
+
             RefreshUI();
 
-            panelCanvasGroup.alpha = 0;
-            panel.transform.localScale = Vector3.one * 0.9f;
-            panelCanvasGroup.DOFade(1, 0.2f);
-            panel.transform.DOScale(1, 0.2f).SetEase(Ease.OutBack);
+            // Use UIDesignSystem animation
+            UIDesignSystem.AnimateShowPanel(panel, panelCanvasGroup);
+
+            // Animate title ribbon entrance
+            if (titleRibbonObj != null)
+            {
+                titleRibbonObj.transform.localScale = new Vector3(0.8f, 1f, 1f);
+                titleRibbonObj.transform.DOScale(1f, UIDesignSystem.AnimFadeIn).SetEase(Ease.OutBack);
+            }
+
+            // Apply button polish for press/release animations
+            if (UI.UIPolishManager.Instance != null)
+            {
+                UI.UIPolishManager.Instance.PolishButtonsInPanel(panel);
+            }
+
+            // Register with PopupManager
+            if (PopupManager.Instance != null)
+                PopupManager.Instance.RegisterPopupOpen("GlobalEventUI");
 
             AudioManager.Instance?.PlayButtonClickSound();
         }
 
         public void Hide()
         {
+            // Unregister from PopupManager
+            if (PopupManager.Instance != null)
+                PopupManager.Instance.RegisterPopupClosed("GlobalEventUI");
+
             var overlay = panel.transform.parent.gameObject;
 
-            panelCanvasGroup.DOFade(0, 0.15f);
-            panel.transform.DOScale(0.9f, 0.15f).OnComplete(() =>
+            // Use UIDesignSystem animation
+            UIDesignSystem.AnimateHidePanel(panel, panelCanvasGroup, () =>
             {
                 overlay.SetActive(false);
                 isVisible = false;
@@ -923,10 +1391,20 @@ namespace Incredicer.GlobalEvents
                 text.font = GameUI.Instance.SharedFont;
             }
 
-            // Add outline effect
-            text.fontMaterial.EnableKeyword("OUTLINE_ON");
-            text.outlineWidth = 0.2f;
-            text.outlineColor = Color.black;
+            // Add outline effect using TMP's built-in properties (safer than modifying material directly)
+            // Only apply outline if the font material supports it
+            try
+            {
+                if (text.fontMaterial != null)
+                {
+                    text.outlineWidth = 0.15f;
+                    text.outlineColor = new Color32(0, 0, 0, 180);
+                }
+            }
+            catch (System.NullReferenceException)
+            {
+                // Font material doesn't support outline, skip it
+            }
         }
 
         private void InitializeFakeContributors()
@@ -943,11 +1421,11 @@ namespace Incredicer.GlobalEvents
                 contribObj.transform.SetParent(contributorsContainer.transform, false);
 
                 RectTransform contribRect = contribObj.AddComponent<RectTransform>();
-                contribRect.sizeDelta = new Vector2(0, 25);
+                contribRect.sizeDelta = new Vector2(0, 40);
 
                 TextMeshProUGUI contribText = contribObj.AddComponent<TextMeshProUGUI>();
                 contribText.text = $"<color=#88AAFF>{name}</color> contributed <color=#FFDD88>{FormatNumber(contribution)}</color>";
-                contribText.fontSize = 18;
+                contribText.fontSize = UIDesignSystem.FontSizeSmall;
                 contribText.alignment = TextAlignmentOptions.Left;
                 contribText.color = Color.white;
                 ApplySharedFont(contribText);

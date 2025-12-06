@@ -17,9 +17,9 @@ MonoBehaviour:
   description: All gem dice (Emerald+) earn +100% more money.
   icon: {fileID: 0}
   branch: 3
-  tier: 5
+  tier: 4
   treePosition: {x: 300, y: -500}
-  darkMatterCost: 25
+  darkMatterCost: 5000000
   prerequisites: 1700000016000000
   effects:
   - effectType: 6

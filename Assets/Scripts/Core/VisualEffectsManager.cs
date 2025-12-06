@@ -131,11 +131,11 @@ namespace Incredicer.Core
                 prestigeParticlePrefab = CreatePrestigeParticle();
             }
 
-            // Money collect - quick green sparkles
+            // Money collect - quick green sparkles (2x size)
             if (moneyCollectParticlePrefab == null)
             {
                 moneyCollectParticlePrefab = CreateSparkleParticle("MoneyCollectParticle",
-                    new Color(0.3f, 1f, 0.5f, 1f), 8, 0.15f);
+                    new Color(0.3f, 1f, 0.5f, 1f), 12, 0.3f);
             }
 
             // Dark matter - deep purple with trails
@@ -487,8 +487,8 @@ namespace Incredicer.Core
             main.duration = 1f;
             main.loop = false;
             main.startLifetime = new ParticleSystem.MinMaxCurve(0.5f, 1f);
-            main.startSpeed = new ParticleSystem.MinMaxCurve(3f, 6f);
-            main.startSize = new ParticleSystem.MinMaxCurve(0.2f, 0.4f);
+            main.startSpeed = new ParticleSystem.MinMaxCurve(4f, 8f);
+            main.startSize = new ParticleSystem.MinMaxCurve(0.4f, 0.8f);  // 2x size
             main.startColor = new Color(0.5f, 0.2f, 0.9f, 1f);
             main.simulationSpace = ParticleSystemSimulationSpace.World;
             main.playOnAwake = true;
@@ -498,13 +498,13 @@ namespace Incredicer.Core
             var emission = ps.emission;
             emission.rateOverTime = 0;
             emission.SetBursts(new ParticleSystem.Burst[] {
-                new ParticleSystem.Burst(0f, 15),
-                new ParticleSystem.Burst(0.1f, 8)
+                new ParticleSystem.Burst(0f, 20),  // More particles
+                new ParticleSystem.Burst(0.1f, 12)
             });
 
             var shape = ps.shape;
             shape.shapeType = ParticleSystemShapeType.Circle;
-            shape.radius = 0.1f;
+            shape.radius = 0.2f;  // 2x radius
             shape.arc = 360f;
 
             // Deep purple gradient
@@ -785,6 +785,9 @@ namespace Incredicer.Core
             if (!effectsEnabled) return;
             if (sparkleParticlePrefab == null) return;
 
+            // Don't spawn particle effects when a popup is open
+            if (PopupManager.Instance != null && PopupManager.Instance.IsAnyPopupOpen) return;
+
             GameObject effect = Instantiate(sparkleParticlePrefab, position, Quaternion.identity);
             ParticleSystem ps = effect.GetComponent<ParticleSystem>();
             if (ps != null)
@@ -850,6 +853,9 @@ namespace Incredicer.Core
         {
             if (!effectsEnabled || prefab == null) return;
 
+            // Don't spawn particle effects when a popup is open
+            if (PopupManager.Instance != null && PopupManager.Instance.IsAnyPopupOpen) return;
+
             GameObject instance = Instantiate(prefab, position, Quaternion.identity);
             instance.SetActive(true);
             Destroy(instance, particleLifetime);
@@ -858,6 +864,9 @@ namespace Incredicer.Core
         public void SpawnCustomEffect(GameObject prefab, Vector3 position, float lifetime = 2f)
         {
             if (!effectsEnabled || prefab == null) return;
+
+            // Don't spawn particle effects when a popup is open
+            if (PopupManager.Instance != null && PopupManager.Instance.IsAnyPopupOpen) return;
 
             GameObject instance = Instantiate(prefab, position, Quaternion.identity);
             Destroy(instance, lifetime);

@@ -17,9 +17,9 @@ MonoBehaviour:
   description: Unlock Diamond dice for purchase. 64x base earnings.
   icon: {fileID: 0}
   branch: 3
-  tier: 6
+  tier: 5
   treePosition: {x: 350, y: -600}
-  darkMatterCost: 50
+  darkMatterCost: 30000000
   prerequisites: 1900000018000000
   effects:
   - effectType: 14

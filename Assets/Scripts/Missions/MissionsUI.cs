@@ -16,8 +16,9 @@ namespace Incredicer.Missions
         public static MissionsUI Instance { get; private set; }
 
         [Header("Main Panel")]
-        [SerializeField] private GameObject mainPanel;
-        [SerializeField] private CanvasGroup panelCanvasGroup;
+        [SerializeField] private GameObject panelPrefab;  // Assign prefab in inspector
+        private GameObject mainPanel;
+        private CanvasGroup panelCanvasGroup;
 
         [Header("Header")]
         [SerializeField] private TextMeshProUGUI titleText;
@@ -44,10 +45,10 @@ namespace Incredicer.Missions
         [SerializeField] private GUISpriteAssets guiAssets;
 
         [Header("Colors")]
-        [SerializeField] private Color tabActiveColor = new Color(0.3f, 0.8f, 0.4f);
-        [SerializeField] private Color tabInactiveColor = new Color(0.3f, 0.3f, 0.35f);
-        [SerializeField] private Color progressBarFillColor = new Color(0.4f, 0.9f, 0.5f);
-        [SerializeField] private Color progressBarBgColor = new Color(0.2f, 0.2f, 0.25f);
+        [SerializeField] private Color tabActiveColor = new Color(1f, 0.6f, 0.2f);  // AccentMissions orange
+        [SerializeField] private Color tabInactiveColor = new Color(0.35f, 0.35f, 0.4f);
+        [SerializeField] private Color progressBarFillColor = new Color(1f, 0.6f, 0.2f);  // AccentMissions orange
+        [SerializeField] private Color progressBarBgColor = new Color(0.15f, 0.15f, 0.2f);
 
         private bool isShowingDaily = true;
         private bool isOpen = false;
@@ -121,6 +122,9 @@ namespace Incredicer.Missions
             {
                 mainPanel.SetActive(true);
 
+                // Ensure popup is rendered on top of other UI elements (like menu button)
+                mainPanel.transform.SetAsLastSibling();
+
                 // Ensure it renders above other UI
                 Canvas panelCanvas = mainPanel.GetComponent<Canvas>();
                 if (panelCanvas == null)
@@ -140,7 +144,16 @@ namespace Incredicer.Missions
 
             RefreshMissionList();
             UpdateTabVisuals();
-            SetDiceInputBlocked(true);
+
+            // Apply button polish for press/release animations
+            if (UI.UIPolishManager.Instance != null)
+            {
+                UI.UIPolishManager.Instance.PolishButtonsInPanel(mainPanel);
+            }
+
+            // Register with PopupManager
+            if (Core.PopupManager.Instance != null)
+                Core.PopupManager.Instance.RegisterPopupOpen("MissionsUI");
         }
 
         public void Hide()
@@ -148,7 +161,9 @@ namespace Incredicer.Missions
             if (!isOpen) return;
             isOpen = false;
 
-            SetDiceInputBlocked(false);
+            // Unregister from PopupManager
+            if (Core.PopupManager.Instance != null)
+                Core.PopupManager.Instance.RegisterPopupClosed("MissionsUI");
 
             if (panelCanvasGroup != null)
             {
@@ -168,12 +183,6 @@ namespace Incredicer.Missions
         {
             if (isOpen) Hide();
             else Show();
-        }
-
-        private void SetDiceInputBlocked(bool blocked)
-        {
-            if (Dice.DiceRollerController.Instance != null)
-                Dice.DiceRollerController.Instance.enabled = !blocked;
         }
 
         #endregion
@@ -280,10 +289,10 @@ namespace Incredicer.Missions
 
             TextMeshProUGUI titleText = titleObj.AddComponent<TextMeshProUGUI>();
             titleText.text = mission.displayName;
-            titleText.fontSize = 36;
+            titleText.fontSize = UIDesignSystem.FontSizeLarge;
             titleText.fontStyle = FontStyles.Bold;
             titleText.alignment = TextAlignmentOptions.Left;
-            titleText.color = mission.isClaimed ? new Color(0.5f, 0.7f, 0.5f) : Color.white;
+            titleText.color = mission.isClaimed ? new Color(0.5f, 0.7f, 0.5f) : UIDesignSystem.TextPrimary;
 
             // Description
             GameObject descObj = new GameObject("Description");
@@ -296,9 +305,9 @@ namespace Incredicer.Missions
 
             TextMeshProUGUI descText = descObj.AddComponent<TextMeshProUGUI>();
             descText.text = mission.description;
-            descText.fontSize = 24;
+            descText.fontSize = UIDesignSystem.FontSizeSmall;
             descText.alignment = TextAlignmentOptions.Left;
-            descText.color = new Color(0.7f, 0.7f, 0.75f);
+            descText.color = UIDesignSystem.TextSecondary;
 
             // Progress bar background
             GameObject progressBgObj = new GameObject("ProgressBg");
@@ -335,9 +344,9 @@ namespace Incredicer.Missions
 
             TextMeshProUGUI progressText = progressTextObj.AddComponent<TextMeshProUGUI>();
             progressText.text = $"{GameUI.FormatNumber(mission.currentProgress)} / {GameUI.FormatNumber(mission.targetAmount)}";
-            progressText.fontSize = 24;
+            progressText.fontSize = UIDesignSystem.FontSizeSmall;
             progressText.alignment = TextAlignmentOptions.Left;
-            progressText.color = new Color(0.8f, 0.8f, 0.85f);
+            progressText.color = UIDesignSystem.TextSecondary;
 
             // Rewards section
             CreateRewardsDisplay(cardObj, mission);
@@ -348,7 +357,7 @@ namespace Incredicer.Missions
             // Apply shared font
             ApplyFontToCard(cardObj);
 
-            // Completed checkmark overlay
+            // Completed checkmark overlay - use icon like milestones
             if (mission.isClaimed)
             {
                 GameObject checkObj = new GameObject("Checkmark");
@@ -358,11 +367,22 @@ namespace Incredicer.Missions
                 checkRect.anchorMax = new Vector2(0.85f, 0.5f);
                 checkRect.sizeDelta = new Vector2(60, 60);
 
-                TextMeshProUGUI checkText = checkObj.AddComponent<TextMeshProUGUI>();
-                checkText.text = "✓";
-                checkText.fontSize = 48;
-                checkText.alignment = TextAlignmentOptions.Center;
-                checkText.color = new Color(0.4f, 0.9f, 0.5f);
+                // Use iconCheck sprite if available, fallback to text
+                if (guiAssets != null && guiAssets.iconCheck != null)
+                {
+                    Image checkImage = checkObj.AddComponent<Image>();
+                    checkImage.sprite = guiAssets.iconCheck;
+                    checkImage.preserveAspect = true;
+                    checkImage.color = UIDesignSystem.SuccessGreen;
+                }
+                else
+                {
+                    TextMeshProUGUI checkText = checkObj.AddComponent<TextMeshProUGUI>();
+                    checkText.text = "✓";
+                    checkText.fontSize = UIDesignSystem.FontSizeSubtitle;
+                    checkText.alignment = TextAlignmentOptions.Center;
+                    checkText.color = UIDesignSystem.SuccessGreen;
+                }
             }
         }
 
@@ -392,9 +412,9 @@ namespace Incredicer.Missions
 
             TextMeshProUGUI labelText = labelObj.AddComponent<TextMeshProUGUI>();
             labelText.text = "Rewards:";
-            labelText.fontSize = 20;
+            labelText.fontSize = UIDesignSystem.FontSizeLabel;
             labelText.alignment = TextAlignmentOptions.Center;
-            labelText.color = new Color(0.6f, 0.6f, 0.65f);
+            labelText.color = UIDesignSystem.TextMuted;
 
             LayoutElement labelLe = labelObj.AddComponent<LayoutElement>();
             labelLe.preferredHeight = 25;
@@ -438,7 +458,7 @@ namespace Incredicer.Missions
                     }
 
                     rewardText.text = rewardStr;
-                    rewardText.fontSize = 28;
+                    rewardText.fontSize = UIDesignSystem.FontSizeBody;
                     rewardText.fontStyle = FontStyles.Bold;
                     rewardText.alignment = TextAlignmentOptions.Center;
                     rewardText.color = rewardColor;
@@ -522,10 +542,10 @@ namespace Incredicer.Missions
 
             TextMeshProUGUI btnText = textObj.AddComponent<TextMeshProUGUI>();
             btnText.text = buttonText;
-            btnText.fontSize = 28;
+            btnText.fontSize = UIDesignSystem.FontSizeButton;
             btnText.fontStyle = FontStyles.Bold;
             btnText.alignment = TextAlignmentOptions.Center;
-            btnText.color = Color.white;
+            btnText.color = UIDesignSystem.TextPrimary;
         }
 
         private void OnClaimClicked(MissionInstance mission, GameObject buttonObj)
@@ -667,11 +687,87 @@ namespace Incredicer.Missions
 
             if (mainPanel == null && canvas != null)
             {
-                CreateMainPanel(canvas.transform);
+                // Try to instantiate from prefab first
+                if (panelPrefab != null)
+                {
+                    mainPanel = Instantiate(panelPrefab, canvas.transform);
+                    mainPanel.name = "MissionsPanel";
+                    CacheUIReferences();
+                    SetupButtonListeners();
+                }
+                else
+                {
+                    // Fallback to programmatic creation
+                    CreateMainPanel(canvas.transform);
+                }
             }
 
             ApplySharedFont();
             Debug.Log("[MissionsUI] UI built");
+        }
+
+        private void CacheUIReferences()
+        {
+            if (mainPanel == null) return;
+
+            panelCanvasGroup = mainPanel.GetComponent<CanvasGroup>();
+            if (panelCanvasGroup == null)
+                panelCanvasGroup = mainPanel.AddComponent<CanvasGroup>();
+
+            // Find header elements
+            Transform header = mainPanel.transform.Find("Header");
+            if (header != null)
+            {
+                titleText = header.GetComponentInChildren<TextMeshProUGUI>();
+                closeButton = header.GetComponentInChildren<Button>();
+            }
+
+            // Find tabs - check both "TabsArea" (runtime) and "Tabs" (prefab)
+            Transform tabsArea = mainPanel.transform.Find("TabsArea");
+            if (tabsArea == null)
+                tabsArea = mainPanel.transform.Find("Tabs");
+
+            if (tabsArea != null)
+            {
+                Transform dailyTab = tabsArea.Find("DailyTab");
+                Transform weeklyTab = tabsArea.Find("WeeklyTab");
+
+                if (dailyTab != null)
+                {
+                    dailyTabButton = dailyTab.GetComponent<Button>();
+                    dailyTabBg = dailyTab.GetComponent<Image>();
+                    dailyTabText = dailyTab.GetComponentInChildren<TextMeshProUGUI>();
+                }
+                if (weeklyTab != null)
+                {
+                    weeklyTabButton = weeklyTab.GetComponent<Button>();
+                    weeklyTabBg = weeklyTab.GetComponent<Image>();
+                    weeklyTabText = weeklyTab.GetComponentInChildren<TextMeshProUGUI>();
+                }
+
+                Debug.Log($"[MissionsUI] Found tabs - Daily: {dailyTabButton != null}, Weekly: {weeklyTabButton != null}");
+            }
+            else
+            {
+                Debug.LogWarning("[MissionsUI] Could not find TabsArea or Tabs in panel");
+            }
+
+            // Find scroll area
+            scrollRect = mainPanel.GetComponentInChildren<ScrollRect>();
+            if (scrollRect != null)
+                contentContainer = scrollRect.content;
+        }
+
+        private void SetupButtonListeners()
+        {
+            if (closeButton != null)
+                closeButton.onClick.AddListener(Hide);
+
+            if (dailyTabButton != null)
+                dailyTabButton.onClick.AddListener(() => SwitchTab(true));
+
+            if (weeklyTabButton != null)
+                weeklyTabButton.onClick.AddListener(() => SwitchTab(false));
         }
 
         private void CreateMainPanel(Transform parent)
@@ -730,10 +826,10 @@ namespace Incredicer.Missions
 
             titleText = titleObj.AddComponent<TextMeshProUGUI>();
             titleText.text = "MISSIONS";
-            titleText.fontSize = 56;
+            titleText.fontSize = UIDesignSystem.FontSizeTitle;
             titleText.fontStyle = FontStyles.Bold;
             titleText.alignment = TextAlignmentOptions.Left;
-            titleText.color = Color.white;
+            titleText.color = UIDesignSystem.AccentMissions;
 
             // Close button
             GameObject closeObj = new GameObject("CloseButton");
@@ -765,15 +861,16 @@ namespace Incredicer.Missions
 
             TextMeshProUGUI closeText = closeTextObj.AddComponent<TextMeshProUGUI>();
             closeText.text = "X";
-            closeText.fontSize = 48;
+            closeText.fontSize = UIDesignSystem.FontSizeSubtitle;
             closeText.fontStyle = FontStyles.Bold;
             closeText.alignment = TextAlignmentOptions.Center;
-            closeText.color = Color.white;
+            closeText.color = UIDesignSystem.TextPrimary;
         }
 
         private void CreateTabs()
         {
-            GameObject tabsObj = new GameObject("Tabs");
+            // Use "TabsArea" name to match CacheUIReferences
+            GameObject tabsObj = new GameObject("TabsArea");
             tabsObj.transform.SetParent(mainPanel.transform, false);
             RectTransform tabsRect = tabsObj.AddComponent<RectTransform>();
             tabsRect.anchorMin = new Vector2(0, 0.82f);
@@ -793,7 +890,12 @@ namespace Incredicer.Missions
             GameObject dailyObj = new GameObject("DailyTab");
             dailyObj.transform.SetParent(tabsObj.transform, false);
 
+            // Add LayoutElement for proper sizing
+            LayoutElement dailyLE = dailyObj.AddComponent<LayoutElement>();
+            dailyLE.flexibleWidth = 1;
+
             dailyTabBg = dailyObj.AddComponent<Image>();
+            dailyTabBg.raycastTarget = true;  // Ensure raycast works
             if (guiAssets != null && guiAssets.buttonGreen != null)
             {
                 dailyTabBg.sprite = guiAssets.buttonGreen;
@@ -802,6 +904,7 @@ namespace Incredicer.Missions
             dailyTabBg.color = tabActiveColor;
 
             dailyTabButton = dailyObj.AddComponent<Button>();
+            dailyTabButton.targetGraphic = dailyTabBg;
             dailyTabButton.onClick.AddListener(() => SwitchTab(true));
 
             GameObject dailyTextObj = new GameObject("Text");
@@ -814,16 +917,21 @@ namespace Incredicer.Missions
 
             dailyTabText = dailyTextObj.AddComponent<TextMeshProUGUI>();
             dailyTabText.text = "DAILY";
-            dailyTabText.fontSize = 36;
+            dailyTabText.fontSize = UIDesignSystem.FontSizeLarge;
             dailyTabText.fontStyle = FontStyles.Bold;
             dailyTabText.alignment = TextAlignmentOptions.Center;
-            dailyTabText.color = Color.white;
+            dailyTabText.color = UIDesignSystem.TextPrimary;
 
             // Weekly tab
             GameObject weeklyObj = new GameObject("WeeklyTab");
             weeklyObj.transform.SetParent(tabsObj.transform, false);
 
+            // Add LayoutElement for proper sizing
+            LayoutElement weeklyLE = weeklyObj.AddComponent<LayoutElement>();
+            weeklyLE.flexibleWidth = 1;
+
             weeklyTabBg = weeklyObj.AddComponent<Image>();
+            weeklyTabBg.raycastTarget = true;  // Ensure raycast works
             if (guiAssets != null && guiAssets.buttonBlue != null)
             {
                 weeklyTabBg.sprite = guiAssets.buttonBlue;
@@ -832,6 +940,7 @@ namespace Incredicer.Missions
             weeklyTabBg.color = tabInactiveColor;
 
             weeklyTabButton = weeklyObj.AddComponent<Button>();
+            weeklyTabButton.targetGraphic = weeklyTabBg;
             weeklyTabButton.onClick.AddListener(() => SwitchTab(false));
 
             GameObject weeklyTextObj = new GameObject("Text");
@@ -844,10 +953,10 @@ namespace Incredicer.Missions
 
             weeklyTabText = weeklyTextObj.AddComponent<TextMeshProUGUI>();
             weeklyTabText.text = "WEEKLY";
-            weeklyTabText.fontSize = 36;
+            weeklyTabText.fontSize = UIDesignSystem.FontSizeLarge;
             weeklyTabText.fontStyle = FontStyles.Bold;
             weeklyTabText.alignment = TextAlignmentOptions.Center;
-            weeklyTabText.color = new Color(0.7f, 0.7f, 0.7f);
+            weeklyTabText.color = UIDesignSystem.TextMuted;
         }
 
         private void CreateScrollArea()

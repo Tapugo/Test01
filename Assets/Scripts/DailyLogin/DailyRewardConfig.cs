@@ -12,7 +12,8 @@ namespace Incredicer.DailyLogin
         DarkMatter,
         MoneyBoost,
         DMBoost,
-        JackpotToken
+        JackpotToken,
+        ExtraDice  // 1-6 extra dice based on the dice roll
     }
 
     /// <summary>
@@ -90,15 +91,15 @@ namespace Incredicer.DailyLogin
             streakLength = 7;
             dayRewards = new DailyRewardDay[7];
 
-            // Day 1: Small money burst
+            // Day 1: Extra dice based on roll (1-6 dice)
             dayRewards[0] = new DailyRewardDay
             {
                 dayNumber = 1,
-                rewardType = DailyRewardType.Money,
-                baseAmount = 100,
+                rewardType = DailyRewardType.ExtraDice,
+                baseAmount = 1,  // Base amount, actual dice count = dice roll value
                 streakMultiplier = 1f,
-                rewardTitle = "Welcome Back!",
-                rewardDescription = "A small reward to start your streak."
+                rewardTitle = "Extra Dice!",
+                rewardDescription = "Roll the dice to get 1-6 extra dice on your board!"
             };
 
             // Day 2: Slightly more money

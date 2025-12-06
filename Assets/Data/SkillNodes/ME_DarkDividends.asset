@@ -14,16 +14,17 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   nodeId: 6
   displayName: Dark Dividends
-  description: Gain +50% more Dark Matter from all sources.
+  description: Whenever you gain Dark Matter, also gain money equal to 1% of lifetime
+    DM earned.
   icon: {fileID: 0}
   branch: 1
-  tier: 2
-  treePosition: {x: -350, y: -200}
-  darkMatterCost: 5
-  prerequisites: 01000000
+  tier: 3
+  treePosition: {x: -350, y: -300}
+  darkMatterCost: 250000
+  prerequisites: 04000000
   effects:
   - effectType: 11
-    value: 1.5
+    value: 1
     targetDiceType: 0
     unlockSkill: 0
     specialFlag: 0

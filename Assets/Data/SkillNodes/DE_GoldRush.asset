@@ -17,9 +17,9 @@ MonoBehaviour:
   description: Gold dice earn +75% more money.
   icon: {fileID: 0}
   branch: 3
-  tier: 4
+  tier: 3
   treePosition: {x: 250, y: -400}
-  darkMatterCost: 12
+  darkMatterCost: 500000
   prerequisites: 15000000
   effects:
   - effectType: 6

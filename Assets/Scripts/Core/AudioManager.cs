@@ -114,6 +114,11 @@ namespace Incredicer.Core
         public void PlayRollSound()
         {
             PlaySfx(rollSound);
+            // Medium haptic for dice rolls
+            if (HapticManager.Instance != null)
+            {
+                HapticManager.Instance.MediumHaptic();
+            }
         }
 
         /// <summary>
@@ -122,6 +127,11 @@ namespace Incredicer.Core
         public void PlayJackpotSound()
         {
             PlaySfx(jackpotSound);
+            // Heavy haptic for jackpots
+            if (HapticManager.Instance != null)
+            {
+                HapticManager.Instance.HeavyHaptic();
+            }
         }
 
         /// <summary>
@@ -130,6 +140,11 @@ namespace Incredicer.Core
         public void PlayPurchaseSound()
         {
             PlaySfx(purchaseSound);
+            // Success haptic for purchases
+            if (HapticManager.Instance != null)
+            {
+                HapticManager.Instance.SuccessHaptic();
+            }
         }
 
         /// <summary>
@@ -138,6 +153,11 @@ namespace Incredicer.Core
         public void PlaySkillUnlockSound()
         {
             PlaySfx(skillUnlockSound);
+            // Medium haptic for skill unlocks
+            if (HapticManager.Instance != null)
+            {
+                HapticManager.Instance.MediumHaptic();
+            }
         }
 
         /// <summary>
@@ -146,6 +166,11 @@ namespace Incredicer.Core
         public void PlayButtonClickSound()
         {
             PlaySfx(buttonClickSound);
+            // Light haptic for button clicks
+            if (HapticManager.Instance != null)
+            {
+                HapticManager.Instance.LightHaptic();
+            }
         }
 
         /// <summary>
@@ -154,6 +179,11 @@ namespace Incredicer.Core
         public void PlayPrestigeSound()
         {
             PlaySfx(prestigeSound);
+            // Heavy haptic for prestige (big moment)
+            if (HapticManager.Instance != null)
+            {
+                HapticManager.Instance.HeavyHaptic();
+            }
         }
 
         /// <summary>
@@ -162,6 +192,11 @@ namespace Incredicer.Core
         public void PlayErrorSound()
         {
             PlaySfx(errorSound);
+            // Failure haptic for errors
+            if (HapticManager.Instance != null)
+            {
+                HapticManager.Instance.FailureHaptic();
+            }
         }
 
         /// <summary>

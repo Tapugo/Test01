@@ -6,50 +6,35 @@ using DG.Tweening;
 using Incredicer.Core;
 using Incredicer.Dice;
 using Incredicer.UI;
+using Incredicer.Skills;
 
 namespace Incredicer.Overclock
 {
     /// <summary>
-    /// UI for selecting and overclocking dice.
-    /// Shows when player taps on a dice to bring up the overclock option.
+    /// Simplified UI for activating overclock on random dice.
+    /// Shows a panel with an "ACTIVATE" button that overclocks up to 10 random dice.
     /// </summary>
     public class OverclockUI : MonoBehaviour
     {
         [Header("References")]
         [SerializeField] private Canvas canvas;
+        [SerializeField] private GUISpriteAssets guiAssets;
+        [SerializeField] private GameObject panelPrefab;
 
         [Header("Settings")]
-        [SerializeField] private float panelSlideDistance = 300f;
+        [SerializeField] private int maxDiceToOverclock = 10;
         [SerializeField] private float animationDuration = 0.3f;
 
-        // UI Elements (created at runtime)
+        // UI Elements (created at runtime or from prefab)
         private GameObject panelRoot;
-        private GameObject selectionPanel;
-        private Image dicePreview;
-        private TextMeshProUGUI diceNameText;
-        private TextMeshProUGUI multiplierText;
-        private TextMeshProUGUI warningText;
-        private Button overclockButton;
-        private Button cancelButton;
-
-        // Heat display for overclocked dice
-        private GameObject heatDisplayRoot;
-        private Image heatFillBar;
-        private TextMeshProUGUI heatPercentText;
-
-        // Currently selected dice
-        private Dice.Dice selectedDice;
-
-        // HUD indicator for overclocked dice count
-        private GameObject hudBadge;
-        private TextMeshProUGUI hudBadgeText;
-
-        // Dice selection list
-        private GameObject diceListContainer;
-        private List<Button> diceButtons = new List<Button>();
-
-        // Force rebuild flag
-        private bool needsRebuild = true;
+        private GameObject mainPanel;
+        private CanvasGroup panelCanvasGroup;
+        private TextMeshProUGUI titleText;
+        private TextMeshProUGUI infoText;
+        private TextMeshProUGUI statsText;
+        private Button activateButton;
+        private TextMeshProUGUI activateButtonText;
+        private Button closeButton;
 
         private void Start()
         {
@@ -58,32 +43,176 @@ namespace Incredicer.Overclock
                 canvas = GetComponent<Canvas>();
             }
 
-            CreateUI();
+            // Get GUI assets from singleton if not assigned
+            if (guiAssets == null)
+            {
+                guiAssets = GUISpriteAssets.Instance;
+            }
+
+            // Try to load from prefab first, fallback to runtime creation
+            if (panelPrefab != null)
+            {
+                LoadFromPrefab();
+            }
+            else
+            {
+                // Try to load prefab from Resources
+                GameObject loadedPrefab = Resources.Load<GameObject>("Prefabs/UI/OverclockPanel");
+                if (loadedPrefab != null)
+                {
+                    panelPrefab = loadedPrefab;
+                    LoadFromPrefab();
+                }
+                else
+                {
+                    CreateUI();
+                }
+            }
+
             SubscribeToEvents();
 
             // Start hidden
             panelRoot.SetActive(false);
         }
 
-        private void OnDestroy()
+        private void LoadFromPrefab()
         {
-            UnsubscribeFromEvents();
+            panelRoot = Instantiate(panelPrefab, canvas.transform);
+            panelRoot.name = "OverclockPanel";
+
+            // Cache references from prefab
+            CachePrefabReferences();
+
+            // Setup button listeners
+            SetupButtonListeners();
+
+            // Apply GUI sprites if available
+            ApplyGuiSprites();
+
+            // Apply shared font
+            ApplySharedFontToPanel();
         }
 
-        private void Update()
+        private void CachePrefabReferences()
         {
-            // Update heat display if we have a selected overclocked dice
-            if (selectedDice != null && OverclockManager.Instance != null)
+            panelCanvasGroup = panelRoot.GetComponent<CanvasGroup>();
+            if (panelCanvasGroup == null)
+                panelCanvasGroup = panelRoot.AddComponent<CanvasGroup>();
+
+            mainPanel = panelRoot.transform.Find("MainCard")?.gameObject;
+            if (mainPanel != null)
             {
-                var state = OverclockManager.Instance.GetOverclockState(selectedDice);
-                if (state != null)
+                var mainCanvasGroup = mainPanel.GetComponent<CanvasGroup>();
+                if (mainCanvasGroup != null)
+                    panelCanvasGroup = mainCanvasGroup;
+            }
+
+            // Find text components
+            var titleTransform = panelRoot.transform.Find("MainCard/Title");
+            if (titleTransform != null)
+                titleText = titleTransform.GetComponent<TextMeshProUGUI>();
+
+            var infoTransform = panelRoot.transform.Find("MainCard/InfoText");
+            if (infoTransform != null)
+                infoText = infoTransform.GetComponent<TextMeshProUGUI>();
+
+            var statsTransform = panelRoot.transform.Find("MainCard/StatsText");
+            if (statsTransform != null)
+                statsText = statsTransform.GetComponent<TextMeshProUGUI>();
+
+            // Find buttons
+            var activateTransform = panelRoot.transform.Find("MainCard/Buttons/ActivateButton");
+            if (activateTransform != null)
+            {
+                activateButton = activateTransform.GetComponent<Button>();
+                activateButtonText = activateTransform.GetComponentInChildren<TextMeshProUGUI>();
+            }
+
+            var closeTransform = panelRoot.transform.Find("MainCard/Buttons/CloseButton");
+            if (closeTransform != null)
+                closeButton = closeTransform.GetComponent<Button>();
+        }
+
+        private void SetupButtonListeners()
+        {
+            // Background click to close
+            var bgButton = panelRoot.GetComponent<Button>();
+            if (bgButton != null)
+                bgButton.onClick.AddListener(HidePanel);
+
+            // Main panel click blocker
+            if (mainPanel != null)
+            {
+                var mainButton = mainPanel.GetComponent<Button>();
+                if (mainButton != null)
+                    mainButton.onClick.RemoveAllListeners(); // Just block clicks
+            }
+
+            if (activateButton != null)
+                activateButton.onClick.AddListener(OnActivateClicked);
+
+            if (closeButton != null)
+                closeButton.onClick.AddListener(HidePanel);
+        }
+
+        private void ApplyGuiSprites()
+        {
+            if (guiAssets == null) return;
+
+            // Apply popup background to main card
+            if (mainPanel != null && guiAssets.popupBackground != null)
+            {
+                var bg = mainPanel.GetComponent<Image>();
+                if (bg != null)
                 {
-                    UpdateHeatDisplay(state);
+                    bg.sprite = guiAssets.popupBackground;
+                    bg.type = Image.Type.Sliced;
+                    bg.color = Color.white;
                 }
             }
 
-            // Update HUD badge
-            UpdateHudBadge();
+            // Apply button sprites
+            if (activateButton != null && guiAssets.buttonYellow != null)
+            {
+                var btnBg = activateButton.GetComponent<Image>();
+                if (btnBg != null)
+                {
+                    btnBg.sprite = guiAssets.buttonYellow;
+                    btnBg.type = Image.Type.Sliced;
+                    btnBg.color = Color.white;
+                }
+            }
+
+            if (closeButton != null && guiAssets.buttonGray != null)
+            {
+                var btnBg = closeButton.GetComponent<Image>();
+                if (btnBg != null)
+                {
+                    btnBg.sprite = guiAssets.buttonGray;
+                    btnBg.type = Image.Type.Sliced;
+                    btnBg.color = Color.white;
+                }
+            }
+        }
+
+        private void ApplySharedFontToPanel()
+        {
+            if (panelRoot == null || GameUI.Instance == null) return;
+
+            TMP_FontAsset sharedFont = GameUI.Instance.SharedFont;
+            if (sharedFont == null) return;
+
+            TextMeshProUGUI[] allTexts = panelRoot.GetComponentsInChildren<TextMeshProUGUI>(true);
+            foreach (var tmp in allTexts)
+            {
+                tmp.font = sharedFont;
+                GameUI.ApplyTextOutline(tmp);
+            }
+        }
+
+        private void OnDestroy()
+        {
+            UnsubscribeFromEvents();
         }
 
         #region UI Creation
@@ -100,7 +229,7 @@ namespace Incredicer.Overclock
             panelRect.offsetMin = Vector2.zero;
             panelRect.offsetMax = Vector2.zero;
 
-            // Semi-transparent background - using UIDesignSystem
+            // Semi-transparent background
             var bgImage = panelRoot.AddComponent<Image>();
             bgImage.color = UIDesignSystem.OverlayMedium;
 
@@ -108,237 +237,139 @@ namespace Incredicer.Overclock
             var bgButton = panelRoot.AddComponent<Button>();
             bgButton.onClick.AddListener(HidePanel);
 
-            // Selection panel (center card)
-            selectionPanel = CreateSelectionPanel(panelRoot.transform);
-
-            // Heat display (shown when dice is overclocked)
-            heatDisplayRoot = CreateHeatDisplay(panelRoot.transform);
-            heatDisplayRoot.SetActive(false);
-
-            // HUD badge
-            CreateHudBadge();
+            // Main panel (center card)
+            CreateMainPanel(panelRoot.transform);
         }
 
-        private GameObject CreateSelectionPanel(Transform parent)
+        private void CreateMainPanel(Transform parent)
         {
-            var panel = new GameObject("SelectionCard");
-            panel.transform.SetParent(parent, false);
+            mainPanel = new GameObject("MainCard");
+            mainPanel.transform.SetParent(parent, false);
 
-            var rect = panel.AddComponent<RectTransform>();
-            // Make fullscreen with padding like other popups - using UIDesignSystem
-            rect.anchorMin = new Vector2(0.03f, 0.03f);
-            rect.anchorMax = new Vector2(0.97f, 0.97f);
+            var rect = mainPanel.AddComponent<RectTransform>();
+            rect.anchorMin = new Vector2(0.1f, 0.2f);
+            rect.anchorMax = new Vector2(0.9f, 0.8f);
             rect.offsetMin = Vector2.zero;
             rect.offsetMax = Vector2.zero;
 
-            // Card background - using UIDesignSystem
-            var bg = panel.AddComponent<Image>();
-            bg.color = UIDesignSystem.PanelBgDark;
+            // Card background
+            var bg = mainPanel.AddComponent<Image>();
+            if (guiAssets != null && guiAssets.popupBackground != null)
+            {
+                bg.sprite = guiAssets.popupBackground;
+                bg.type = Image.Type.Sliced;
+                bg.color = Color.white;
+            }
+            else
+            {
+                bg.color = UIDesignSystem.PanelBgDark;
+            }
 
             // Stop clicks from going through
-            var button = panel.AddComponent<Button>();
+            var button = mainPanel.AddComponent<Button>();
             button.transition = Selectable.Transition.None;
 
-            // Add outline for polish - using overclock orange color
-            var outline = panel.AddComponent<Outline>();
-            outline.effectColor = UIDesignSystem.OverclockOrange * 0.6f;
-            outline.effectDistance = new Vector2(3, -3);
+            // Canvas group for fading
+            panelCanvasGroup = mainPanel.AddComponent<CanvasGroup>();
 
             // Layout
-            var layout = panel.AddComponent<VerticalLayoutGroup>();
-            layout.padding = new RectOffset((int)UIDesignSystem.SpacingXL, (int)UIDesignSystem.SpacingXL,
-                                            (int)UIDesignSystem.SpacingL, (int)UIDesignSystem.SpacingL);
-            layout.spacing = UIDesignSystem.SpacingL;
-            layout.childAlignment = TextAnchor.UpperCenter;
+            var layout = mainPanel.AddComponent<VerticalLayoutGroup>();
+            layout.padding = new RectOffset(40, 40, 40, 40);
+            layout.spacing = 30;
+            layout.childAlignment = TextAnchor.MiddleCenter;
             layout.childControlHeight = false;
             layout.childControlWidth = true;
             layout.childForceExpandHeight = false;
 
-            // Title - using UIDesignSystem
+            // Title
+            CreateTitle(mainPanel.transform);
+
+            // Fire icon / dice preview
+            CreateOverclockIcon(mainPanel.transform);
+
+            // Info text
+            CreateInfoText(mainPanel.transform);
+
+            // Stats text
+            CreateStatsText(mainPanel.transform);
+
+            // Buttons
+            CreateButtons(mainPanel.transform);
+        }
+
+        private void CreateTitle(Transform parent)
+        {
             var titleObj = new GameObject("Title");
-            titleObj.transform.SetParent(panel.transform, false);
-            var titleText = titleObj.AddComponent<TextMeshProUGUI>();
+            titleObj.transform.SetParent(parent, false);
+
+            titleText = titleObj.AddComponent<TextMeshProUGUI>();
             titleText.text = "OVERCLOCK";
-            titleText.fontSize = UIDesignSystem.FontSizeHero;  // 72px
+            titleText.fontSize = UIDesignSystem.FontSizeHero;
             titleText.fontStyle = FontStyles.Bold;
             titleText.alignment = TextAlignmentOptions.Center;
             titleText.color = UIDesignSystem.OverclockOrange;
             ApplySharedFont(titleText);
+
             var titleRect = titleObj.GetComponent<RectTransform>();
-            titleRect.sizeDelta = new Vector2(620, 90);
+            titleRect.sizeDelta = new Vector2(0, 80);
 
-            // Dice preview - larger
-            var previewObj = new GameObject("DicePreview");
-            previewObj.transform.SetParent(panel.transform, false);
-            dicePreview = previewObj.AddComponent<Image>();
-            dicePreview.color = UIDesignSystem.OverclockOrange;
-            var previewRect = previewObj.GetComponent<RectTransform>();
-            previewRect.sizeDelta = new Vector2(180, 180);
-
-            // Add dice dots to preview
-            UIDesignSystem.CreateDiceDots(previewObj.transform, 6, 28f, new Color(0.2f, 0.1f, 0.05f));
-
-            // Dice name
-            var nameObj = new GameObject("DiceName");
-            nameObj.transform.SetParent(panel.transform, false);
-            diceNameText = nameObj.AddComponent<TextMeshProUGUI>();
-            diceNameText.text = "Select a Dice";
-            diceNameText.fontSize = UIDesignSystem.FontSizeLarge;  // 40px
-            diceNameText.fontStyle = FontStyles.Bold;
-            diceNameText.alignment = TextAlignmentOptions.Center;
-            diceNameText.color = Color.white;
-            ApplySharedFont(diceNameText);
-            var nameRect = nameObj.GetComponent<RectTransform>();
-            nameRect.sizeDelta = new Vector2(620, 50);
-
-            // Multiplier info
-            var multObj = new GameObject("MultiplierInfo");
-            multObj.transform.SetParent(panel.transform, false);
-            multiplierText = multObj.AddComponent<TextMeshProUGUI>();
-            multiplierText.text = "<color=#FFA500>2.5x PAYOUT</color>\nwhile overclocked";
-            multiplierText.fontSize = UIDesignSystem.FontSizeHeader;  // 36px
-            multiplierText.alignment = TextAlignmentOptions.Center;
-            multiplierText.color = Color.white;
-            ApplySharedFont(multiplierText);
-            var multRect = multObj.GetComponent<RectTransform>();
-            multRect.sizeDelta = new Vector2(620, 90);
-
-            // Warning text
-            var warnObj = new GameObject("Warning");
-            warnObj.transform.SetParent(panel.transform, false);
-            warningText = warnObj.AddComponent<TextMeshProUGUI>();
-            warningText.text = "<color=#FF4444>WARNING:</color> Dice will be\n<color=#FF4444>DESTROYED</color> after ~10 rolls!";
-            warningText.fontSize = UIDesignSystem.FontSizeBody;  // 28px
-            warningText.alignment = TextAlignmentOptions.Center;
-            warningText.color = new Color(1f, 0.7f, 0.7f);
-            ApplySharedFont(warningText);
-            var warnRect = warnObj.GetComponent<RectTransform>();
-            warnRect.sizeDelta = new Vector2(620, 80);
-
-            // Dice list container (scrollable list of available dice)
-            CreateDiceListContainer(panel.transform);
-
-            // Buttons container
-            var buttonsObj = new GameObject("Buttons");
-            buttonsObj.transform.SetParent(panel.transform, false);
-            var buttonsRect = buttonsObj.AddComponent<RectTransform>();
-            buttonsRect.sizeDelta = new Vector2(620, 80);
-
-            var buttonsLayout = buttonsObj.AddComponent<HorizontalLayoutGroup>();
-            buttonsLayout.spacing = UIDesignSystem.SpacingL;
-            buttonsLayout.childAlignment = TextAnchor.MiddleCenter;
-            buttonsLayout.childControlWidth = true;
-            buttonsLayout.childControlHeight = true;
-            buttonsLayout.childForceExpandWidth = true;
-
-            // Overclock button (orange, matching game style) - using UIDesignSystem
-            overclockButton = CreateStyledButton(buttonsObj.transform, "OVERCLOCK!", UIDesignSystem.OverclockOrange);
-            overclockButton.onClick.AddListener(OnOverclockClicked);
-
-            // Cancel button (gray) - using UIDesignSystem
-            cancelButton = CreateStyledButton(buttonsObj.transform, "CLOSE", UIDesignSystem.ButtonSecondary);
-            cancelButton.onClick.AddListener(HidePanel);
-
-            return panel;
+            // Add LayoutElement
+            var layoutElement = titleObj.AddComponent<LayoutElement>();
+            layoutElement.preferredHeight = 80;
         }
 
-        private void CreateDiceListContainer(Transform parent)
+        private void CreateOverclockIcon(Transform parent)
         {
-            // Container for dice selection - large with visible border
-            diceListContainer = new GameObject("DiceListContainer");
-            diceListContainer.transform.SetParent(parent, false);
+            var iconContainer = new GameObject("IconContainer");
+            iconContainer.transform.SetParent(parent, false);
 
-            var containerRect = diceListContainer.AddComponent<RectTransform>();
-            containerRect.sizeDelta = new Vector2(0, 240);  // Full width, good height
+            var containerRect = iconContainer.AddComponent<RectTransform>();
+            containerRect.sizeDelta = new Vector2(200, 200);
 
-            // Background with border - using UIDesignSystem
-            var bg = diceListContainer.AddComponent<Image>();
-            bg.color = UIDesignSystem.PanelBgMedium;
+            var layoutElement = iconContainer.AddComponent<LayoutElement>();
+            layoutElement.preferredHeight = 200;
+            layoutElement.preferredWidth = 200;
 
-            // Add outline for visibility - using UIDesignSystem
-            var containerOutline = diceListContainer.AddComponent<Outline>();
-            containerOutline.effectColor = UIDesignSystem.AccentPurple * 0.5f;
-            containerOutline.effectDistance = new Vector2(2, -2);
+            // Glow effect
+            var glowObj = new GameObject("Glow");
+            glowObj.transform.SetParent(iconContainer.transform, false);
+            var glowRect = glowObj.AddComponent<RectTransform>();
+            glowRect.anchorMin = new Vector2(0.5f, 0.5f);
+            glowRect.anchorMax = new Vector2(0.5f, 0.5f);
+            glowRect.sizeDelta = new Vector2(250, 250);
+            glowRect.anchoredPosition = Vector2.zero;
 
-            // Add mask to contain dice icons
-            diceListContainer.AddComponent<Mask>().showMaskGraphic = true;
+            var glowImg = glowObj.AddComponent<Image>();
+            glowImg.color = new Color(1f, 0.5f, 0.2f, 0.4f);
+            glowObj.transform.DOScale(1.2f, 1f).SetLoops(-1, LoopType.Yoyo).SetEase(Ease.InOutSine);
 
-            // Scroll view for many dice
-            var scrollRect = diceListContainer.AddComponent<ScrollRect>();
-            scrollRect.horizontal = true;
-            scrollRect.vertical = false;
-            scrollRect.scrollSensitivity = 30f;
+            // Main dice icon with fire effect
+            var diceObj = new GameObject("DiceIcon");
+            diceObj.transform.SetParent(iconContainer.transform, false);
+            var diceRect = diceObj.AddComponent<RectTransform>();
+            diceRect.anchorMin = new Vector2(0.5f, 0.5f);
+            diceRect.anchorMax = new Vector2(0.5f, 0.5f);
+            diceRect.sizeDelta = new Vector2(150, 150);
+            diceRect.anchoredPosition = Vector2.zero;
 
-            // Viewport inside container (for proper masking)
-            var viewportObj = new GameObject("Viewport");
-            viewportObj.transform.SetParent(diceListContainer.transform, false);
+            var diceImg = diceObj.AddComponent<Image>();
+            diceImg.color = UIDesignSystem.OverclockOrange;
 
-            var viewportRect = viewportObj.AddComponent<RectTransform>();
-            viewportRect.anchorMin = Vector2.zero;
-            viewportRect.anchorMax = Vector2.one;
-            viewportRect.offsetMin = new Vector2(5, 5);
-            viewportRect.offsetMax = new Vector2(-5, -5);
+            // Dice dots
+            CreateDiceDots(diceObj.transform);
 
-            viewportObj.AddComponent<Image>().color = Color.clear;
-            viewportObj.AddComponent<Mask>().showMaskGraphic = false;
-
-            scrollRect.viewport = viewportRect;
-
-            // Content container
-            var contentObj = new GameObject("Content");
-            contentObj.transform.SetParent(viewportObj.transform, false);
-
-            var contentRect = contentObj.AddComponent<RectTransform>();
-            contentRect.anchorMin = new Vector2(0, 0);
-            contentRect.anchorMax = new Vector2(0, 1);
-            contentRect.pivot = new Vector2(0, 0.5f);
-            contentRect.anchoredPosition = Vector2.zero;
-            contentRect.sizeDelta = new Vector2(0, 0);
-
-            // Horizontal layout for dice buttons
-            var layout = contentObj.AddComponent<HorizontalLayoutGroup>();
-            layout.spacing = 15;
-            layout.padding = new RectOffset(15, 15, 15, 15);
-            layout.childAlignment = TextAnchor.MiddleLeft;
-            layout.childControlWidth = false;
-            layout.childControlHeight = true;
-            layout.childForceExpandWidth = false;
-
-            var contentSizeFitter = contentObj.AddComponent<ContentSizeFitter>();
-            contentSizeFitter.horizontalFit = ContentSizeFitter.FitMode.PreferredSize;
-
-            scrollRect.content = contentRect;
+            // Pulse animation
+            diceObj.transform.DOScale(1.05f, 0.8f).SetLoops(-1, LoopType.Yoyo).SetEase(Ease.InOutSine);
         }
 
-        private void ApplySharedFont(TextMeshProUGUI text)
-        {
-            if (text == null) return;
-            if (GameUI.Instance != null && GameUI.Instance.SharedFont != null)
-            {
-                text.font = GameUI.Instance.SharedFont;
-            }
-            // Add black outline
-            text.fontMaterial.EnableKeyword("OUTLINE_ON");
-            text.outlineWidth = 0.2f;
-            text.outlineColor = Color.black;
-        }
-
-        /// <summary>
-        /// Creates dice dot pattern on an icon (shows 6 dots like a real dice)
-        /// </summary>
-        private void CreateDiceDotsOnIcon(Transform parent)
+        private void CreateDiceDots(Transform parent)
         {
             float dotSize = 20f;
-            float margin = 30f;
-
             Vector2[] dotPositions = new Vector2[]
             {
-                new Vector2(-margin, margin),
-                new Vector2(-margin, 0),
-                new Vector2(-margin, -margin),
-                new Vector2(margin, margin),
-                new Vector2(margin, 0),
-                new Vector2(margin, -margin)
+                new Vector2(-35, 35), new Vector2(35, 35),
+                new Vector2(-35, 0), new Vector2(35, 0),
+                new Vector2(-35, -35), new Vector2(35, -35)
             };
 
             foreach (var pos in dotPositions)
@@ -353,40 +384,128 @@ namespace Incredicer.Overclock
                 dotRect.anchoredPosition = pos;
 
                 var dotImg = dot.AddComponent<Image>();
-                dotImg.color = new Color(0.2f, 0.1f, 0.05f);  // Dark brown pips
+                dotImg.color = new Color(0.2f, 0.1f, 0.05f);
             }
         }
 
-        private Button CreateStyledButton(Transform parent, string text, Color bgColor)
+        private void CreateInfoText(Transform parent)
+        {
+            var infoObj = new GameObject("InfoText");
+            infoObj.transform.SetParent(parent, false);
+
+            infoText = infoObj.AddComponent<TextMeshProUGUI>();
+            infoText.text = $"Activate Overclock to boost up to\n<color=#FFA500>{maxDiceToOverclock}</color> random dice!\n\n" +
+                           $"<color=#FFA500>2.5x PAYOUT</color> while overclocked\n" +
+                           $"<color=#FF6666>Dice will be destroyed after ~10 rolls</color>";
+            infoText.fontSize = UIDesignSystem.FontSizeBody;
+            infoText.alignment = TextAlignmentOptions.Center;
+            infoText.color = Color.white;
+            ApplySharedFont(infoText);
+
+            var infoRect = infoObj.GetComponent<RectTransform>();
+            infoRect.sizeDelta = new Vector2(0, 160);
+
+            var layoutElement = infoObj.AddComponent<LayoutElement>();
+            layoutElement.preferredHeight = 160;
+        }
+
+        private void CreateStatsText(Transform parent)
+        {
+            var statsObj = new GameObject("StatsText");
+            statsObj.transform.SetParent(parent, false);
+
+            statsText = statsObj.AddComponent<TextMeshProUGUI>();
+            statsText.text = "Available dice: 0";
+            statsText.fontSize = UIDesignSystem.FontSizeHeader;
+            statsText.fontStyle = FontStyles.Bold;
+            statsText.alignment = TextAlignmentOptions.Center;
+            statsText.color = UIDesignSystem.AccentGold;
+            ApplySharedFont(statsText);
+
+            var statsRect = statsObj.GetComponent<RectTransform>();
+            statsRect.sizeDelta = new Vector2(0, 50);
+
+            var layoutElement = statsObj.AddComponent<LayoutElement>();
+            layoutElement.preferredHeight = 50;
+        }
+
+        private void CreateButtons(Transform parent)
+        {
+            var buttonsObj = new GameObject("Buttons");
+            buttonsObj.transform.SetParent(parent, false);
+
+            var buttonsRect = buttonsObj.AddComponent<RectTransform>();
+            buttonsRect.sizeDelta = new Vector2(0, 80);
+
+            var layoutElement = buttonsObj.AddComponent<LayoutElement>();
+            layoutElement.preferredHeight = 80;
+
+            var buttonsLayout = buttonsObj.AddComponent<HorizontalLayoutGroup>();
+            buttonsLayout.spacing = 30;
+            buttonsLayout.childAlignment = TextAnchor.MiddleCenter;
+            buttonsLayout.childControlWidth = false;
+            buttonsLayout.childControlHeight = true;
+            buttonsLayout.childForceExpandWidth = false;
+
+            // Activate button
+            activateButton = CreateStyledButton(buttonsObj.transform, "ACTIVATE!", UIDesignSystem.OverclockOrange, 280);
+            activateButton.onClick.AddListener(OnActivateClicked);
+            activateButtonText = activateButton.GetComponentInChildren<TextMeshProUGUI>();
+
+            // Close button
+            closeButton = CreateStyledButton(buttonsObj.transform, "CLOSE", UIDesignSystem.ButtonSecondary, 200);
+            closeButton.onClick.AddListener(HidePanel);
+        }
+
+        private Button CreateStyledButton(Transform parent, string text, Color bgColor, float width = 200)
         {
             var btnObj = new GameObject(text + "Button");
             btnObj.transform.SetParent(parent, false);
 
             var rect = btnObj.AddComponent<RectTransform>();
-            rect.sizeDelta = new Vector2(280, UIDesignSystem.ButtonHeightLarge);  // 72px height
+            rect.sizeDelta = new Vector2(width, UIDesignSystem.ButtonHeightLarge);
 
             var bg = btnObj.AddComponent<Image>();
-            bg.color = bgColor;
+
+            // Use appropriate GUI sprite based on color/purpose
+            Sprite buttonSprite = null;
+            if (guiAssets != null)
+            {
+                if (bgColor == UIDesignSystem.OverclockOrange || bgColor == UIDesignSystem.AccentOrange)
+                    buttonSprite = guiAssets.buttonYellow;
+                else if (bgColor == UIDesignSystem.ButtonSecondary)
+                    buttonSprite = guiAssets.buttonGray;
+                else
+                    buttonSprite = guiAssets.buttonBlue;
+            }
+
+            if (buttonSprite != null)
+            {
+                bg.sprite = buttonSprite;
+                bg.type = Image.Type.Sliced;
+                bg.color = Color.white;
+            }
+            else
+            {
+                bg.color = bgColor;
+            }
 
             var btn = btnObj.AddComponent<Button>();
             btn.targetGraphic = bg;
 
             var colors = btn.colors;
-            colors.highlightedColor = bgColor * 1.2f;
-            colors.pressedColor = bgColor * 0.7f;
+            colors.normalColor = Color.white;
+            colors.highlightedColor = new Color(1.1f, 1.1f, 1.1f);
+            colors.pressedColor = new Color(0.85f, 0.85f, 0.85f);
+            colors.disabledColor = new Color(0.5f, 0.5f, 0.5f);
             btn.colors = colors;
 
-            // Add outline for depth - using UIDesignSystem
-            var outline = btnObj.AddComponent<Outline>();
-            outline.effectColor = UIDesignSystem.ShadowColor;
-            outline.effectDistance = new Vector2(2, -2);
-
-            // Button text - using UIDesignSystem
+            // Button text
             var textObj = new GameObject("Text");
             textObj.transform.SetParent(btnObj.transform, false);
             var tmpText = textObj.AddComponent<TextMeshProUGUI>();
             tmpText.text = text;
-            tmpText.fontSize = UIDesignSystem.FontSizeHeader;  // 36px
+            tmpText.fontSize = UIDesignSystem.FontSizeLarge;
             tmpText.fontStyle = FontStyles.Bold;
             tmpText.alignment = TextAlignmentOptions.Center;
             tmpText.color = Color.white;
@@ -401,119 +520,23 @@ namespace Incredicer.Overclock
             return btn;
         }
 
-        private GameObject CreateHeatDisplay(Transform parent)
+        private void ApplySharedFont(TextMeshProUGUI text)
         {
-            var display = new GameObject("HeatDisplay");
-            display.transform.SetParent(parent, false);
-
-            var rect = display.AddComponent<RectTransform>();
-            rect.anchorMin = new Vector2(0.5f, 0.3f);
-            rect.anchorMax = new Vector2(0.5f, 0.3f);
-            rect.sizeDelta = new Vector2(350, 80);
-
-            // Background
-            var bg = display.AddComponent<Image>();
-            bg.color = new Color(0.1f, 0.1f, 0.1f, 0.9f);
-
-            // Layout
-            var layout = display.AddComponent<VerticalLayoutGroup>();
-            layout.padding = new RectOffset(15, 15, 10, 10);
-            layout.spacing = 5;
-            layout.childAlignment = TextAnchor.MiddleCenter;
-            layout.childControlHeight = false;
-            layout.childControlWidth = true;
-
-            // Heat label
-            var labelObj = new GameObject("HeatLabel");
-            labelObj.transform.SetParent(display.transform, false);
-            var labelText = labelObj.AddComponent<TextMeshProUGUI>();
-            labelText.text = "HEAT LEVEL";
-            labelText.fontSize = 16;
-            labelText.alignment = TextAlignmentOptions.Center;
-            labelText.color = new Color(1f, 0.5f, 0.2f);
-            var labelRect = labelObj.GetComponent<RectTransform>();
-            labelRect.sizeDelta = new Vector2(320, 25);
-
-            // Heat bar background
-            var barBgObj = new GameObject("HeatBarBg");
-            barBgObj.transform.SetParent(display.transform, false);
-            var barBg = barBgObj.AddComponent<Image>();
-            barBg.color = new Color(0.2f, 0.2f, 0.2f);
-            var barBgRect = barBgObj.GetComponent<RectTransform>();
-            barBgRect.sizeDelta = new Vector2(320, 25);
-
-            // Heat bar fill
-            var barFillObj = new GameObject("HeatBarFill");
-            barFillObj.transform.SetParent(barBgObj.transform, false);
-            heatFillBar = barFillObj.AddComponent<Image>();
-            heatFillBar.color = new Color(1f, 0.4f, 0.1f);
-            var fillRect = barFillObj.GetComponent<RectTransform>();
-            fillRect.anchorMin = Vector2.zero;
-            fillRect.anchorMax = new Vector2(0.5f, 1f);
-            fillRect.offsetMin = Vector2.zero;
-            fillRect.offsetMax = Vector2.zero;
-
-            // Heat percent text
-            var percentObj = new GameObject("HeatPercent");
-            percentObj.transform.SetParent(barBgObj.transform, false);
-            heatPercentText = percentObj.AddComponent<TextMeshProUGUI>();
-            heatPercentText.text = "50%";
-            heatPercentText.fontSize = 16;
-            heatPercentText.fontStyle = FontStyles.Bold;
-            heatPercentText.alignment = TextAlignmentOptions.Center;
-            heatPercentText.color = Color.white;
-            var percentRect = percentObj.GetComponent<RectTransform>();
-            percentRect.anchorMin = Vector2.zero;
-            percentRect.anchorMax = Vector2.one;
-            percentRect.offsetMin = Vector2.zero;
-            percentRect.offsetMax = Vector2.zero;
-
-            return display;
-        }
-
-        private Button CreateButton(Transform parent, string text, Color bgColor)
-        {
-            var btnObj = new GameObject(text + "Button");
-            btnObj.transform.SetParent(parent, false);
-
-            var rect = btnObj.AddComponent<RectTransform>();
-            rect.sizeDelta = new Vector2(150, 50);
-
-            var bg = btnObj.AddComponent<Image>();
-            bg.color = bgColor;
-
-            var btn = btnObj.AddComponent<Button>();
-            btn.targetGraphic = bg;
-
-            var colors = btn.colors;
-            colors.highlightedColor = bgColor * 1.2f;
-            colors.pressedColor = bgColor * 0.8f;
-            btn.colors = colors;
-
-            // Button text
-            var textObj = new GameObject("Text");
-            textObj.transform.SetParent(btnObj.transform, false);
-            var tmpText = textObj.AddComponent<TextMeshProUGUI>();
-            tmpText.text = text;
-            tmpText.fontSize = 18;
-            tmpText.fontStyle = FontStyles.Bold;
-            tmpText.alignment = TextAlignmentOptions.Center;
-            tmpText.color = Color.white;
-
-            var textRect = textObj.GetComponent<RectTransform>();
-            textRect.anchorMin = Vector2.zero;
-            textRect.anchorMax = Vector2.one;
-            textRect.offsetMin = Vector2.zero;
-            textRect.offsetMax = Vector2.zero;
-
-            return btn;
-        }
-
-        private void CreateHudBadge()
-        {
-            // HUD badge is disabled - we use the main menu instead
-            hudBadge = null;
-            hudBadgeText = null;
+            if (text == null) return;
+            if (GameUI.Instance != null && GameUI.Instance.SharedFont != null)
+            {
+                text.font = GameUI.Instance.SharedFont;
+            }
+            // Add outline effect using TMP's built-in properties (safer than modifying material directly)
+            try
+            {
+                if (text.fontMaterial != null)
+                {
+                    text.outlineWidth = 0.15f;
+                    text.outlineColor = new Color32(0, 0, 0, 180);
+                }
+            }
+            catch (System.NullReferenceException) { }
         }
 
         #endregion
@@ -540,42 +563,62 @@ namespace Incredicer.Overclock
 
         private void OnDiceOverclocked(Dice.Dice dice)
         {
-            // Update UI if this is our selected dice
-            if (selectedDice == dice)
-            {
-                // Switch to showing heat display instead of overclock option
-                selectionPanel.SetActive(false);
-                heatDisplayRoot.SetActive(true);
-            }
+            // Update stats display
+            UpdateStatsDisplay();
         }
 
         private void OnDiceDestroyed(Dice.Dice dice, double dmEarned)
         {
-            // Close panel if the destroyed dice was selected
-            if (selectedDice == dice)
-            {
-                HidePanel();
-
-                // Show destruction reward popup
-                ShowDestructionReward(dmEarned);
-            }
+            // Update stats display
+            UpdateStatsDisplay();
         }
 
-        private void OnOverclockClicked()
+        private void OnActivateClicked()
         {
-            if (selectedDice != null && OverclockManager.Instance != null)
-            {
-                if (OverclockManager.Instance.StartOverclock(selectedDice))
-                {
-                    // Successfully overclocked - switch to heat display
-                    selectionPanel.SetActive(false);
-                    heatDisplayRoot.SetActive(true);
+            if (OverclockManager.Instance == null) return;
 
-                    // Animate
-                    heatDisplayRoot.transform.localScale = Vector3.zero;
-                    heatDisplayRoot.transform.DOScale(1f, 0.3f).SetEase(Ease.OutBack);
+            int available = OverclockManager.Instance.GetAvailableToOverclockCount();
+            if (available == 0)
+            {
+                // No dice available - show message
+                if (statsText != null)
+                {
+                    statsText.text = "<color=#FF6666>No dice available to overclock!</color>";
                 }
+                return;
             }
+
+            // Overclock random dice
+            int overclocked = OverclockManager.Instance.OverclockRandomDice(maxDiceToOverclock);
+
+            if (overclocked > 0)
+            {
+                // Show success message
+                if (statsText != null)
+                {
+                    statsText.text = $"<color=#00FF00>Overclocked {overclocked} dice!</color>";
+                }
+
+                // Show floating text
+                if (GameUI.Instance != null)
+                {
+                    GameUI.Instance.ShowFloatingText(Vector3.zero, $"+{overclocked} OVERCLOCKED!", UIDesignSystem.OverclockOrange);
+                }
+
+                // Play sound
+                if (AudioManager.Instance != null)
+                {
+                    AudioManager.Instance.PlayJackpotSound();
+                }
+
+                // Close panel after a short delay
+                DOVirtual.DelayedCall(0.8f, () =>
+                {
+                    HidePanel();
+                });
+            }
+
+            UpdateStatsDisplay();
         }
 
         #endregion
@@ -583,80 +626,7 @@ namespace Incredicer.Overclock
         #region Public API
 
         /// <summary>
-        /// Shows the overclock panel for a specific dice.
-        /// Call this when player long-presses or taps a dice.
-        /// </summary>
-        public void ShowForDice(Dice.Dice dice)
-        {
-            if (dice == null) return;
-
-            selectedDice = dice;
-
-            // Update display
-            if (dice.Data != null)
-            {
-                diceNameText.text = dice.Data.displayName;
-                if (dice.Data.sprite != null)
-                {
-                    dicePreview.sprite = dice.Data.sprite;
-                }
-            }
-
-            // Check if already overclocked
-            bool isOverclocked = OverclockManager.Instance != null &&
-                                  OverclockManager.Instance.IsOverclocked(dice);
-
-            if (isOverclocked)
-            {
-                // Show heat display
-                selectionPanel.SetActive(false);
-                heatDisplayRoot.SetActive(true);
-            }
-            else
-            {
-                // Show overclock option
-                selectionPanel.SetActive(true);
-                heatDisplayRoot.SetActive(false);
-
-                // Update multiplier text
-                if (OverclockManager.Instance != null)
-                {
-                    float mult = OverclockManager.Instance.Config.payoutMultiplier;
-                    multiplierText.text = $"<color=#FFA500>{mult}x PAYOUT</color>\nwhile overclocked";
-                }
-            }
-
-            // Show panel with animation
-            panelRoot.SetActive(true);
-            panelRoot.GetComponent<Image>().color = new Color(0, 0, 0, 0);
-            panelRoot.GetComponent<Image>().DOFade(0.7f, animationDuration);
-
-            var activePanel = isOverclocked ? heatDisplayRoot : selectionPanel;
-            activePanel.transform.localScale = Vector3.one * 0.8f;
-            activePanel.transform.DOScale(1f, animationDuration).SetEase(Ease.OutBack);
-        }
-
-        /// <summary>
-        /// Hides the overclock panel.
-        /// </summary>
-        public void HidePanel()
-        {
-            if (!panelRoot.activeSelf) return;
-
-            panelRoot.GetComponent<Image>().DOFade(0f, animationDuration * 0.5f);
-
-            var activePanel = selectionPanel.activeSelf ? selectionPanel : heatDisplayRoot;
-            activePanel.transform.DOScale(0.8f, animationDuration * 0.5f)
-                .SetEase(Ease.InBack)
-                .OnComplete(() =>
-                {
-                    panelRoot.SetActive(false);
-                    selectedDice = null;
-                });
-        }
-
-        /// <summary>
-        /// Shows the overclock panel. If no dice is selected, shows instruction.
+        /// Shows the overclock panel.
         /// </summary>
         public void Show()
         {
@@ -675,287 +645,116 @@ namespace Incredicer.Overclock
         }
 
         /// <summary>
-        /// Shows the overclock panel with instructions to select a dice.
+        /// Shows the overclock panel.
         /// </summary>
         public void ShowPanel()
         {
-            selectedDice = null;
-
-            // Update display to show instruction
-            diceNameText.text = "Select a Dice Below";
-            dicePreview.color = new Color(0.5f, 0.5f, 0.5f, 0.5f);
-
-            // Update multiplier text to show instructions
-            if (OverclockManager.Instance != null)
-            {
-                float mult = OverclockManager.Instance.Config.payoutMultiplier;
-                multiplierText.text = $"Choose a dice to overclock\nfor {mult}x payout!";
-            }
-            else
-            {
-                multiplierText.text = "Choose a dice to overclock!";
-            }
-
-            warningText.text = "Overclocked dice will be destroyed\nafter several rolls.";
-
-            // Populate dice list
-            PopulateDiceList();
-
-            // Show selection panel, hide heat display
-            selectionPanel.SetActive(true);
-            heatDisplayRoot.SetActive(false);
-
-            // Disable overclock button when no dice selected
-            overclockButton.interactable = false;
+            UpdateStatsDisplay();
 
             // Show panel with animation
             panelRoot.SetActive(true);
+
+            // Ensure popup is rendered on top of other UI elements (like menu button)
+            panelRoot.transform.SetAsLastSibling();
+
             panelRoot.GetComponent<Image>().color = new Color(0, 0, 0, 0);
             panelRoot.GetComponent<Image>().DOFade(0.7f, animationDuration);
 
-            selectionPanel.transform.localScale = Vector3.one * 0.8f;
-            selectionPanel.transform.DOScale(1f, animationDuration).SetEase(Ease.OutBack);
+            mainPanel.transform.localScale = Vector3.one * 0.8f;
+            mainPanel.transform.DOScale(1f, animationDuration).SetEase(Ease.OutBack);
+
+            if (panelCanvasGroup != null)
+            {
+                panelCanvasGroup.alpha = 0f;
+                panelCanvasGroup.DOFade(1f, animationDuration);
+            }
+
+            // Apply button polish for press/release animations
+            if (UI.UIPolishManager.Instance != null)
+            {
+                UI.UIPolishManager.Instance.PolishButtonsInPanel(panelRoot);
+            }
+
+            // Register with PopupManager
+            if (Core.PopupManager.Instance != null)
+                Core.PopupManager.Instance.RegisterPopupOpen("OverclockUI");
         }
 
         /// <summary>
-        /// Populates the dice list with available dice from DiceManager.
+        /// Hides the overclock panel.
         /// </summary>
-        private void PopulateDiceList()
+        public void HidePanel()
         {
-            if (diceListContainer == null) return;
+            if (!panelRoot.activeSelf) return;
 
-            // Find content through the scroll hierarchy (DiceListContainer > Viewport > Content)
-            var scrollRect = diceListContainer.GetComponent<ScrollRect>();
-            Transform content = scrollRect?.content;
-            if (content == null) return;
+            // Unregister from PopupManager
+            if (Core.PopupManager.Instance != null)
+                Core.PopupManager.Instance.RegisterPopupClosed("OverclockUI");
 
-            foreach (var btn in diceButtons)
-            {
-                if (btn != null && btn.gameObject != null)
-                    Destroy(btn.gameObject);
-            }
-            diceButtons.Clear();
+            panelRoot.GetComponent<Image>().DOFade(0f, animationDuration * 0.5f);
 
-            // Get all dice from DiceManager
-            if (DiceManager.Instance == null)
-            {
-                Debug.LogWarning("[OverclockUI] DiceManager not found");
-                return;
-            }
-
-            var allDice = DiceManager.Instance.GetAllDice();
-            int diceCount = 0;
-
-            foreach (var dice in allDice)
-            {
-                if (dice == null) continue;
-
-                // Check if already overclocked
-                bool isOverclocked = OverclockManager.Instance != null &&
-                                      OverclockManager.Instance.IsOverclocked(dice);
-
-                // Create dice button - larger cards
-                var btnObj = new GameObject($"Dice_{diceCount}");
-                btnObj.transform.SetParent(content, false);
-
-                var btnRect = btnObj.AddComponent<RectTransform>();
-                btnRect.sizeDelta = new Vector2(180, 220);  // Larger dice cards
-
-                var btnBg = btnObj.AddComponent<Image>();
-                btnBg.color = isOverclocked ? new Color(0.4f, 0.2f, 0.1f) : new Color(0.2f, 0.15f, 0.3f);
-
-                var btn = btnObj.AddComponent<Button>();
-                btn.targetGraphic = btnBg;
-                btn.interactable = !isOverclocked;
-
-                // Capture dice for closure
-                var capturedDice = dice;
-                btn.onClick.AddListener(() => OnDiceSelected(capturedDice));
-
-                var colors = btn.colors;
-                colors.highlightedColor = new Color(0.5f, 0.3f, 0.8f);
-                colors.pressedColor = new Color(0.3f, 0.2f, 0.5f);
-                colors.disabledColor = new Color(0.3f, 0.2f, 0.15f);
-                btn.colors = colors;
-
-                // Dice icon/preview
-                var iconObj = new GameObject("Icon");
-                iconObj.transform.SetParent(btnObj.transform, false);
-                var iconRect = iconObj.AddComponent<RectTransform>();
-                iconRect.anchorMin = new Vector2(0.1f, 0.35f);
-                iconRect.anchorMax = new Vector2(0.9f, 0.95f);
-                iconRect.offsetMin = Vector2.zero;
-                iconRect.offsetMax = Vector2.zero;
-
-                var iconImg = iconObj.AddComponent<Image>();
-                if (dice.Data != null && dice.Data.sprite != null)
+            mainPanel.transform.DOScale(0.8f, animationDuration * 0.5f)
+                .SetEase(Ease.InBack)
+                .OnComplete(() =>
                 {
-                    iconImg.sprite = dice.Data.sprite;
-                    iconImg.color = Color.white;
-                }
-                else
-                {
-                    // Create a dice-like visual with dots
-                    iconImg.color = new Color(1f, 0.85f, 0.2f);  // Golden dice color
-                    CreateDiceDotsOnIcon(iconObj.transform);
-                }
-
-                // Status text (name or "OVERCLOCKED")
-                var textObj = new GameObject("Text");
-                textObj.transform.SetParent(btnObj.transform, false);
-                var textRect = textObj.AddComponent<RectTransform>();
-                textRect.anchorMin = new Vector2(0, 0);
-                textRect.anchorMax = new Vector2(1, 0.35f);
-                textRect.offsetMin = new Vector2(5, 5);
-                textRect.offsetMax = new Vector2(-5, 0);
-
-                var tmpText = textObj.AddComponent<TextMeshProUGUI>();
-                if (isOverclocked)
-                {
-                    tmpText.text = "ACTIVE";
-                    tmpText.color = new Color(1f, 0.5f, 0.2f);
-                }
-                else
-                {
-                    tmpText.text = dice.Data != null ? dice.Data.displayName : "Dice";
-                    tmpText.color = Color.white;
-                }
-                tmpText.fontSize = 18;
-                tmpText.fontStyle = FontStyles.Bold;
-                tmpText.alignment = TextAlignmentOptions.Center;
-                ApplySharedFont(tmpText);
-
-                diceButtons.Add(btn);
-                diceCount++;
-            }
-
-            // Show message if no dice
-            if (diceCount == 0)
-            {
-                var noDataObj = new GameObject("NoData");
-                noDataObj.transform.SetParent(content, false);
-                var noDataRect = noDataObj.AddComponent<RectTransform>();
-                noDataRect.sizeDelta = new Vector2(600, 160);
-
-                var noDataText = noDataObj.AddComponent<TextMeshProUGUI>();
-                noDataText.text = "No dice available!\nPurchase dice to overclock them.";
-                noDataText.fontSize = 28;
-                noDataText.alignment = TextAlignmentOptions.Center;
-                noDataText.color = new Color(0.6f, 0.6f, 0.7f);
-                ApplySharedFont(noDataText);
-            }
+                    panelRoot.SetActive(false);
+                });
         }
 
         /// <summary>
-        /// Called when a dice is selected from the list.
+        /// Shows the overclock panel for a specific dice (legacy support).
+        /// Now just shows the main panel.
         /// </summary>
-        private void OnDiceSelected(Dice.Dice dice)
+        public void ShowForDice(Dice.Dice dice)
         {
-            if (dice == null) return;
-
-            selectedDice = dice;
-
-            // Update display
-            if (dice.Data != null)
-            {
-                diceNameText.text = dice.Data.displayName;
-                if (dice.Data.sprite != null)
-                {
-                    dicePreview.sprite = dice.Data.sprite;
-                    dicePreview.color = Color.white;
-                }
-            }
-            else
-            {
-                diceNameText.text = "Selected Dice";
-                dicePreview.color = new Color(1f, 0.6f, 0.2f);
-            }
-
-            // Update multiplier text
-            if (OverclockManager.Instance != null)
-            {
-                float mult = OverclockManager.Instance.Config.payoutMultiplier;
-                multiplierText.text = $"<color=#FFA500>{mult}x PAYOUT</color>\nwhile overclocked";
-            }
-
-            warningText.text = "<color=#FF4444>WARNING:</color> Dice will be\n<color=#FF4444>DESTROYED</color> after ~10 rolls!";
-
-            // Enable overclock button
-            overclockButton.interactable = true;
-
-            // Visual feedback - highlight selected dice button
-            foreach (var btn in diceButtons)
-            {
-                if (btn != null)
-                {
-                    var img = btn.GetComponent<Image>();
-                    if (img != null)
-                    {
-                        // Check if this is the selected dice
-                        // Reset all to default, highlight selected
-                        img.color = new Color(0.2f, 0.15f, 0.3f);
-                    }
-                }
-            }
-
-            // Play selection sound
-            if (AudioManager.Instance != null)
-            {
-                AudioManager.Instance.PlayButtonClickSound();
-            }
+            ShowPanel();
         }
 
         #endregion
 
         #region Updates
 
-        private void UpdateHeatDisplay(OverclockedDiceState state)
+        private void UpdateStatsDisplay()
         {
-            if (heatFillBar == null || heatPercentText == null) return;
+            if (statsText == null || OverclockManager.Instance == null) return;
 
-            // Update fill bar
-            var fillRect = heatFillBar.GetComponent<RectTransform>();
-            fillRect.anchorMax = new Vector2(state.currentHeat, 1f);
-
-            // Update color based on heat
-            heatFillBar.color = Color.Lerp(
-                new Color(1f, 0.6f, 0.2f),
-                new Color(1f, 0.1f, 0.1f),
-                state.currentHeat
-            );
-
-            // Update text
-            heatPercentText.text = $"{Mathf.RoundToInt(state.currentHeat * 100)}%";
-
-            // Flash when about to explode
-            if (state.IsAboutToExplode)
+            // Check if Overclock is unlocked
+            if (!OverclockManager.Instance.IsUnlocked)
             {
-                float flash = Mathf.PingPong(Time.time * 5f, 1f);
-                heatFillBar.color = Color.Lerp(heatFillBar.color, Color.red, flash);
+                statsText.text = "<color=#FF6666>LOCKED</color>\n\nUnlock in the <color=#FFA500>Skill Tree</color> first!";
+                activateButton.interactable = false;
+                if (activateButtonText != null)
+                    activateButtonText.text = "LOCKED";
+                return;
             }
-        }
 
-        private void UpdateHudBadge()
-        {
-            if (OverclockManager.Instance == null || hudBadge == null) return;
+            int available = OverclockManager.Instance.GetAvailableToOverclockCount();
+            int overclocked = OverclockManager.Instance.GetOverclockedCount();
 
-            int count = OverclockManager.Instance.GetOverclockedCount();
-
-            if (count > 0)
+            if (available > 0)
             {
-                hudBadge.SetActive(true);
-                hudBadgeText.text = count.ToString();
+                int toOverclock = Mathf.Min(maxDiceToOverclock, available);
+                statsText.text = $"Will overclock: <color=#FFA500>{toOverclock}</color> dice\n" +
+                                $"Currently active: <color=#FF6666>{overclocked}</color>";
+                activateButton.interactable = true;
+                if (activateButtonText != null)
+                    activateButtonText.text = "ACTIVATE!";
+            }
+            else if (overclocked > 0)
+            {
+                statsText.text = $"All dice are overclocked!\n" +
+                                $"Active: <color=#FF6666>{overclocked}</color>";
+                activateButton.interactable = false;
+                if (activateButtonText != null)
+                    activateButtonText.text = "ALL ACTIVE";
             }
             else
             {
-                hudBadge.SetActive(false);
+                statsText.text = "<color=#888888>No dice available to overclock.\nRoll some dice first!</color>";
+                activateButton.interactable = false;
+                if (activateButtonText != null)
+                    activateButtonText.text = "NO DICE";
             }
-        }
-
-        private void ShowDestructionReward(double dmEarned)
-        {
-            // Could show a popup here
-            Debug.Log($"[OverclockUI] Dice destroyed! Earned {dmEarned} Dark Matter");
         }
 
         #endregion

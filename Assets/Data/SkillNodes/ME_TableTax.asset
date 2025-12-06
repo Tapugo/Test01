@@ -14,16 +14,16 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   nodeId: 2
   displayName: Table Tax
-  description: 5% chance to earn double from any roll.
+  description: Each roll has +1% chance to spawn a bonus coin worth +50 flat money.
   icon: {fileID: 0}
   branch: 1
-  tier: 2
+  tier: 1
   treePosition: {x: -300, y: -150}
-  darkMatterCost: 2
-  prerequisites: 01000000
+  darkMatterCost: 10000
+  prerequisites: 00000000
   effects:
-  - effectType: 4
-    value: 0.05
+  - effectType: 18
+    value: 0.01
     targetDiceType: 0
     unlockSkill: 0
     specialFlag: 0

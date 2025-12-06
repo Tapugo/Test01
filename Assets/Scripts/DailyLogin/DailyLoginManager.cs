@@ -1,6 +1,8 @@
 using System;
+using System.Collections;
 using UnityEngine;
 using Incredicer.Core;
+using Incredicer.Dice;
 
 namespace Incredicer.DailyLogin
 {
@@ -284,6 +286,25 @@ namespace Incredicer.DailyLogin
                     // TODO: Implement jackpot token system
                     Debug.Log($"[DailyLogin] Jackpot token claimed! (Not yet implemented)");
                     break;
+
+                case DailyRewardType.ExtraDice:
+                    // Spawn extra dice on the board
+                    if (DiceManager.Instance != null)
+                    {
+                        int diceCount = (int)reward.amount;
+                        DiceData basicDice = DiceManager.Instance.GetBasicDiceData();
+                        if (basicDice != null)
+                        {
+                            for (int i = 0; i < diceCount; i++)
+                            {
+                                // Spawn with slight delay for visual effect
+                                float delay = i * 0.15f;
+                                DiceManager.Instance.StartCoroutine(SpawnDiceDelayed(basicDice, delay));
+                            }
+                            Debug.Log($"[DailyLogin] Spawning {diceCount} extra dice!");
+                        }
+                    }
+                    break;
             }
 
             // Mark as rolled today
@@ -353,6 +374,52 @@ namespace Incredicer.DailyLogin
             currentStreakDay = 1;
             hasRolledToday = false;
             OnStreakUpdated?.Invoke(currentStreakDay);
+        }
+
+        /// <summary>
+        /// Coroutine to spawn a dice with a delay for visual effect.
+        /// </summary>
+        private IEnumerator SpawnDiceDelayed(DiceData diceData, float delay)
+        {
+            yield return new WaitForSeconds(delay);
+
+            if (DiceManager.Instance != null)
+            {
+                // Get a random spawn position within the play area
+                Vector2 spawnPos = GetRandomSpawnPosition();
+                DiceManager.Instance.SpawnDice(diceData, spawnPos);
+
+                // Play spawn sound
+                if (AudioManager.Instance != null)
+                {
+                    AudioManager.Instance.PlayPurchaseSound();
+                }
+            }
+        }
+
+        /// <summary>
+        /// Gets a random spawn position within the play area.
+        /// </summary>
+        private Vector2 GetRandomSpawnPosition()
+        {
+            // Get spawn area from camera bounds
+            Camera cam = Camera.main;
+            if (cam != null)
+            {
+                float height = cam.orthographicSize * 0.6f;
+                float width = height * cam.aspect * 0.6f;
+
+                return new Vector2(
+                    UnityEngine.Random.Range(-width, width),
+                    UnityEngine.Random.Range(-height, height)
+                );
+            }
+
+            // Fallback
+            return new Vector2(
+                UnityEngine.Random.Range(-3f, 3f),
+                UnityEngine.Random.Range(-2f, 2f)
+            );
         }
     }
 }

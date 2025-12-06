@@ -14,16 +14,16 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   nodeId: 11
   displayName: More Hands
-  description: Unlock a second Helper Hand.
+  description: +5 to max Helper Hand cap.
   icon: {fileID: 0}
   branch: 2
   tier: 2
   treePosition: {x: 50, y: -250}
-  darkMatterCost: 4
+  darkMatterCost: 60000
   prerequisites: 09000000
   effects:
   - effectType: 9
-    value: 1
+    value: 5
     targetDiceType: 0
     unlockSkill: 0
     specialFlag: 0

@@ -4,6 +4,7 @@ using UnityEngine;
 using Incredicer.Core;
 using Incredicer.Dice;
 using Incredicer.Missions;
+using Incredicer.Skills;
 
 namespace Incredicer.Overclock
 {
@@ -78,6 +79,18 @@ namespace Incredicer.Overclock
         public OverclockConfig Config => config;
         public int TotalDiceDestroyed => totalDiceDestroyed;
         public double TotalDMFromDestruction => totalDMFromDestruction;
+
+        /// <summary>
+        /// Returns true if Overclock has been unlocked in the skill tree.
+        /// </summary>
+        public bool IsUnlocked
+        {
+            get
+            {
+                if (SkillTreeManager.Instance == null) return false;
+                return SkillTreeManager.Instance.IsNodeUnlocked(SkillNodeId.FU_Overclock);
+            }
+        }
 
         private void Awake()
         {
@@ -237,6 +250,75 @@ namespace Incredicer.Overclock
             return overclockedDice.Count;
         }
 
+        /// <summary>
+        /// Overclocks up to maxCount random dice that aren't already overclocked.
+        /// Returns the number of dice that were overclocked.
+        /// </summary>
+        public int OverclockRandomDice(int maxCount = 10)
+        {
+            if (DiceManager.Instance == null) return 0;
+
+            // Get all dice that can be overclocked
+            var allDice = DiceManager.Instance.GetAllDice();
+            var availableDice = new List<Dice.Dice>();
+
+            foreach (var dice in allDice)
+            {
+                if (CanOverclock(dice))
+                {
+                    availableDice.Add(dice);
+                }
+            }
+
+            if (availableDice.Count == 0)
+            {
+                if (debugMode) Debug.Log("[OverclockManager] No dice available to overclock");
+                return 0;
+            }
+
+            // Shuffle the list to randomize selection
+            for (int i = availableDice.Count - 1; i > 0; i--)
+            {
+                int j = UnityEngine.Random.Range(0, i + 1);
+                var temp = availableDice[i];
+                availableDice[i] = availableDice[j];
+                availableDice[j] = temp;
+            }
+
+            // Overclock up to maxCount dice
+            int toOverclock = Mathf.Min(maxCount, availableDice.Count);
+            int overclocked = 0;
+
+            for (int i = 0; i < toOverclock; i++)
+            {
+                if (StartOverclock(availableDice[i]))
+                {
+                    overclocked++;
+                }
+            }
+
+            if (debugMode) Debug.Log($"[OverclockManager] Overclocked {overclocked} random dice");
+            return overclocked;
+        }
+
+        /// <summary>
+        /// Gets the count of dice that can still be overclocked.
+        /// </summary>
+        public int GetAvailableToOverclockCount()
+        {
+            if (DiceManager.Instance == null) return 0;
+
+            int count = 0;
+            foreach (var dice in DiceManager.Instance.GetAllDice())
+            {
+                if (CanOverclock(dice))
+                {
+                    count++;
+                }
+            }
+            return count;
+        }
+
         #endregion
 
         #region Event Handlers
@@ -269,8 +351,11 @@ namespace Incredicer.Overclock
 
             var state = overclockedDice[dice];
 
-            // Add heat
-            state.currentHeat += config.heatPerRoll;
+            // Add heat to ALL overclocked dice (they share heat)
+            foreach (var kvp in overclockedDice)
+            {
+                kvp.Value.currentHeat += config.heatPerRoll;
+            }
             state.rollsSinceOverclock++;
 
             // Track bonus earnings (the multiplier portion)
@@ -287,10 +372,29 @@ namespace Incredicer.Overclock
 
             OnHeatChanged?.Invoke(dice, state.currentHeat);
 
-            // Check for destruction
+            // Check for destruction - if ANY dice should explode, destroy ALL overclocked dice
             if (state.ShouldExplode)
             {
-                DestroyOverclockedDice(dice, state);
+                DestroyAllOverclockedDice();
+            }
+        }
+
+        /// <summary>
+        /// Destroys all currently overclocked dice at once.
+        /// </summary>
+        private void DestroyAllOverclockedDice()
+        {
+            // Create a copy of the list since we'll be modifying it
+            var diceToDestroy = new List<Dice.Dice>(overclockedDice.Keys);
+
+            if (debugMode) Debug.Log($"[OverclockManager] Destroying all {diceToDestroy.Count} overclocked dice!");
+
+            foreach (var dice in diceToDestroy)
+            {
+                if (dice != null && overclockedDice.TryGetValue(dice, out var state))
+                {
+                    DestroyOverclockedDice(dice, state);
+                }
             }
         }
 

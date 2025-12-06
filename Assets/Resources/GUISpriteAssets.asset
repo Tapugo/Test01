@@ -29,6 +29,7 @@ MonoBehaviour:
   iconStar: {fileID: 21300000, guid: 2065ff0dabc274004b9fb023c004769a, type: 3}
   iconCoin: {fileID: 0}
   iconAdd: {fileID: 21300000, guid: ffeafc38fb0654eb78d14da1ee37e496, type: 3}
+  iconCheck: {fileID: 21300000, guid: 67d74fe0bc2ff4f04bb9d4f9e1d63c02, type: 3}
   ribbonYellow: {fileID: 0}
   ribbonGreen: {fileID: 0}
   ribbonBlue: {fileID: 0}

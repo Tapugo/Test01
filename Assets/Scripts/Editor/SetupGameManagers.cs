@@ -82,6 +82,42 @@ namespace Incredicer.Editor
                 Debug.Log("[Setup] Created SaveSystem");
             }
 
+            // Add FlyingJackpotManager
+            if (Object.FindObjectOfType<FlyingJackpotManager>() == null)
+            {
+                GameObject jackpotMgr = new GameObject("FlyingJackpotManager");
+                jackpotMgr.transform.SetParent(managersRoot.transform);
+                jackpotMgr.AddComponent<FlyingJackpotManager>();
+                Debug.Log("[Setup] Created FlyingJackpotManager");
+            }
+
+            // Add HapticManager
+            if (Object.FindObjectOfType<HapticManager>() == null)
+            {
+                GameObject hapticMgr = new GameObject("HapticManager");
+                hapticMgr.transform.SetParent(managersRoot.transform);
+                hapticMgr.AddComponent<HapticManager>();
+                Debug.Log("[Setup] Created HapticManager");
+            }
+
+            // Add BlackHoleManager
+            if (Object.FindObjectOfType<BlackHoleManager>() == null)
+            {
+                GameObject blackHoleMgr = new GameObject("BlackHoleManager");
+                blackHoleMgr.transform.SetParent(managersRoot.transform);
+                blackHoleMgr.AddComponent<BlackHoleManager>();
+                Debug.Log("[Setup] Created BlackHoleManager");
+            }
+
+            // Add PopupManager
+            if (Object.FindObjectOfType<PopupManager>() == null)
+            {
+                GameObject popupMgr = new GameObject("PopupManager");
+                popupMgr.transform.SetParent(managersRoot.transform);
+                popupMgr.AddComponent<PopupManager>();
+                Debug.Log("[Setup] Created PopupManager");
+            }
+
             Debug.Log("[Setup] All game managers configured!");
         }
 

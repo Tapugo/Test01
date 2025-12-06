@@ -14,16 +14,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   nodeId: 13
   displayName: Overtime
-  description: Helper Hands roll 50% faster.
+  description: When game is minimized, Helper Hands operate at 100% of normal speed.
   icon: {fileID: 0}
   branch: 2
   tier: 3
   treePosition: {x: 50, y: -350}
-  darkMatterCost: 5
+  darkMatterCost: 400000
   prerequisites: 0b000000
-  effects:
-  - effectType: 8
-    value: 1.5
-    targetDiceType: 0
-    unlockSkill: 0
-    specialFlag: 0
+  effects: []

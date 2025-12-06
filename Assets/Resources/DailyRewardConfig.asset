@@ -17,12 +17,12 @@ MonoBehaviour:
   gracePeriodDays: 2
   dayRewards:
   - dayNumber: 1
-    rewardType: 0
-    baseAmount: 100
+    rewardType: 5
+    baseAmount: 1
     streakMultiplier: 1
     boostDurationSeconds: 0
-    rewardTitle: Welcome Back!
-    rewardDescription: A small reward to start your streak.
+    rewardTitle: Extra Dice!
+    rewardDescription: Roll to get 1-6 extra dice on your board!
   - dayNumber: 2
     rewardType: 0
     baseAmount: 200

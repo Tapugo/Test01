@@ -13,17 +13,22 @@ MonoBehaviour:
   m_Name: ME_JackpotChance
   m_EditorClassIdentifier: 
   nodeId: 7
-  displayName: Lucky Streak
-  description: Additional 5% chance for rolls to be jackpots (2x value).
+  displayName: Jackpot Chance
+  description: "Rolls have a 3% chance to pay 10\xD7 their final money value."
   icon: {fileID: 0}
   branch: 1
-  tier: 3
-  treePosition: {x: -200, y: -300}
-  darkMatterCost: 5
-  prerequisites: 03000000
+  tier: 4
+  treePosition: {x: -250, y: -400}
+  darkMatterCost: 1500000
+  prerequisites: 0500000006000000
   effects:
   - effectType: 4
-    value: 0.05
+    value: 0.03
+    targetDiceType: 0
+    unlockSkill: 0
+    specialFlag: 0
+  - effectType: 5
+    value: 5
     targetDiceType: 0
     unlockSkill: 0
     specialFlag: 0

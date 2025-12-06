@@ -19,9 +19,10 @@ namespace Incredicer.UI
         public static SkillTreeUI Instance { get; private set; }
 
         [Header("Panel")]
-        [SerializeField] private GameObject skillTreePanel;
-        [SerializeField] private CanvasGroup panelCanvasGroup;
-        [SerializeField] private RectTransform panelRect;
+        [SerializeField] private GameObject panelPrefab;  // Assign prefab in inspector
+        private GameObject skillTreePanel;
+        private CanvasGroup panelCanvasGroup;
+        private RectTransform panelRect;
 
         [Header("References")]
         [SerializeField] private TextMeshProUGUI darkMatterText;
@@ -85,14 +86,15 @@ namespace Incredicer.UI
         public bool IsOpen => isOpen;
 
         // Branch display order and colors
-        private readonly SkillBranch[] branchOrder = { SkillBranch.Core, SkillBranch.MoneyEngine, SkillBranch.Automation, SkillBranch.DiceEvolution, SkillBranch.SkillsUtility };
+        private readonly SkillBranch[] branchOrder = { SkillBranch.Core, SkillBranch.MoneyEngine, SkillBranch.Automation, SkillBranch.DiceEvolution, SkillBranch.SkillsUtility, SkillBranch.FeatureUnlocks };
         private readonly Dictionary<SkillBranch, string> branchNames = new Dictionary<SkillBranch, string>
         {
             { SkillBranch.Core, "CORE" },
             { SkillBranch.MoneyEngine, "MONEY ENGINE" },
             { SkillBranch.Automation, "AUTOMATION" },
             { SkillBranch.DiceEvolution, "DICE EVOLUTION" },
-            { SkillBranch.SkillsUtility, "SKILLS & UTILITY" }
+            { SkillBranch.SkillsUtility, "SKILLS & UTILITY" },
+            { SkillBranch.FeatureUnlocks, "FEATURE UNLOCKS" }
         };
         private readonly Dictionary<SkillBranch, Color> branchColors = new Dictionary<SkillBranch, Color>
         {
@@ -100,7 +102,8 @@ namespace Incredicer.UI
             { SkillBranch.MoneyEngine, new Color(0.3f, 0.9f, 0.4f) },
             { SkillBranch.Automation, new Color(0.4f, 0.7f, 1f) },
             { SkillBranch.DiceEvolution, new Color(1f, 0.7f, 0.3f) },
-            { SkillBranch.SkillsUtility, new Color(1f, 0.5f, 0.7f) }
+            { SkillBranch.SkillsUtility, new Color(1f, 0.5f, 0.7f) },
+            { SkillBranch.FeatureUnlocks, new Color(0.2f, 0.8f, 0.9f) }
         };
 
         private void Awake()
@@ -200,6 +203,16 @@ namespace Incredicer.UI
             AddNode(SkillNodeId.SK_PrecisionAim, "Precision Aim", "Hold to attract dice to cursor", 50, SkillBranch.SkillsUtility, skillColor, SkillNodeId.SK_FocusedGravity);
             AddNode(SkillNodeId.SK_Hyperburst, "Hyperburst", "Unlock mega burst ability", 75, SkillBranch.SkillsUtility, skillColor, SkillNodeId.SK_RollBurstII, SkillNodeId.SK_RapidCooldown);
             AddNode(SkillNodeId.SK_TimeDilation, "Time Dilation", "2x Dark Matter during skills", 100, SkillBranch.SkillsUtility, skillColor, SkillNodeId.SK_RapidCooldown);
+
+            // Feature Unlocks - Order: Daily Rewards, Missions, Milestones, Leaderboard, Global Events, Time Fracture, Overclock
+            Color featureColor = branchColors.ContainsKey(SkillBranch.FeatureUnlocks) ? branchColors[SkillBranch.FeatureUnlocks] : new Color(0.2f, 0.8f, 0.9f);
+            AddNode(SkillNodeId.FU_DailyLogin, "Daily Rewards", "Unlock daily login bonuses - roll dice for rewards!", 15, SkillBranch.FeatureUnlocks, featureColor, SkillNodeId.CORE_DarkMatterCore);
+            AddNode(SkillNodeId.FU_Missions, "Missions", "Unlock daily and weekly missions for extra rewards!", 20, SkillBranch.FeatureUnlocks, featureColor, SkillNodeId.FU_DailyLogin);
+            AddNode(SkillNodeId.FU_Milestones, "Milestones", "Unlock milestone achievements with permanent rewards!", 30, SkillBranch.FeatureUnlocks, featureColor, SkillNodeId.FU_Missions);
+            AddNode(SkillNodeId.FU_Leaderboard, "Leaderboard", "Unlock global leaderboards to compete with other players!", 50, SkillBranch.FeatureUnlocks, featureColor, SkillNodeId.FU_Milestones);
+            AddNode(SkillNodeId.FU_GlobalEvents, "Global Events", "Unlock community events with shared goals and rewards!", 75, SkillBranch.FeatureUnlocks, featureColor, SkillNodeId.FU_Leaderboard);
+            AddNode(SkillNodeId.FU_TimeFracture, "Time Fracture", "Unlock Time Fracture mode - risk it all for massive rewards!", 100, SkillBranch.FeatureUnlocks, featureColor, SkillNodeId.FU_GlobalEvents);
+            AddNode(SkillNodeId.FU_Overclock, "Overclock", "Supercharge dice for 2.5x payout - but they will explode!", 125, SkillBranch.FeatureUnlocks, featureColor, SkillNodeId.FU_TimeFracture);
         }
 
         private void AddNode(SkillNodeId id, string name, string desc, double cost, SkillBranch branch, Color color, params SkillNodeId[] prereqs)
@@ -211,6 +224,18 @@ namespace Incredicer.UI
         {
             if (isInitialized) return;
             isInitialized = true;
+
+            // Instantiate from prefab if needed
+            if (skillTreePanel == null && panelPrefab != null)
+            {
+                Canvas canvas = GetComponentInParent<Canvas>();
+                if (canvas == null) canvas = FindObjectOfType<Canvas>();
+                if (canvas != null)
+                {
+                    skillTreePanel = Instantiate(panelPrefab, canvas.transform);
+                    skillTreePanel.name = "SkillTreePanel";
+                }
+            }
 
             if (skillTreePanel == null) return;
 
@@ -644,7 +669,7 @@ namespace Incredicer.UI
             TextMeshProUGUI buyText = buyTextObj.AddComponent<TextMeshProUGUI>();
             // Price displayed directly on the button
             string priceText = nodeDef.cost > 0 ? $"{GameUI.FormatNumber(nodeDef.cost)} DM" : "FREE";
-            buyText.text = $"UNLOCK\n<size=80%>{priceText}</size>";
+            buyText.text = $"UNLOCK\n{priceText}";
             buyText.fontSize = 42;
             buyText.fontStyle = FontStyles.Bold;
             buyText.alignment = TextAlignmentOptions.Center;
@@ -707,6 +732,9 @@ namespace Incredicer.UI
             {
                 skillTreePanel.SetActive(true);
 
+                // Ensure popup is rendered on top of other UI elements (like menu button)
+                skillTreePanel.transform.SetAsLastSibling();
+
                 // Ensure popup renders above effects
                 Canvas popupCanvas = skillTreePanel.GetComponent<Canvas>();
                 if (popupCanvas == null)
@@ -727,7 +755,17 @@ namespace Incredicer.UI
             }
 
             UpdateDisplay();
-            SetDiceInputBlocked(true);
+
+            // Apply button polish for press/release animations
+            if (UIPolishManager.Instance != null)
+            {
+                UIPolishManager.Instance.PolishButtonsInPanel(skillTreePanel);
+            }
+
+            // Register with PopupManager
+            if (PopupManager.Instance != null)
+                PopupManager.Instance.RegisterPopupOpen("SkillTreeUI");
+
             Debug.Log("[SkillTreeUI] Opened");
         }
 
@@ -736,7 +774,9 @@ namespace Incredicer.UI
             if (!isOpen) return;
             isOpen = false;
 
-            SetDiceInputBlocked(false);
+            // Unregister from PopupManager
+            if (PopupManager.Instance != null)
+                PopupManager.Instance.RegisterPopupClosed("SkillTreeUI");
 
             if (panelCanvasGroup != null)
             {
@@ -760,12 +800,6 @@ namespace Incredicer.UI
         {
             if (isOpen) Hide();
             else Show();
-        }
-
-        private void SetDiceInputBlocked(bool blocked)
-        {
-            if (DiceRollerController.Instance != null)
-                DiceRollerController.Instance.enabled = !blocked;
         }
 
         /// <summary>
@@ -848,9 +882,9 @@ namespace Incredicer.UI
                 else if (!prereqsMet)
                     item.buyButtonText.text = "<b>LOCKED</b>";
                 else if (canAfford)
-                    item.buyButtonText.text = $"<b>UNLOCK</b>\n<size=85%>{priceText}</size>";
+                    item.buyButtonText.text = $"<b>UNLOCK</b>\n{priceText}";
                 else
-                    item.buyButtonText.text = $"<color=#FF6666>{priceText}</color>\n<size=80%>NEED DM</size>";
+                    item.buyButtonText.text = $"<color=#FF6666>{priceText}</color>\nNEED DM";
             }
 
             // Show/hide lock icon overlay

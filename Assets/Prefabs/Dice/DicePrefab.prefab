@@ -143,7 +143,7 @@ MonoBehaviour:
   rollEffectPrefab: {fileID: 153838, guid: 80c6b5d330112ef41800a729a58d22e7, type: 3}
   jackpotEffectPrefab: {fileID: 5986565895683014295, guid: 01da1ea694d5825418e940e2029741ed, type: 3}
   bounceHeight: 1.5
-  bounceDuration: 0.25
+  bounceDuration: 0.625
   moveDistance: 2.5
   spinSpeed: 720
   bounceCount: 2

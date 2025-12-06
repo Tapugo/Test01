@@ -38,7 +38,7 @@ namespace Incredicer.Editor
             createdNodes.Add(darkMatterCore);
 
             // ===== MONEY ENGINE =====
-            // Design doc: ME-01 Loose Change - 10 DM, +25% money
+            // Design doc: ME-01 Loose Change - 5,000 DM, +25% money
             var looseChange = CreateNode(
                 SkillNodeId.ME_LooseChange,
                 "Loose Change",
@@ -46,7 +46,7 @@ namespace Incredicer.Editor
                 SkillBranch.MoneyEngine,
                 1,
                 new Vector2(-200, -100),
-                10, // Tier 1: 10 DM
+                5000, // Tier 1: 5,000 DM
                 new List<SkillNodeId> { SkillNodeId.CORE_DarkMatterCore },
                 new List<SkillEffect> {
                     new SkillEffect { effectType = SkillEffectType.GlobalMoneyAdditive, value = 0.25f }
@@ -54,7 +54,7 @@ namespace Incredicer.Editor
             );
             createdNodes.Add(looseChange);
 
-            // Design doc: ME-02 Table Tax - 25 DM, +1% chance for bonus coin
+            // Design doc: ME-02 Table Tax - 10,000 DM, +1% chance for bonus coin
             var tableTax = CreateNode(
                 SkillNodeId.ME_TableTax,
                 "Table Tax",
@@ -62,7 +62,7 @@ namespace Incredicer.Editor
                 SkillBranch.MoneyEngine,
                 1,
                 new Vector2(-300, -150),
-                25, // Tier 1: 25 DM
+                10000, // Tier 1: 10,000 DM
                 new List<SkillNodeId> { SkillNodeId.CORE_DarkMatterCore },
                 new List<SkillEffect> {
                     new SkillEffect { effectType = SkillEffectType.TableTaxChance, value = 0.01f }
@@ -70,7 +70,7 @@ namespace Incredicer.Editor
             );
             createdNodes.Add(tableTax);
 
-            // Design doc: ME-03 Compound Interest - 150 DM, +50% money multiplicative
+            // Design doc: ME-03 Compound Interest - 50,000 DM, +50% money multiplicative
             var compoundInterest = CreateNode(
                 SkillNodeId.ME_CompoundInterest,
                 "Compound Interest",
@@ -78,7 +78,7 @@ namespace Incredicer.Editor
                 SkillBranch.MoneyEngine,
                 2,
                 new Vector2(-200, -200),
-                150, // Tier 2: 150 DM
+                50000, // Tier 2: 50,000 DM
                 new List<SkillNodeId> { SkillNodeId.ME_LooseChange },
                 new List<SkillEffect> {
                     new SkillEffect { effectType = SkillEffectType.GlobalMoneyMultiplicative, value = 1.5f }
@@ -86,7 +86,7 @@ namespace Incredicer.Editor
             );
             createdNodes.Add(compoundInterest);
 
-            // Design doc: ME-04 Tip Jar - 150 DM, bonus coin is 5% of current money
+            // Design doc: ME-04 Tip Jar - 50,000 DM, bonus coin is 5% of current money
             var tipJar = CreateNode(
                 SkillNodeId.ME_TipJar,
                 "Tip Jar",
@@ -94,7 +94,7 @@ namespace Incredicer.Editor
                 SkillBranch.MoneyEngine,
                 2,
                 new Vector2(-300, -250),
-                150, // Tier 2: 150 DM
+                50000, // Tier 2: 50,000 DM
                 new List<SkillNodeId> { SkillNodeId.ME_TableTax },
                 new List<SkillEffect> {
                     new SkillEffect { effectType = SkillEffectType.TipJarScaling, value = 0.05f }
@@ -102,7 +102,7 @@ namespace Incredicer.Editor
             );
             createdNodes.Add(tipJar);
 
-            // Design doc: ME-05 Big Payouts - 1,000 DM, global money x2
+            // Design doc: ME-05 Big Payouts - 250,000 DM, global money x2
             var bigPayouts = CreateNode(
                 SkillNodeId.ME_BigPayouts,
                 "Big Payouts",
@@ -110,7 +110,7 @@ namespace Incredicer.Editor
                 SkillBranch.MoneyEngine,
                 3,
                 new Vector2(-200, -300),
-                1000, // Tier 3: 1,000 DM
+                250000, // Tier 3: 250,000 DM
                 new List<SkillNodeId> { SkillNodeId.ME_CompoundInterest },
                 new List<SkillEffect> {
                     new SkillEffect { effectType = SkillEffectType.GlobalMoneyMultiplicative, value = 2.0f }
@@ -118,7 +118,7 @@ namespace Incredicer.Editor
             );
             createdNodes.Add(bigPayouts);
 
-            // Design doc: ME-06 Dark Dividends - 1,000 DM, gain money when gaining DM
+            // Design doc: ME-06 Dark Dividends - 250,000 DM, gain money when gaining DM
             var darkDividends = CreateNode(
                 SkillNodeId.ME_DarkDividends,
                 "Dark Dividends",
@@ -126,7 +126,7 @@ namespace Incredicer.Editor
                 SkillBranch.MoneyEngine,
                 3,
                 new Vector2(-350, -300),
-                1000, // Tier 3: 1,000 DM
+                250000, // Tier 3: 250,000 DM
                 new List<SkillNodeId> { SkillNodeId.ME_TipJar },
                 new List<SkillEffect> {
                     new SkillEffect { effectType = SkillEffectType.DarkMatterGainMultiplier, value = 1.0f } // Custom effect
@@ -134,7 +134,7 @@ namespace Incredicer.Editor
             );
             createdNodes.Add(darkDividends);
 
-            // Design doc: ME-07 Jackpot Chance - 10,000 DM, 3% chance for 10x money
+            // Design doc: ME-07 Jackpot Chance - 1,500,000 DM, 3% chance for 10x money
             var jackpotChance = CreateNode(
                 SkillNodeId.ME_JackpotChance,
                 "Jackpot Chance",
@@ -142,7 +142,7 @@ namespace Incredicer.Editor
                 SkillBranch.MoneyEngine,
                 4,
                 new Vector2(-250, -400),
-                10000, // Tier 4: 10,000 DM
+                1500000, // Tier 4: 1,500,000 DM
                 new List<SkillNodeId> { SkillNodeId.ME_BigPayouts, SkillNodeId.ME_DarkDividends },
                 new List<SkillEffect> {
                     new SkillEffect { effectType = SkillEffectType.JackpotChance, value = 0.03f },
@@ -151,7 +151,7 @@ namespace Incredicer.Editor
             );
             createdNodes.Add(jackpotChance);
 
-            // Design doc: ME-08 Infinite Float - 100,000 DM, helper +200%, manual -20%
+            // Design doc: ME-08 Infinite Float - 15,000,000 DM, helper +200%, manual -20%
             var infiniteFloat = CreateNode(
                 SkillNodeId.ME_InfiniteFloat,
                 "Infinite Float",
@@ -159,7 +159,7 @@ namespace Incredicer.Editor
                 SkillBranch.MoneyEngine,
                 5,
                 new Vector2(-250, -500),
-                100000, // Tier 5: 100,000 DM
+                15000000, // Tier 5: 15,000,000 DM
                 new List<SkillNodeId> { SkillNodeId.ME_JackpotChance },
                 new List<SkillEffect> {
                     new SkillEffect { effectType = SkillEffectType.IdleMoneyMultiplier, value = 3.0f }, // +200% = 3x
@@ -169,7 +169,7 @@ namespace Incredicer.Editor
             createdNodes.Add(infiniteFloat);
 
             // ===== AUTOMATION =====
-            // Design doc: AU-01 First Assistant - 10 DM, unlock helper hands + 1 free hand
+            // Design doc: AU-01 First Assistant - 7,500 DM, unlock helper hands + 1 free hand
             var firstAssistant = CreateNode(
                 SkillNodeId.AU_FirstAssistant,
                 "First Assistant",
@@ -177,7 +177,7 @@ namespace Incredicer.Editor
                 SkillBranch.Automation,
                 1,
                 new Vector2(0, -150),
-                10, // Tier 1: 10 DM
+                7500, // Tier 1: 7,500 DM
                 new List<SkillNodeId> { SkillNodeId.CORE_DarkMatterCore },
                 new List<SkillEffect> {
                     new SkillEffect { effectType = SkillEffectType.HelperHandMaxHandsAdd, value = 1 }
@@ -185,7 +185,7 @@ namespace Incredicer.Editor
             );
             createdNodes.Add(firstAssistant);
 
-            // Design doc: AU-02 Greased Gears - 50 DM, helper hands 20% faster
+            // Design doc: AU-02 Greased Gears - 15,000 DM, helper hands 20% faster
             var greasedGears = CreateNode(
                 SkillNodeId.AU_GreasedGears,
                 "Greased Gears",
@@ -193,7 +193,7 @@ namespace Incredicer.Editor
                 SkillBranch.Automation,
                 1,
                 new Vector2(-50, -250),
-                50, // Tier 1: 50 DM
+                15000, // Tier 1: 15,000 DM
                 new List<SkillNodeId> { SkillNodeId.CORE_DarkMatterCore },
                 new List<SkillEffect> {
                     new SkillEffect { effectType = SkillEffectType.HelperHandSpeedMultiplier, value = 1.2f }
@@ -201,7 +201,7 @@ namespace Incredicer.Editor
             );
             createdNodes.Add(greasedGears);
 
-            // Design doc: AU-03 More Hands - 200 DM, +5 max helper hand cap
+            // Design doc: AU-03 More Hands - 60,000 DM, +5 max helper hand cap
             var moreHands = CreateNode(
                 SkillNodeId.AU_MoreHands,
                 "More Hands",
@@ -209,7 +209,7 @@ namespace Incredicer.Editor
                 SkillBranch.Automation,
                 2,
                 new Vector2(50, -250),
-                200, // Tier 2: 200 DM
+                60000, // Tier 2: 60,000 DM
                 new List<SkillNodeId> { SkillNodeId.AU_FirstAssistant },
                 new List<SkillEffect> {
                     new SkillEffect { effectType = SkillEffectType.HelperHandMaxHandsAdd, value = 5 }
@@ -217,7 +217,7 @@ namespace Incredicer.Editor
             );
             createdNodes.Add(moreHands);
 
-            // Design doc: AU-04 Two-at-Once - 250 DM, each hand rolls 2 dice per cycle
+            // Design doc: AU-04 Two-at-Once - 80,000 DM, each hand rolls 2 dice per cycle
             var twoAtOnce = CreateNode(
                 SkillNodeId.AU_TwoAtOnce,
                 "Two-at-Once",
@@ -225,7 +225,7 @@ namespace Incredicer.Editor
                 SkillBranch.Automation,
                 2,
                 new Vector2(-50, -350),
-                250, // Tier 2: 250 DM
+                80000, // Tier 2: 80,000 DM
                 new List<SkillNodeId> { SkillNodeId.AU_GreasedGears },
                 new List<SkillEffect> {
                     new SkillEffect { effectType = SkillEffectType.HelperHandExtraRollsAdd, value = 1 }
@@ -233,7 +233,7 @@ namespace Incredicer.Editor
             );
             createdNodes.Add(twoAtOnce);
 
-            // Design doc: AU-05 Overtime - 2,000 DM, offline at 100% speed
+            // Design doc: AU-05 Overtime - 400,000 DM, offline at 100% speed
             var overtime = CreateNode(
                 SkillNodeId.AU_Overtime,
                 "Overtime",
@@ -241,7 +241,7 @@ namespace Incredicer.Editor
                 SkillBranch.Automation,
                 3,
                 new Vector2(50, -350),
-                2000, // Tier 3: 2,000 DM
+                400000, // Tier 3: 400,000 DM
                 new List<SkillNodeId> { SkillNodeId.AU_MoreHands },
                 new List<SkillEffect> {
                     // This is a special flag - full offline earnings
@@ -249,7 +249,7 @@ namespace Incredicer.Editor
             );
             createdNodes.Add(overtime);
 
-            // Design doc: AU-06 Perfect Rhythm - 3,000 DM, helper hand cooldown -30%
+            // Design doc: AU-06 Perfect Rhythm - 600,000 DM, helper hand cooldown -30%
             var perfectRhythm = CreateNode(
                 SkillNodeId.AU_PerfectRhythm,
                 "Perfect Rhythm",
@@ -257,7 +257,7 @@ namespace Incredicer.Editor
                 SkillBranch.Automation,
                 3,
                 new Vector2(0, -450),
-                3000, // Tier 3: 3,000 DM
+                600000, // Tier 3: 600,000 DM
                 new List<SkillNodeId> { SkillNodeId.AU_TwoAtOnce },
                 new List<SkillEffect> {
                     new SkillEffect { effectType = SkillEffectType.HelperHandSpeedMultiplier, value = 1.43f } // 1/0.7 ≈ 1.43
@@ -265,7 +265,7 @@ namespace Incredicer.Editor
             );
             createdNodes.Add(perfectRhythm);
 
-            // Design doc: AU-07 Assembly Line - 20,000 DM, +50 max helper hand cap
+            // Design doc: AU-07 Assembly Line - 3,500,000 DM, +50 max helper hand cap
             var assemblyLine = CreateNode(
                 SkillNodeId.AU_AssemblyLine,
                 "Assembly Line",
@@ -273,7 +273,7 @@ namespace Incredicer.Editor
                 SkillBranch.Automation,
                 4,
                 new Vector2(100, -450),
-                20000, // Tier 4: 20,000 DM
+                3500000, // Tier 4: 3,500,000 DM
                 new List<SkillNodeId> { SkillNodeId.AU_Overtime, SkillNodeId.AU_PerfectRhythm },
                 new List<SkillEffect> {
                     new SkillEffect { effectType = SkillEffectType.HelperHandMaxHandsAdd, value = 50 }
@@ -281,7 +281,7 @@ namespace Incredicer.Editor
             );
             createdNodes.Add(assemblyLine);
 
-            // Design doc: AU-08 Idle King - 150,000 DM, helper hands +50% DM but no extra money
+            // Design doc: AU-08 Idle King - 20,000,000 DM, helper hands +50% DM but no extra money
             var idleKing = CreateNode(
                 SkillNodeId.AU_IdleKing,
                 "Idle King",
@@ -289,7 +289,7 @@ namespace Incredicer.Editor
                 SkillBranch.Automation,
                 5,
                 new Vector2(50, -550),
-                150000, // Tier 5: 150,000 DM
+                20000000, // Tier 5: 20,000,000 DM
                 new List<SkillNodeId> { SkillNodeId.AU_AssemblyLine },
                 new List<SkillEffect> {
                     new SkillEffect { effectType = SkillEffectType.SpecialFlag, specialFlag = SpecialFlagType.IdleKing }
@@ -298,7 +298,7 @@ namespace Incredicer.Editor
             createdNodes.Add(idleKing);
 
             // ===== DICE EVOLUTION =====
-            // Design doc: DE-01 Bronze Dice - 20 DM
+            // Design doc: DE-01 Bronze Dice - 10,000 DM
             var bronzeDice = CreateNode(
                 SkillNodeId.DE_BronzeDice,
                 "Bronze Dice",
@@ -306,7 +306,7 @@ namespace Incredicer.Editor
                 SkillBranch.DiceEvolution,
                 1,
                 new Vector2(200, -100),
-                20, // Tier 1: 20 DM
+                10000, // Tier 1: 10,000 DM
                 new List<SkillNodeId> { SkillNodeId.CORE_DarkMatterCore },
                 new List<SkillEffect> {
                     new SkillEffect { effectType = SkillEffectType.UnlockDiceType, targetDiceType = DiceType.Bronze }
@@ -314,7 +314,7 @@ namespace Incredicer.Editor
             );
             createdNodes.Add(bronzeDice);
 
-            // Design doc: DE-02 Polished Bronze - 40 DM
+            // Design doc: DE-02 Polished Bronze - 20,000 DM
             var polishedBronze = CreateNode(
                 SkillNodeId.DE_PolishedBronze,
                 "Polished Bronze",
@@ -322,7 +322,7 @@ namespace Incredicer.Editor
                 SkillBranch.DiceEvolution,
                 1,
                 new Vector2(150, -200),
-                40, // Tier 1: 40 DM
+                20000, // Tier 1: 20,000 DM
                 new List<SkillNodeId> { SkillNodeId.DE_BronzeDice },
                 new List<SkillEffect> {
                     new SkillEffect { effectType = SkillEffectType.DiceMoneyMultiplier, value = 1.5f, targetDiceType = DiceType.Bronze }
@@ -330,7 +330,7 @@ namespace Incredicer.Editor
             );
             createdNodes.Add(polishedBronze);
 
-            // Design doc: DE-03 Silver Dice - 150 DM
+            // Design doc: DE-03 Silver Dice - 50,000 DM
             var silverDice = CreateNode(
                 SkillNodeId.DE_SilverDice,
                 "Silver Dice",
@@ -338,7 +338,7 @@ namespace Incredicer.Editor
                 SkillBranch.DiceEvolution,
                 2,
                 new Vector2(250, -200),
-                150, // Tier 2: 150 DM
+                50000, // Tier 2: 50,000 DM
                 new List<SkillNodeId> { SkillNodeId.DE_BronzeDice },
                 new List<SkillEffect> {
                     new SkillEffect { effectType = SkillEffectType.UnlockDiceType, targetDiceType = DiceType.Silver }
@@ -346,7 +346,7 @@ namespace Incredicer.Editor
             );
             createdNodes.Add(silverDice);
 
-            // Design doc: DE-04 Silver Veins - 300 DM
+            // Design doc: DE-04 Silver Veins - 100,000 DM
             var silverVeins = CreateNode(
                 SkillNodeId.DE_SilverVeins,
                 "Silver Veins",
@@ -354,7 +354,7 @@ namespace Incredicer.Editor
                 SkillBranch.DiceEvolution,
                 2,
                 new Vector2(200, -300),
-                300, // Tier 2: 300 DM
+                100000, // Tier 2: 100,000 DM
                 new List<SkillNodeId> { SkillNodeId.DE_SilverDice },
                 new List<SkillEffect> {
                     new SkillEffect { effectType = SkillEffectType.DiceMoneyMultiplier, value = 1.5f, targetDiceType = DiceType.Silver }
@@ -362,7 +362,7 @@ namespace Incredicer.Editor
             );
             createdNodes.Add(silverVeins);
 
-            // Design doc: DE-05 Gold Dice - 1,000 DM
+            // Design doc: DE-05 Gold Dice - 250,000 DM
             var goldDice = CreateNode(
                 SkillNodeId.DE_GoldDice,
                 "Gold Dice",
@@ -370,7 +370,7 @@ namespace Incredicer.Editor
                 SkillBranch.DiceEvolution,
                 3,
                 new Vector2(300, -300),
-                1000, // Tier 3: 1,000 DM
+                250000, // Tier 3: 250,000 DM
                 new List<SkillNodeId> { SkillNodeId.DE_SilverDice },
                 new List<SkillEffect> {
                     new SkillEffect { effectType = SkillEffectType.UnlockDiceType, targetDiceType = DiceType.Gold }
@@ -378,7 +378,7 @@ namespace Incredicer.Editor
             );
             createdNodes.Add(goldDice);
 
-            // Design doc: DE-06 Gold Rush - 2,000 DM
+            // Design doc: DE-06 Gold Rush - 500,000 DM
             var goldRush = CreateNode(
                 SkillNodeId.DE_GoldRush,
                 "Gold Rush",
@@ -386,7 +386,7 @@ namespace Incredicer.Editor
                 SkillBranch.DiceEvolution,
                 3,
                 new Vector2(250, -400),
-                2000, // Tier 3: 2,000 DM
+                500000, // Tier 3: 500,000 DM
                 new List<SkillNodeId> { SkillNodeId.DE_GoldDice },
                 new List<SkillEffect> {
                     new SkillEffect { effectType = SkillEffectType.DiceMoneyMultiplier, value = 1.75f, targetDiceType = DiceType.Gold }
@@ -394,7 +394,7 @@ namespace Incredicer.Editor
             );
             createdNodes.Add(goldRush);
 
-            // Design doc: DE-07 Emerald Dice - 10,000 DM
+            // Design doc: DE-07 Emerald Dice - 2,000,000 DM
             var emeraldDice = CreateNode(
                 SkillNodeId.DE_EmeraldDice,
                 "Emerald Dice",
@@ -402,7 +402,7 @@ namespace Incredicer.Editor
                 SkillBranch.DiceEvolution,
                 4,
                 new Vector2(350, -400),
-                10000, // Tier 4: 10,000 DM
+                2000000, // Tier 4: 2,000,000 DM
                 new List<SkillNodeId> { SkillNodeId.DE_GoldDice },
                 new List<SkillEffect> {
                     new SkillEffect { effectType = SkillEffectType.UnlockDiceType, targetDiceType = DiceType.Emerald }
@@ -410,7 +410,7 @@ namespace Incredicer.Editor
             );
             createdNodes.Add(emeraldDice);
 
-            // Design doc: DE-08 Gem Synergy - 25,000 DM
+            // Design doc: DE-08 Gem Synergy - 5,000,000 DM
             var gemSynergy = CreateNode(
                 SkillNodeId.DE_GemSynergy,
                 "Gem Synergy",
@@ -418,7 +418,7 @@ namespace Incredicer.Editor
                 SkillBranch.DiceEvolution,
                 4,
                 new Vector2(300, -500),
-                25000, // Tier 4: 25,000 DM
+                5000000, // Tier 4: 5,000,000 DM
                 new List<SkillNodeId> { SkillNodeId.DE_EmeraldDice, SkillNodeId.DE_GoldRush },
                 new List<SkillEffect> {
                     new SkillEffect { effectType = SkillEffectType.DiceMoneyMultiplier, value = 2.0f, targetDiceType = DiceType.Emerald },
@@ -428,7 +428,7 @@ namespace Incredicer.Editor
             );
             createdNodes.Add(gemSynergy);
 
-            // Design doc: DE-09 Ruby Dice - 60,000 DM
+            // Design doc: DE-09 Ruby Dice - 12,000,000 DM
             var rubyDice = CreateNode(
                 SkillNodeId.DE_RubyDice,
                 "Ruby Dice",
@@ -436,7 +436,7 @@ namespace Incredicer.Editor
                 SkillBranch.DiceEvolution,
                 5,
                 new Vector2(400, -500),
-                60000, // Tier 5: 60,000 DM
+                12000000, // Tier 5: 12,000,000 DM
                 new List<SkillNodeId> { SkillNodeId.DE_EmeraldDice },
                 new List<SkillEffect> {
                     new SkillEffect { effectType = SkillEffectType.UnlockDiceType, targetDiceType = DiceType.Ruby }
@@ -444,7 +444,7 @@ namespace Incredicer.Editor
             );
             createdNodes.Add(rubyDice);
 
-            // Design doc: DE-10 Diamond Dice - 150,000 DM
+            // Design doc: DE-10 Diamond Dice - 30,000,000 DM
             var diamondDice = CreateNode(
                 SkillNodeId.DE_DiamondDice,
                 "Diamond Dice",
@@ -452,7 +452,7 @@ namespace Incredicer.Editor
                 SkillBranch.DiceEvolution,
                 5,
                 new Vector2(350, -600),
-                150000, // Tier 5: 150,000 DM
+                30000000, // Tier 5: 30,000,000 DM
                 new List<SkillNodeId> { SkillNodeId.DE_RubyDice, SkillNodeId.DE_GemSynergy },
                 new List<SkillEffect> {
                     new SkillEffect { effectType = SkillEffectType.UnlockDiceType, targetDiceType = DiceType.Diamond }
@@ -461,7 +461,7 @@ namespace Incredicer.Editor
             createdNodes.Add(diamondDice);
 
             // ===== SKILLS & UTILITY =====
-            // Design doc: SK-01 Quick Flick - 15 DM
+            // Design doc: SK-01 Quick Flick - 6,000 DM
             var quickFlick = CreateNode(
                 SkillNodeId.SK_QuickFlick,
                 "Quick Flick",
@@ -469,7 +469,7 @@ namespace Incredicer.Editor
                 SkillBranch.SkillsUtility,
                 1,
                 new Vector2(-100, -100),
-                15, // Tier 1: 15 DM
+                6000, // Tier 1: 6,000 DM
                 new List<SkillNodeId> { SkillNodeId.CORE_DarkMatterCore },
                 new List<SkillEffect> {
                     new SkillEffect { effectType = SkillEffectType.ManualMoneyMultiplier, value = 1.5f }
@@ -477,7 +477,7 @@ namespace Incredicer.Editor
             );
             createdNodes.Add(quickFlick);
 
-            // Design doc: SK-02 Long Reach - 40 DM
+            // Design doc: SK-02 Long Reach - 12,000 DM
             var longReach = CreateNode(
                 SkillNodeId.SK_LongReach,
                 "Long Reach",
@@ -485,7 +485,7 @@ namespace Incredicer.Editor
                 SkillBranch.SkillsUtility,
                 1,
                 new Vector2(-150, -200),
-                40, // Tier 1: 40 DM
+                12000, // Tier 1: 12,000 DM
                 new List<SkillNodeId> { SkillNodeId.SK_QuickFlick },
                 new List<SkillEffect> {
                     new SkillEffect { effectType = SkillEffectType.CursorRollRadiusAdd, value = 0.5f }
@@ -493,7 +493,7 @@ namespace Incredicer.Editor
             );
             createdNodes.Add(longReach);
 
-            // Design doc: SK-03 Roll Burst - 200 DM
+            // Design doc: SK-03 Roll Burst - 60,000 DM
             var rollBurstII = CreateNode(
                 SkillNodeId.SK_RollBurstII,
                 "Roll Burst",
@@ -501,7 +501,7 @@ namespace Incredicer.Editor
                 SkillBranch.SkillsUtility,
                 2,
                 new Vector2(-50, -200),
-                200, // Tier 2: 200 DM
+                60000, // Tier 2: 60,000 DM
                 new List<SkillNodeId> { SkillNodeId.SK_QuickFlick },
                 new List<SkillEffect> {
                     new SkillEffect { effectType = SkillEffectType.UnlockActiveSkill, unlockSkill = ActiveSkillType.RollBurst }
@@ -509,7 +509,7 @@ namespace Incredicer.Editor
             );
             createdNodes.Add(rollBurstII);
 
-            // Design doc: SK-04 Rapid Cooldown - 300 DM
+            // Design doc: SK-04 Rapid Cooldown - 100,000 DM
             var rapidCooldown = CreateNode(
                 SkillNodeId.SK_RapidCooldown,
                 "Rapid Cooldown",
@@ -517,7 +517,7 @@ namespace Incredicer.Editor
                 SkillBranch.SkillsUtility,
                 2,
                 new Vector2(-100, -300),
-                300, // Tier 2: 300 DM
+                100000, // Tier 2: 100,000 DM
                 new List<SkillNodeId> { SkillNodeId.SK_RollBurstII },
                 new List<SkillEffect> {
                     new SkillEffect { effectType = SkillEffectType.SkillCooldownMultiplier, value = 0.75f }
@@ -525,7 +525,7 @@ namespace Incredicer.Editor
             );
             createdNodes.Add(rapidCooldown);
 
-            // Design doc: SK-05 Focused Gravity - 1,500 DM
+            // Design doc: SK-05 Focused Gravity - 350,000 DM
             var focusedGravity = CreateNode(
                 SkillNodeId.SK_FocusedGravity,
                 "Focused Gravity",
@@ -533,7 +533,7 @@ namespace Incredicer.Editor
                 SkillBranch.SkillsUtility,
                 3,
                 new Vector2(-200, -300),
-                1500, // Tier 3: 1,500 DM
+                350000, // Tier 3: 350,000 DM
                 new List<SkillNodeId> { SkillNodeId.SK_LongReach },
                 new List<SkillEffect> {
                     new SkillEffect { effectType = SkillEffectType.SpecialFlag, specialFlag = SpecialFlagType.FocusedGravity }
@@ -541,7 +541,7 @@ namespace Incredicer.Editor
             );
             createdNodes.Add(focusedGravity);
 
-            // Design doc: SK-06 Precision Aim - 2,000 DM
+            // Design doc: SK-06 Precision Aim - 500,000 DM
             var precisionAim = CreateNode(
                 SkillNodeId.SK_PrecisionAim,
                 "Precision Aim",
@@ -549,7 +549,7 @@ namespace Incredicer.Editor
                 SkillBranch.SkillsUtility,
                 3,
                 new Vector2(-200, -400),
-                2000, // Tier 3: 2,000 DM
+                500000, // Tier 3: 500,000 DM
                 new List<SkillNodeId> { SkillNodeId.SK_FocusedGravity },
                 new List<SkillEffect> {
                     new SkillEffect { effectType = SkillEffectType.SpecialFlag, specialFlag = SpecialFlagType.PrecisionAim }
@@ -557,7 +557,7 @@ namespace Incredicer.Editor
             );
             createdNodes.Add(precisionAim);
 
-            // Design doc: SK-07 Hyperburst - 15,000 DM
+            // Design doc: SK-07 Hyperburst - 2,500,000 DM
             var hyperburst = CreateNode(
                 SkillNodeId.SK_Hyperburst,
                 "Hyperburst",
@@ -565,7 +565,7 @@ namespace Incredicer.Editor
                 SkillBranch.SkillsUtility,
                 4,
                 new Vector2(-50, -400),
-                15000, // Tier 4: 15,000 DM
+                2500000, // Tier 4: 2,500,000 DM
                 new List<SkillNodeId> { SkillNodeId.SK_RapidCooldown },
                 new List<SkillEffect> {
                     new SkillEffect { effectType = SkillEffectType.UnlockActiveSkill, unlockSkill = ActiveSkillType.Hyperburst }
@@ -573,7 +573,7 @@ namespace Incredicer.Editor
             );
             createdNodes.Add(hyperburst);
 
-            // Design doc: SK-08 Time Dilation - 120,000 DM
+            // Design doc: SK-08 Time Dilation - 18,000,000 DM
             var timeDilation = CreateNode(
                 SkillNodeId.SK_TimeDilation,
                 "Time Dilation",
@@ -581,13 +581,29 @@ namespace Incredicer.Editor
                 SkillBranch.SkillsUtility,
                 5,
                 new Vector2(-100, -500),
-                120000, // Tier 5: 120,000 DM
+                18000000, // Tier 5: 18,000,000 DM
                 new List<SkillNodeId> { SkillNodeId.SK_Hyperburst, SkillNodeId.SK_PrecisionAim },
                 new List<SkillEffect> {
                     new SkillEffect { effectType = SkillEffectType.SpecialFlag, specialFlag = SpecialFlagType.TimeDilation }
                 }
             );
             createdNodes.Add(timeDilation);
+
+            // SK-09 Daily Login - 5,000 DM (early unlock, requires Quick Flick)
+            var dailyLogin = CreateNode(
+                SkillNodeId.SK_DailyLogin,
+                "Daily Rewards",
+                "Unlock daily login bonuses - roll dice for amazing rewards every day!",
+                SkillBranch.SkillsUtility,
+                2,
+                new Vector2(100, -200),
+                5000, // Tier 2: 5,000 DM - early unlock
+                new List<SkillNodeId> { SkillNodeId.SK_QuickFlick },
+                new List<SkillEffect> {
+                    new SkillEffect { effectType = SkillEffectType.UnlockActiveSkill, unlockSkill = ActiveSkillType.DailyLogin }
+                }
+            );
+            createdNodes.Add(dailyLogin);
 
             // Refresh asset database
             AssetDatabase.SaveAssets();

@@ -210,6 +210,8 @@ namespace Incredicer.Skills
                     if (Helpers.HelperHandManager.Instance != null)
                     {
                         Helpers.HelperHandManager.Instance.MaxHands -= (int)effect.value;
+                        // Also remove the actual spawned hands
+                        Helpers.HelperHandManager.Instance.TrimToMaxHands();
                     }
                     break;
 

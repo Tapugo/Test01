@@ -514,7 +514,7 @@ namespace Incredicer.UI
 
                 if (buyDiceButtonText != null)
                 {
-                    buyDiceButtonText.text = $"Buy Dice\n<size=60%>${FormatNumber(price)}</size>";
+                    buyDiceButtonText.text = $"Buy Dice\n${FormatNumber(price)}";
                 }
             }
 
@@ -531,7 +531,7 @@ namespace Incredicer.UI
                 {
                     int currentLevel = GameStats.Instance != null ? GameStats.Instance.DiceValueUpgradeLevel : 0;
                     string levelText = currentLevel > 0 ? $" +{currentLevel}" : "";
-                    upgradeDiceButtonText.text = $"Upgrade Dice ${levelText}\n<size=60%>${FormatNumber(diceValueUpgradeCost)}</size>";
+                    upgradeDiceButtonText.text = $"Upgrade{levelText}\n${FormatNumber(diceValueUpgradeCost)}";
                 }
             }
         }
@@ -1172,7 +1172,7 @@ namespace Incredicer.UI
 
             if (ascendButtonText != null)
             {
-                ascendButtonText.text = $"Ascend\n<size=60%>${FormatNumber(required)}</size>";
+                ascendButtonText.text = $"Ascend\n${FormatNumber(required)}";
             }
         }
 
@@ -1464,6 +1464,9 @@ namespace Incredicer.UI
         /// </summary>
         public void ShowFloatingText(Vector3 worldPosition, string text, Color color)
         {
+            // Don't show floating text when a popup is open
+            if (Core.PopupManager.Instance != null && Core.PopupManager.Instance.IsAnyPopupOpen) return;
+
             // Ensure we have camera reference
             if (mainCamera == null)
             {

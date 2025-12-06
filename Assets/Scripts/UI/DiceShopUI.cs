@@ -17,8 +17,9 @@ namespace Incredicer.UI
         public static DiceShopUI Instance { get; private set; }
 
         [Header("Panel")]
-        [SerializeField] private GameObject shopPanel;
-        [SerializeField] private CanvasGroup panelCanvasGroup;
+        [SerializeField] private GameObject panelPrefab;  // Assign prefab in inspector
+        private GameObject shopPanel;
+        private CanvasGroup panelCanvasGroup;
         [SerializeField] private Button openButton;
         [SerializeField] private TextMeshProUGUI openButtonText;
         [SerializeField] private Button closeButton;
@@ -70,11 +71,6 @@ namespace Incredicer.UI
             // Load GUI assets if not assigned
             if (guiAssets == null)
                 guiAssets = GUISpriteAssets.Instance;
-
-            if (shopPanel != null)
-            {
-                shopPanel.SetActive(false);
-            }
         }
 
         private void Start()
@@ -114,6 +110,18 @@ namespace Incredicer.UI
         {
             if (isInitialized) return;
             isInitialized = true;
+
+            // Instantiate from prefab if needed
+            if (shopPanel == null && panelPrefab != null)
+            {
+                Canvas canvas = GetComponentInParent<Canvas>();
+                if (canvas == null) canvas = FindObjectOfType<Canvas>();
+                if (canvas != null)
+                {
+                    shopPanel = Instantiate(panelPrefab, canvas.transform);
+                    shopPanel.name = "DiceShopPanel";
+                }
+            }
 
             if (shopPanel == null) return;
 
@@ -232,10 +240,10 @@ namespace Incredicer.UI
 
             TextMeshProUGUI titleText = titleObj.AddComponent<TextMeshProUGUI>();
             titleText.text = "DICE SHOP";
-            titleText.fontSize = 72; // 3x bigger for mobile
+            titleText.fontSize = UIDesignSystem.FontSizeHero;
             titleText.fontStyle = FontStyles.Bold;
             titleText.alignment = TextAlignmentOptions.Left;
-            titleText.color = Color.white;
+            titleText.color = UIDesignSystem.MoneyGreen;
 
             // Money display
             GameObject moneyObj = new GameObject("Money");
@@ -248,10 +256,10 @@ namespace Incredicer.UI
 
             moneyDisplayText = moneyObj.AddComponent<TextMeshProUGUI>();
             moneyDisplayText.text = "$0";
-            moneyDisplayText.fontSize = 56; // 3x bigger for mobile
+            moneyDisplayText.fontSize = UIDesignSystem.FontSizeTitle;
             moneyDisplayText.fontStyle = FontStyles.Bold;
             moneyDisplayText.alignment = TextAlignmentOptions.Center;
-            moneyDisplayText.color = new Color(0.4f, 0.95f, 0.5f);
+            moneyDisplayText.color = UIDesignSystem.MoneyGreen;
 
             // Close button
             GameObject closeObj = new GameObject("CloseButton");
@@ -288,10 +296,10 @@ namespace Incredicer.UI
 
             TextMeshProUGUI closeText = closeTextObj.AddComponent<TextMeshProUGUI>();
             closeText.text = "X";
-            closeText.fontSize = 72; // 3x bigger for mobile
+            closeText.fontSize = UIDesignSystem.FontSizeSubtitle;
             closeText.fontStyle = FontStyles.Bold;
             closeText.alignment = TextAlignmentOptions.Center;
-            closeText.color = Color.white;
+            closeText.color = UIDesignSystem.TextPrimary;
         }
 
         private void CreateScrollArea()
@@ -427,14 +435,14 @@ namespace Incredicer.UI
             TextMeshProUGUI nameTmp = nameObj.AddComponent<TextMeshProUGUI>();
             string multiplierText = data.basePayout >= 1000 ? $"{data.basePayout/1000}K" : data.basePayout.ToString();
             nameTmp.text = $"{data.displayName}";
-            nameTmp.fontSize = 44;
+            nameTmp.fontSize = UIDesignSystem.FontSizeSubtitle;
             nameTmp.fontStyle = FontStyles.Bold;
             nameTmp.alignment = TextAlignmentOptions.Left;
             nameTmp.color = data.tintColor;
             nameTmp.raycastTarget = false;
             nameTmp.enableAutoSizing = true;
-            nameTmp.fontSizeMin = 32;
-            nameTmp.fontSizeMax = 44;
+            nameTmp.fontSizeMin = UIDesignSystem.FontSizeBody;
+            nameTmp.fontSizeMax = UIDesignSystem.FontSizeSubtitle;
 
             // Stats: Multiplier and DM bonus
             GameObject ownedObj = new GameObject("Stats");
@@ -448,14 +456,14 @@ namespace Incredicer.UI
             TextMeshProUGUI ownedTmp = ownedObj.AddComponent<TextMeshProUGUI>();
             string dmBonus = data.dmPerRoll > 0 ? $" • <color=#9966FF>+{data.dmPerRoll} DM</color>" : "";
             ownedTmp.text = $"<color=#FFD700>{multiplierText}x Money</color>{dmBonus}\nOwned: 0";
-            ownedTmp.fontSize = 32;
+            ownedTmp.fontSize = UIDesignSystem.FontSizeBody;
             ownedTmp.alignment = TextAlignmentOptions.TopLeft;
-            ownedTmp.color = new Color(0.7f, 0.7f, 0.75f);
+            ownedTmp.color = UIDesignSystem.TextSecondary;
             ownedTmp.raycastTarget = false;
             ownedTmp.richText = true;
             ownedTmp.enableAutoSizing = true;
-            ownedTmp.fontSizeMin = 24;
-            ownedTmp.fontSizeMax = 32;
+            ownedTmp.fontSizeMin = UIDesignSystem.FontSizeSmall;
+            ownedTmp.fontSizeMax = UIDesignSystem.FontSizeBody;
 
             // === RIGHT SIDE: Big Buy Button with Price ===
             GameObject buyBtnObj = new GameObject("BuyButton");
@@ -499,16 +507,16 @@ namespace Incredicer.UI
 
             TextMeshProUGUI buyTextTmp = buyTextObj.AddComponent<TextMeshProUGUI>();
             double initialPrice = DiceManager.Instance != null ? DiceManager.Instance.GetCurrentPrice(type) : 0;
-            buyTextTmp.text = $"BUY\n<size=80%>${GameUI.FormatNumber(initialPrice)}</size>";
-            buyTextTmp.fontSize = 42;
+            buyTextTmp.text = $"BUY\n${GameUI.FormatNumber(initialPrice)}";
+            buyTextTmp.fontSize = UIDesignSystem.FontSizeButtonLarge;
             buyTextTmp.fontStyle = FontStyles.Bold;
             buyTextTmp.alignment = TextAlignmentOptions.Center;
-            buyTextTmp.color = Color.white;
+            buyTextTmp.color = UIDesignSystem.TextPrimary;
             buyTextTmp.raycastTarget = false;
             buyTextTmp.richText = true;
             buyTextTmp.enableAutoSizing = true;
-            buyTextTmp.fontSizeMin = 28;
-            buyTextTmp.fontSizeMax = 42;
+            buyTextTmp.fontSizeMin = UIDesignSystem.FontSizeLabel;
+            buyTextTmp.fontSizeMax = UIDesignSystem.FontSizeButtonLarge;
 
             // Lock icon overlay for locked dice - positioned to the right of the text
             GameObject lockObj = new GameObject("LockIcon");
@@ -560,9 +568,18 @@ namespace Incredicer.UI
             // Apply black outlines to all text for readability
             ApplyTextOutlinesToPanel();
 
+            // Apply button polish for press/release animations
+            if (UIPolishManager.Instance != null)
+            {
+                UIPolishManager.Instance.PolishButtonsInPanel(shopPanel);
+            }
+
             if (shopPanel != null)
             {
                 shopPanel.SetActive(true);
+
+                // Ensure popup is rendered on top of other UI elements (like menu button)
+                shopPanel.transform.SetAsLastSibling();
 
                 // Ensure popup renders above effects
                 Canvas popupCanvas = shopPanel.GetComponent<Canvas>();
@@ -586,8 +603,9 @@ namespace Incredicer.UI
             UpdateAllItems();
             UpdateMoneyDisplay(CurrencyManager.Instance?.Money ?? 0);
 
-            // Block dice input
-            SetDiceInputBlocked(true);
+            // Register with PopupManager
+            if (PopupManager.Instance != null)
+                PopupManager.Instance.RegisterPopupOpen("DiceShopUI");
 
             Debug.Log("[DiceShopUI] Opened");
         }
@@ -597,8 +615,9 @@ namespace Incredicer.UI
             if (!isOpen) return;
             isOpen = false;
 
-            // Unblock dice input
-            SetDiceInputBlocked(false);
+            // Unregister from PopupManager
+            if (PopupManager.Instance != null)
+                PopupManager.Instance.RegisterPopupClosed("DiceShopUI");
 
             if (panelCanvasGroup != null)
             {
@@ -622,14 +641,6 @@ namespace Incredicer.UI
         {
             if (isOpen) Hide();
             else Show();
-        }
-
-        private void SetDiceInputBlocked(bool blocked)
-        {
-            if (DiceRollerController.Instance != null)
-            {
-                DiceRollerController.Instance.enabled = !blocked;
-            }
         }
 
         /// <summary>
@@ -717,9 +728,9 @@ namespace Incredicer.UI
                 if (!isUnlocked)
                     item.buyButtonText.text = "<b>LOCKED</b>";
                 else if (canAfford)
-                    item.buyButtonText.text = $"<b>BUY</b>\n<size=85%>{priceStr}</size>";
+                    item.buyButtonText.text = $"<b>BUY</b>\n{priceStr}";
                 else
-                    item.buyButtonText.text = $"<color=#FF6666>{priceStr}</color>\n<size=80%>NEED $</size>";
+                    item.buyButtonText.text = $"<color=#FF6666>{priceStr}</color>\nNEED $";
             }
 
             // Show/hide lock icon overlay

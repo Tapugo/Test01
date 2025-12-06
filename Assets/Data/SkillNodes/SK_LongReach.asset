@@ -17,9 +17,9 @@ MonoBehaviour:
   description: Increase click radius to roll dice from further away.
   icon: {fileID: 0}
   branch: 4
-  tier: 2
+  tier: 1
   treePosition: {x: -150, y: -200}
-  darkMatterCost: 3
+  darkMatterCost: 12000
   prerequisites: 1b000000
   effects:
   - effectType: 17

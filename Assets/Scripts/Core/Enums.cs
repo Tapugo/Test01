@@ -23,7 +23,8 @@ namespace Incredicer.Core
         MoneyEngine,
         Automation,
         DiceEvolution,
-        SkillsUtility
+        SkillsUtility,
+        FeatureUnlocks
     }
 
     /// <summary>
@@ -91,7 +92,9 @@ namespace Incredicer.Core
     {
         None,
         RollBurst,
-        Hyperburst
+        Hyperburst,
+        Overclock,
+        DailyLogin
     }
 
     /// <summary>
@@ -142,6 +145,17 @@ namespace Incredicer.Core
         SK_FocusedGravity,
         SK_PrecisionAim,
         SK_Hyperburst,
-        SK_TimeDilation
+        SK_TimeDilation,
+        SK_Overclock,
+        SK_DailyLogin,
+
+        // Feature Unlocks (FU)
+        FU_DailyLogin,
+        FU_Missions,
+        FU_Milestones,
+        FU_Leaderboard,
+        FU_GlobalEvents,
+        FU_TimeFracture,
+        FU_Overclock
     }
 }

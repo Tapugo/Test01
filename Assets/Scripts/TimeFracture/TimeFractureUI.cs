@@ -4,55 +4,60 @@ using TMPro;
 using DG.Tweening;
 using Incredicer.Core;
 using Incredicer.UI;
-using System.Linq;
 
 namespace Incredicer.TimeFracture
 {
     /// <summary>
     /// UI for the Time Fracture (prestige) system.
     /// Shows requirements, rewards, and allows triggering a fracture.
+    /// Uses a prefab for easy visual editing in the Unity Editor.
     /// </summary>
     public class TimeFractureUI : MonoBehaviour
     {
-        [Header("References")]
-        [SerializeField] private Canvas canvas;
+        [Header("Prefab")]
+        [SerializeField] private GameObject panelPrefab;
+
+        [Header("References (Auto-populated from prefab)")]
+        [SerializeField] private GameObject panelRoot;
+        [SerializeField] private GameObject mainPanel;
+        [SerializeField] private CanvasGroup mainPanelCanvasGroup;
+
+        [Header("Text Elements")]
+        [SerializeField] private TextMeshProUGUI titleText;
+        [SerializeField] private TextMeshProUGUI levelText;
+        [SerializeField] private TextMeshProUGUI timeShardsText;
+        [SerializeField] private TextMeshProUGUI requirementsText;
+        [SerializeField] private TextMeshProUGUI rewardsText;
+        [SerializeField] private TextMeshProUGUI currentBonusesText;
+        [SerializeField] private TextMeshProUGUI warningText;
+        [SerializeField] private TextMeshProUGUI fractureButtonText;
+
+        [Header("Buttons")]
+        [SerializeField] private Button fractureButton;
+        [SerializeField] private Button closeButton;
+        [SerializeField] private Button backgroundButton;
+
+        [Header("Visual Elements")]
+        [SerializeField] private Image fractureButtonGlow;
+        [SerializeField] private Transform timeShardsIcon;
 
         [Header("Settings")]
         [SerializeField] private float animationDuration = 0.3f;
 
-        // UI Elements (created at runtime)
-        private GameObject panelRoot;
-        private GameObject mainPanel;
-
-        // Info displays
-        private TextMeshProUGUI titleText;
-        private TextMeshProUGUI levelText;
-        private TextMeshProUGUI requirementsText;
-        private TextMeshProUGUI rewardsText;
-        private TextMeshProUGUI currentBonusesText;
-        private TextMeshProUGUI warningText;
-
-        // Buttons
-        private Button fractureButton;
-        private TextMeshProUGUI fractureButtonText;
-        private Button closeButton;
-
-        // Time Shards display in HUD
-        private GameObject hudDisplay;
-        private TextMeshProUGUI hudShardsText;
+        private Canvas canvas;
+        private Tween fractureGlowTween;
+        private bool isInitialized = false;
 
         private void Start()
         {
+            canvas = GetComponent<Canvas>();
             if (canvas == null)
             {
-                canvas = GetComponent<Canvas>();
+                canvas = GetComponentInParent<Canvas>();
             }
 
-            CreateUI();
+            InitializeUI();
             SubscribeToEvents();
-
-            // Start hidden
-            panelRoot.SetActive(false);
         }
 
         private void OnDestroy()
@@ -60,17 +65,209 @@ namespace Incredicer.TimeFracture
             UnsubscribeFromEvents();
         }
 
-        private void Update()
+        #region Initialization
+
+        private void InitializeUI()
         {
-            // Update HUD display
-            UpdateHudDisplay();
+            if (isInitialized) return;
+
+            // If prefab is assigned, instantiate it
+            if (panelPrefab != null && panelRoot == null)
+            {
+                panelRoot = Instantiate(panelPrefab, canvas.transform);
+                panelRoot.name = "TimeFracturePanel";
+                FindReferences();
+            }
+            // If no prefab but panelRoot exists (manually set up in scene), just find references
+            else if (panelRoot != null)
+            {
+                FindReferences();
+            }
+            // Fallback: create UI programmatically (legacy support)
+            else
+            {
+                CreateUIFallback();
+            }
+
+            // Setup button listeners
+            SetupButtonListeners();
+
+            // Apply shared font to all text
+            ApplySharedFontToAll();
+
+            // Start hidden
+            if (panelRoot != null)
+            {
+                panelRoot.SetActive(false);
+            }
+
+            isInitialized = true;
         }
 
-        #region UI Creation
-
-        private void CreateUI()
+        private void FindReferences()
         {
-            // Panel root (covers screen)
+            if (panelRoot == null) return;
+
+            // Find main panel
+            Transform mainPanelTransform = panelRoot.transform.Find("MainPanel");
+            if (mainPanelTransform != null)
+            {
+                mainPanel = mainPanelTransform.gameObject;
+                mainPanelCanvasGroup = mainPanel.GetComponent<CanvasGroup>();
+                if (mainPanelCanvasGroup == null)
+                {
+                    mainPanelCanvasGroup = mainPanel.AddComponent<CanvasGroup>();
+                }
+            }
+
+            // Find content area
+            Transform contentArea = mainPanel?.transform.Find("ContentArea");
+            if (contentArea == null) return;
+
+            // Header
+            Transform header = contentArea.Find("Header");
+            if (header != null)
+            {
+                Transform titleTransform = header.Find("TitleText");
+                if (titleTransform != null)
+                    titleText = titleTransform.GetComponent<TextMeshProUGUI>();
+            }
+
+            // Time Shards Display
+            Transform shardsDisplay = contentArea.Find("TimeShardsDisplay");
+            if (shardsDisplay != null)
+            {
+                timeShardsIcon = shardsDisplay.Find("CrystalIcon");
+                Transform info = shardsDisplay.Find("Info");
+                if (info != null)
+                {
+                    Transform levelTransform = info.Find("LevelText");
+                    if (levelTransform != null)
+                        levelText = levelTransform.GetComponent<TextMeshProUGUI>();
+
+                    Transform shardsTransform = info.Find("ShardsText");
+                    if (shardsTransform != null)
+                        timeShardsText = shardsTransform.GetComponent<TextMeshProUGUI>();
+                }
+            }
+
+            // Requirements Section
+            Transform reqSection = contentArea.Find("RequirementsSection");
+            if (reqSection != null)
+            {
+                Transform content = reqSection.Find("Content");
+                if (content != null)
+                    requirementsText = content.GetComponent<TextMeshProUGUI>();
+            }
+
+            // Rewards Section
+            Transform rewardsSection = contentArea.Find("RewardsSection");
+            if (rewardsSection != null)
+            {
+                Transform content = rewardsSection.Find("Content");
+                if (content != null)
+                    rewardsText = content.GetComponent<TextMeshProUGUI>();
+            }
+
+            // Bonuses Section
+            Transform bonusesSection = contentArea.Find("BonusesSection");
+            if (bonusesSection != null)
+            {
+                Transform content = bonusesSection.Find("Content");
+                if (content != null)
+                    currentBonusesText = content.GetComponent<TextMeshProUGUI>();
+            }
+
+            // Warning Section
+            Transform warningSection = contentArea.Find("WarningSection");
+            if (warningSection != null)
+            {
+                Transform warningTextTransform = warningSection.Find("WarningText");
+                if (warningTextTransform != null)
+                    warningText = warningTextTransform.GetComponent<TextMeshProUGUI>();
+            }
+
+            // Fracture Button
+            Transform fractureBtnContainer = contentArea.Find("FractureButtonContainer");
+            if (fractureBtnContainer != null)
+            {
+                Transform btnTransform = fractureBtnContainer.Find("FractureButton");
+                if (btnTransform != null)
+                {
+                    fractureButton = btnTransform.GetComponent<Button>();
+                    Transform textTransform = btnTransform.Find("Text");
+                    if (textTransform != null)
+                        fractureButtonText = textTransform.GetComponent<TextMeshProUGUI>();
+                }
+
+                // Look for glow
+                Transform glowTransform = fractureBtnContainer.Find("ButtonGlow");
+                if (glowTransform != null)
+                    fractureButtonGlow = glowTransform.GetComponent<Image>();
+            }
+
+            // Close Button
+            Transform closeBtnTransform = mainPanel?.transform.Find("CloseButton");
+            if (closeBtnTransform != null)
+            {
+                closeButton = closeBtnTransform.GetComponent<Button>();
+            }
+
+            // Background Button
+            backgroundButton = panelRoot.GetComponent<Button>();
+        }
+
+        private void SetupButtonListeners()
+        {
+            if (fractureButton != null)
+            {
+                fractureButton.onClick.RemoveAllListeners();
+                fractureButton.onClick.AddListener(OnFractureClicked);
+            }
+
+            if (closeButton != null)
+            {
+                closeButton.onClick.RemoveAllListeners();
+                closeButton.onClick.AddListener(HidePanel);
+            }
+
+            if (backgroundButton != null)
+            {
+                backgroundButton.onClick.RemoveAllListeners();
+                backgroundButton.onClick.AddListener(HidePanel);
+            }
+        }
+
+        private void ApplySharedFontToAll()
+        {
+            if (GameUI.Instance == null || GameUI.Instance.SharedFont == null) return;
+
+            var allText = panelRoot.GetComponentsInChildren<TextMeshProUGUI>(true);
+            foreach (var text in allText)
+            {
+                text.font = GameUI.Instance.SharedFont;
+                try
+                {
+                    if (text.fontMaterial != null)
+                    {
+                        text.outlineWidth = 0.15f;
+                        text.outlineColor = new Color32(0, 0, 0, 180);
+                    }
+                }
+                catch (System.NullReferenceException) { }
+            }
+        }
+
+        #endregion
+
+        #region Legacy Fallback (creates UI programmatically if no prefab)
+
+        private void CreateUIFallback()
+        {
+            Debug.LogWarning("[TimeFractureUI] No prefab assigned. Creating UI programmatically. " +
+                "For easier editing, assign a prefab via Tools > Incredicer > Create Time Fracture Prefab");
+
+            // Panel root - fullscreen overlay
             panelRoot = new GameObject("TimeFracturePanel");
             panelRoot.transform.SetParent(canvas.transform, false);
 
@@ -80,212 +277,263 @@ namespace Incredicer.TimeFracture
             panelRect.offsetMin = Vector2.zero;
             panelRect.offsetMax = Vector2.zero;
 
-            // Semi-transparent background
             var bgImage = panelRoot.AddComponent<Image>();
-            bgImage.color = new Color(0, 0, 0, 0.85f);
+            bgImage.color = new Color(0.02f, 0.01f, 0.05f, 0.95f);
 
-            // Click background to close
-            var bgButton = panelRoot.AddComponent<Button>();
-            bgButton.onClick.AddListener(HidePanel);
+            backgroundButton = panelRoot.AddComponent<Button>();
+            backgroundButton.transition = Selectable.Transition.None;
 
             // Main panel
-            mainPanel = CreateMainPanel(panelRoot.transform);
+            mainPanel = new GameObject("MainPanel");
+            mainPanel.transform.SetParent(panelRoot.transform, false);
 
-            // HUD display
-            CreateHudDisplay();
+            var mainRect = mainPanel.AddComponent<RectTransform>();
+            mainRect.anchorMin = new Vector2(0.03f, 0.03f);
+            mainRect.anchorMax = new Vector2(0.97f, 0.97f);
+            mainRect.offsetMin = Vector2.zero;
+            mainRect.offsetMax = Vector2.zero;
+
+            var mainBg = mainPanel.AddComponent<Image>();
+            mainBg.color = new Color(0.08f, 0.05f, 0.12f, 0.98f);
+
+            mainPanelCanvasGroup = mainPanel.AddComponent<CanvasGroup>();
+
+            var mainButton = mainPanel.AddComponent<Button>();
+            mainButton.transition = Selectable.Transition.None;
+
+            // Content area
+            var contentArea = new GameObject("ContentArea");
+            contentArea.transform.SetParent(mainPanel.transform, false);
+
+            var contentRect = contentArea.AddComponent<RectTransform>();
+            contentRect.anchorMin = Vector2.zero;
+            contentRect.anchorMax = Vector2.one;
+            contentRect.offsetMin = new Vector2(24, 24);
+            contentRect.offsetMax = new Vector2(-24, -24);
+
+            var mainLayout = contentArea.AddComponent<VerticalLayoutGroup>();
+            mainLayout.padding = new RectOffset(12, 12, 12, 12);
+            mainLayout.spacing = 12f;
+            mainLayout.childAlignment = TextAnchor.UpperCenter;
+            mainLayout.childControlHeight = false;
+            mainLayout.childControlWidth = true;
+            mainLayout.childForceExpandHeight = false;
+
+            // Create simplified sections
+            CreateFallbackHeader(contentArea.transform);
+            CreateFallbackTimeShardsDisplay(contentArea.transform);
+            CreateFallbackSection(contentArea.transform, "RequirementsSection", "REQUIREMENTS", new Color(1f, 0.7f, 0.3f), out requirementsText);
+            CreateFallbackSection(contentArea.transform, "RewardsSection", "REWARDS", new Color(0.4f, 1f, 0.5f), out rewardsText);
+            CreateFallbackSection(contentArea.transform, "BonusesSection", "CURRENT BONUSES", new Color(0.4f, 0.8f, 1f), out currentBonusesText);
+            CreateFallbackWarning(contentArea.transform);
+            CreateFallbackFractureButton(contentArea.transform);
+            CreateFallbackCloseButton(mainPanel.transform);
         }
 
-        private GameObject CreateMainPanel(Transform parent)
+        private void CreateFallbackHeader(Transform parent)
         {
-            var panel = new GameObject("MainCard");
-            panel.transform.SetParent(parent, false);
+            var header = new GameObject("Header");
+            header.transform.SetParent(parent, false);
+            var rect = header.AddComponent<RectTransform>();
+            rect.sizeDelta = new Vector2(0, 130);
+            header.AddComponent<LayoutElement>().preferredHeight = 130;
 
-            // Fullscreen with padding like other popups
-            var rect = panel.AddComponent<RectTransform>();
-            rect.anchorMin = new Vector2(0.02f, 0.02f);
-            rect.anchorMax = new Vector2(0.98f, 0.98f);
-            rect.offsetMin = Vector2.zero;
-            rect.offsetMax = Vector2.zero;
+            var titleObj = new GameObject("TitleText");
+            titleObj.transform.SetParent(header.transform, false);
+            var titleRect = titleObj.AddComponent<RectTransform>();
+            titleRect.anchorMin = Vector2.zero;
+            titleRect.anchorMax = Vector2.one;
+            titleRect.offsetMin = Vector2.zero;
+            titleRect.offsetMax = Vector2.zero;
 
-            // Card background with gradient feel
-            var bg = panel.AddComponent<Image>();
-            bg.color = new Color(0.06f, 0.04f, 0.12f, 0.98f);
-
-            // Stop clicks from going through
-            var button = panel.AddComponent<Button>();
-            button.transition = Selectable.Transition.None;
-
-            // Add outline for polish
-            var outline = panel.AddComponent<Outline>();
-            outline.effectColor = new Color(0.6f, 0.4f, 1f, 0.5f);
-            outline.effectDistance = new Vector2(3, -3);
-
-            // Layout
-            var layout = panel.AddComponent<VerticalLayoutGroup>();
-            layout.padding = new RectOffset(40, 40, 40, 40);
-            layout.spacing = 20;
-            layout.childAlignment = TextAnchor.UpperCenter;
-            layout.childControlHeight = false;
-            layout.childControlWidth = true;
-            layout.childForceExpandHeight = false;
-
-            // Title
-            titleText = CreateText(panel.transform, "TIME FRACTURE", 64, new Color(0.7f, 0.5f, 1f));
+            titleText = titleObj.AddComponent<TextMeshProUGUI>();
+            titleText.text = "TIME FRACTURE";
+            titleText.fontSize = 112;
             titleText.fontStyle = FontStyles.Bold;
-            titleText.GetComponent<RectTransform>().sizeDelta = new Vector2(720, 80);
+            titleText.alignment = TextAlignmentOptions.Center;
+            titleText.color = new Color(0.7f, 0.5f, 1f);
+        }
 
-            // Level display
-            levelText = CreateText(panel.transform, "Level 0", 48, Color.white);
+        private void CreateFallbackTimeShardsDisplay(Transform parent)
+        {
+            var container = new GameObject("TimeShardsDisplay");
+            container.transform.SetParent(parent, false);
+            container.AddComponent<RectTransform>().sizeDelta = new Vector2(0, 160);
+            container.AddComponent<LayoutElement>().preferredHeight = 160;
+
+            var hLayout = container.AddComponent<HorizontalLayoutGroup>();
+            hLayout.spacing = 16f;
+            hLayout.childAlignment = TextAnchor.MiddleCenter;
+            hLayout.childControlWidth = false;
+            hLayout.childControlHeight = false;
+
+            // Icon
+            var icon = new GameObject("CrystalIcon");
+            icon.transform.SetParent(container.transform, false);
+            icon.AddComponent<RectTransform>().sizeDelta = new Vector2(100, 100);
+            icon.AddComponent<Image>().color = new Color(0.3f, 0.7f, 1f);
+            timeShardsIcon = icon.transform;
+
+            // Info
+            var info = new GameObject("Info");
+            info.transform.SetParent(container.transform, false);
+            info.AddComponent<RectTransform>().sizeDelta = new Vector2(500, 150);
+            var infoLayout = info.AddComponent<VerticalLayoutGroup>();
+            infoLayout.spacing = 4f;
+            infoLayout.childAlignment = TextAnchor.MiddleLeft;
+            infoLayout.childControlWidth = true;
+            infoLayout.childControlHeight = false;
+
+            var levelObj = new GameObject("LevelText");
+            levelObj.transform.SetParent(info.transform, false);
+            levelText = levelObj.AddComponent<TextMeshProUGUI>();
+            levelText.text = "Fracture Level: 0";
+            levelText.fontSize = 80;
             levelText.fontStyle = FontStyles.Bold;
-            levelText.GetComponent<RectTransform>().sizeDelta = new Vector2(720, 60);
+            levelText.color = Color.white;
+            levelObj.AddComponent<LayoutElement>().preferredHeight = 88;
 
-            // Divider
-            CreateDivider(panel.transform);
-
-            // Requirements section
-            var reqLabel = CreateText(panel.transform, "REQUIREMENTS", 32, new Color(1f, 0.8f, 0.4f));
-            reqLabel.fontStyle = FontStyles.Bold;
-            reqLabel.GetComponent<RectTransform>().sizeDelta = new Vector2(720, 45);
-
-            requirementsText = CreateText(panel.transform, "", 28, Color.white);
-            requirementsText.GetComponent<RectTransform>().sizeDelta = new Vector2(720, 80);
-
-            // Rewards section
-            var rewLabel = CreateText(panel.transform, "REWARDS", 32, new Color(0.4f, 1f, 0.6f));
-            rewLabel.fontStyle = FontStyles.Bold;
-            rewLabel.GetComponent<RectTransform>().sizeDelta = new Vector2(720, 45);
-
-            rewardsText = CreateText(panel.transform, "", 28, Color.white);
-            rewardsText.GetComponent<RectTransform>().sizeDelta = new Vector2(720, 80);
-
-            // Current bonuses section
-            var bonusLabel = CreateText(panel.transform, "CURRENT BONUSES", 32, new Color(0.6f, 0.8f, 1f));
-            bonusLabel.fontStyle = FontStyles.Bold;
-            bonusLabel.GetComponent<RectTransform>().sizeDelta = new Vector2(720, 45);
-
-            currentBonusesText = CreateText(panel.transform, "", 26, Color.white);
-            currentBonusesText.GetComponent<RectTransform>().sizeDelta = new Vector2(720, 120);
-
-            // Warning
-            warningText = CreateText(panel.transform, "", 26, new Color(1f, 0.5f, 0.5f));
-            warningText.GetComponent<RectTransform>().sizeDelta = new Vector2(720, 70);
-
-            // Buttons container
-            var buttonsObj = new GameObject("Buttons");
-            buttonsObj.transform.SetParent(panel.transform, false);
-            var buttonsRect = buttonsObj.AddComponent<RectTransform>();
-            buttonsRect.sizeDelta = new Vector2(720, 100);
-
-            var buttonsLayout = buttonsObj.AddComponent<HorizontalLayoutGroup>();
-            buttonsLayout.spacing = 30;
-            buttonsLayout.childAlignment = TextAnchor.MiddleCenter;
-            buttonsLayout.childControlWidth = true;
-            buttonsLayout.childControlHeight = true;
-            buttonsLayout.childForceExpandWidth = true;
-
-            // Fracture button (purple, matching theme)
-            fractureButton = CreateStyledButton(buttonsObj.transform, "FRACTURE!", new Color(0.6f, 0.3f, 0.9f));
-            fractureButton.onClick.AddListener(OnFractureClicked);
-            fractureButtonText = fractureButton.GetComponentInChildren<TextMeshProUGUI>();
-
-            // Close button
-            closeButton = CreateStyledButton(buttonsObj.transform, "CLOSE", new Color(0.4f, 0.4f, 0.45f));
-            closeButton.onClick.AddListener(HidePanel);
-
-            return panel;
+            var shardsObj = new GameObject("ShardsText");
+            shardsObj.transform.SetParent(info.transform, false);
+            timeShardsText = shardsObj.AddComponent<TextMeshProUGUI>();
+            timeShardsText.text = "Time Shards: 0";
+            timeShardsText.fontSize = 72;
+            timeShardsText.color = new Color(0.4f, 0.8f, 1f);
+            shardsObj.AddComponent<LayoutElement>().preferredHeight = 80;
         }
 
-        private TextMeshProUGUI CreateText(Transform parent, string content, int fontSize, Color color)
+        private void CreateFallbackSection(Transform parent, string name, string title, Color titleColor, out TextMeshProUGUI contentText)
         {
-            var obj = new GameObject("Text");
-            obj.transform.SetParent(parent, false);
+            var card = new GameObject(name);
+            card.transform.SetParent(parent, false);
+            card.AddComponent<RectTransform>().sizeDelta = new Vector2(0, 340);
+            card.AddComponent<LayoutElement>().preferredHeight = 340;
+            card.AddComponent<Image>().color = new Color(0.95f, 0.95f, 0.95f, 0.95f);
 
-            var text = obj.AddComponent<TextMeshProUGUI>();
-            text.text = content;
-            text.fontSize = fontSize;
-            text.alignment = TextAlignmentOptions.Center;
-            text.color = color;
+            var cardLayout = card.AddComponent<VerticalLayoutGroup>();
+            cardLayout.padding = new RectOffset(16, 16, 12, 12);
+            cardLayout.spacing = 8f;
+            cardLayout.childAlignment = TextAnchor.UpperCenter;
+            cardLayout.childControlHeight = false;
+            cardLayout.childControlWidth = true;
 
-            return text;
+            var titleObj = new GameObject("Title");
+            titleObj.transform.SetParent(card.transform, false);
+            var titleTmp = titleObj.AddComponent<TextMeshProUGUI>();
+            titleTmp.text = title;
+            titleTmp.fontSize = 104;
+            titleTmp.fontStyle = FontStyles.Bold;
+            titleTmp.color = titleColor;
+            titleTmp.alignment = TextAlignmentOptions.Center;
+            titleObj.AddComponent<LayoutElement>().preferredHeight = 120;
+
+            var contentObj = new GameObject("Content");
+            contentObj.transform.SetParent(card.transform, false);
+            contentText = contentObj.AddComponent<TextMeshProUGUI>();
+            contentText.text = "Loading...";
+            contentText.fontSize = 96;
+            contentText.color = new Color(0.1f, 0.1f, 0.1f);
+            contentText.alignment = TextAlignmentOptions.Center;
+            contentText.richText = true;
+            contentObj.AddComponent<LayoutElement>().preferredHeight = 200;
         }
 
-        private void CreateDivider(Transform parent)
+        private void CreateFallbackWarning(Transform parent)
         {
-            var divider = new GameObject("Divider");
-            divider.transform.SetParent(parent, false);
+            var warning = new GameObject("WarningSection");
+            warning.transform.SetParent(parent, false);
+            warning.AddComponent<RectTransform>().sizeDelta = new Vector2(0, 140);
+            warning.AddComponent<LayoutElement>().preferredHeight = 140;
+            warning.AddComponent<Image>().color = new Color(1f, 0.3f, 0.3f, 0.25f);
 
-            var rect = divider.AddComponent<RectTransform>();
-            rect.sizeDelta = new Vector2(400, 2);
+            // Use vertical layout for centered content
+            var vLayout = warning.AddComponent<VerticalLayoutGroup>();
+            vLayout.padding = new RectOffset(20, 20, 15, 15);
+            vLayout.childAlignment = TextAnchor.MiddleCenter;
+            vLayout.childControlWidth = true;
+            vLayout.childControlHeight = false;
 
-            var img = divider.AddComponent<Image>();
-            img.color = new Color(0.5f, 0.3f, 0.7f, 0.5f);
+            var textObj = new GameObject("WarningText");
+            textObj.transform.SetParent(warning.transform, false);
+            var textRect = textObj.AddComponent<RectTransform>();
+            textRect.sizeDelta = new Vector2(0, 110);
+            warningText = textObj.AddComponent<TextMeshProUGUI>();
+            warningText.text = "⚠ All progress will be RESET!";
+            warningText.fontSize = 72;
+            warningText.fontStyle = FontStyles.Bold;
+            warningText.color = new Color(1f, 0.5f, 0.5f);
+            warningText.alignment = TextAlignmentOptions.Center;
+            textObj.AddComponent<LayoutElement>().preferredHeight = 110;
         }
 
-        private Button CreateStyledButton(Transform parent, string text, Color bgColor)
+        private void CreateFallbackFractureButton(Transform parent)
         {
-            var btnObj = new GameObject(text + "Button");
-            btnObj.transform.SetParent(parent, false);
+            var container = new GameObject("FractureButtonContainer");
+            container.transform.SetParent(parent, false);
+            container.AddComponent<RectTransform>().sizeDelta = new Vector2(0, 150);
+            container.AddComponent<LayoutElement>().preferredHeight = 150;
 
-            var rect = btnObj.AddComponent<RectTransform>();
-            rect.sizeDelta = new Vector2(280, 70);
+            var btnObj = new GameObject("FractureButton");
+            btnObj.transform.SetParent(container.transform, false);
+            var btnRect = btnObj.AddComponent<RectTransform>();
+            btnRect.anchorMin = new Vector2(0.1f, 0.05f);
+            btnRect.anchorMax = new Vector2(0.9f, 0.95f);
+            btnRect.offsetMin = Vector2.zero;
+            btnRect.offsetMax = Vector2.zero;
 
-            var bg = btnObj.AddComponent<Image>();
-            bg.color = bgColor;
+            var btnBg = btnObj.AddComponent<Image>();
+            btnBg.color = new Color(0.5f, 0.2f, 0.8f);
 
-            var btn = btnObj.AddComponent<Button>();
-            btn.targetGraphic = bg;
+            fractureButton = btnObj.AddComponent<Button>();
+            fractureButton.targetGraphic = btnBg;
 
-            var colors = btn.colors;
-            colors.highlightedColor = bgColor * 1.2f;
-            colors.pressedColor = bgColor * 0.8f;
-            colors.disabledColor = new Color(0.3f, 0.3f, 0.3f, 0.5f);
-            btn.colors = colors;
-
-            // Add outline for depth
-            var outline = btnObj.AddComponent<Outline>();
-            outline.effectColor = new Color(0, 0, 0, 0.5f);
-            outline.effectDistance = new Vector2(2, -2);
-
-            // Button text
             var textObj = new GameObject("Text");
             textObj.transform.SetParent(btnObj.transform, false);
-            var tmpText = textObj.AddComponent<TextMeshProUGUI>();
-            tmpText.text = text;
-            tmpText.fontSize = 32;
-            tmpText.fontStyle = FontStyles.Bold;
-            tmpText.alignment = TextAlignmentOptions.Center;
-            tmpText.color = Color.white;
-            ApplySharedFont(tmpText);
-
-            var textRect = textObj.GetComponent<RectTransform>();
+            var textRect = textObj.AddComponent<RectTransform>();
             textRect.anchorMin = Vector2.zero;
             textRect.anchorMax = Vector2.one;
             textRect.offsetMin = Vector2.zero;
             textRect.offsetMax = Vector2.zero;
 
-            return btn;
+            fractureButtonText = textObj.AddComponent<TextMeshProUGUI>();
+            fractureButtonText.text = "ACTIVATE TIME FRACTURE";
+            fractureButtonText.fontSize = 72;
+            fractureButtonText.fontStyle = FontStyles.Bold;
+            fractureButtonText.color = Color.white;
+            fractureButtonText.alignment = TextAlignmentOptions.Center;
         }
 
-        private void ApplySharedFont(TextMeshProUGUI text)
+        private void CreateFallbackCloseButton(Transform parent)
         {
-            if (text == null) return;
+            var closeObj = new GameObject("CloseButton");
+            closeObj.transform.SetParent(parent, false);
+            var rect = closeObj.AddComponent<RectTransform>();
+            rect.anchorMin = new Vector2(1, 1);
+            rect.anchorMax = new Vector2(1, 1);
+            rect.pivot = new Vector2(1, 1);
+            rect.anchoredPosition = new Vector2(-12, -12);
+            rect.sizeDelta = new Vector2(80, 80);
 
-            if (GameUI.Instance != null && GameUI.Instance.SharedFont != null)
-            {
-                text.font = GameUI.Instance.SharedFont;
-            }
+            var bg = closeObj.AddComponent<Image>();
+            bg.color = new Color(0.85f, 0.25f, 0.25f);
 
-            // Add outline effect
-            text.fontMaterial.EnableKeyword("OUTLINE_ON");
-            text.outlineWidth = 0.2f;
-            text.outlineColor = Color.black;
-        }
+            closeButton = closeObj.AddComponent<Button>();
+            closeButton.targetGraphic = bg;
 
-        private void CreateHudDisplay()
-        {
-            // HUD display is disabled - we use the main menu instead
-            hudDisplay = null;
-            hudShardsText = null;
+            var textObj = new GameObject("Text");
+            textObj.transform.SetParent(closeObj.transform, false);
+            var textRect = textObj.AddComponent<RectTransform>();
+            textRect.anchorMin = Vector2.zero;
+            textRect.anchorMax = Vector2.one;
+            textRect.offsetMin = Vector2.zero;
+            textRect.offsetMax = Vector2.zero;
+
+            var closeText = textObj.AddComponent<TextMeshProUGUI>();
+            closeText.text = "X";
+            closeText.fontSize = 48;
+            closeText.fontStyle = FontStyles.Bold;
+            closeText.color = Color.white;
+            closeText.alignment = TextAlignmentOptions.Center;
         }
 
         #endregion
@@ -320,37 +568,53 @@ namespace Incredicer.TimeFracture
 
         private void OnFractureCompleted(int newLevel)
         {
-            // Refresh display
             UpdateDisplay();
 
-            // Play celebration effect
             if (mainPanel != null)
             {
-                mainPanel.transform.DOPunchScale(Vector3.one * 0.1f, 0.3f, 5);
+                Sequence celebrationSeq = DOTween.Sequence();
+                celebrationSeq.Append(mainPanel.transform.DOPunchScale(Vector3.one * 0.15f, UIDesignSystem.AnimSuccessPop, 8));
+
+                if (timeShardsIcon != null)
+                {
+                    timeShardsIcon.DOScale(1.5f, 0.2f).SetLoops(2, LoopType.Yoyo).SetEase(Ease.OutBack);
+                }
+
+                if (levelText != null)
+                {
+                    levelText.transform.DOPunchScale(Vector3.one * 0.2f, 0.3f, 5);
+                    levelText.DOColor(UIDesignSystem.SuccessGreen, 0.2f)
+                        .OnComplete(() => levelText.DOColor(Color.white, 0.3f));
+                }
             }
         }
 
         private void OnTimeShardsChanged(double newAmount)
         {
-            UpdateHudDisplay();
+            if (panelRoot != null && panelRoot.activeSelf)
+            {
+                UpdateDisplay();
+            }
         }
 
         private void OnFractureClicked()
         {
             if (TimeFractureManager.Instance != null && TimeFractureManager.Instance.CanFracture())
             {
-                // Animate button
-                fractureButton.transform.DOPunchScale(Vector3.one * 0.2f, 0.2f, 3);
+                UIDesignSystem.AnimateSuccessPop(fractureButton.transform);
 
-                // Perform fracture
+                if (fractureButtonGlow != null)
+                {
+                    fractureButtonGlow.DOKill();
+                    fractureButtonGlow.color = new Color(0.8f, 0.5f, 1f, 0.9f);
+                    fractureButtonGlow.DOFade(0f, 0.5f);
+                }
+
                 TimeFractureManager.Instance.DoTimeFracture();
-
-                // Panel will update via event
             }
             else
             {
-                // Shake button to indicate can't fracture
-                fractureButton.transform.DOShakePosition(0.3f, 10f, 20);
+                UIDesignSystem.AnimateErrorShake(fractureButton.transform);
             }
         }
 
@@ -358,45 +622,110 @@ namespace Incredicer.TimeFracture
 
         #region Public API
 
-        /// <summary>
-        /// Shows the Time Fracture panel.
-        /// </summary>
         public void ShowPanel()
         {
+            if (!isInitialized)
+            {
+                InitializeUI();
+            }
+
             UpdateDisplay();
 
             panelRoot.SetActive(true);
+            panelRoot.transform.SetAsLastSibling();
 
-            // Animate in
-            panelRoot.GetComponent<Image>().color = new Color(0, 0, 0, 0);
-            panelRoot.GetComponent<Image>().DOFade(0.85f, animationDuration);
+            DOTween.Kill(panelRoot.transform);
+            DOTween.Kill(mainPanel.transform);
 
-            mainPanel.transform.localScale = Vector3.one * 0.8f;
-            mainPanel.transform.DOScale(1f, animationDuration).SetEase(Ease.OutBack);
+            var bgImage = panelRoot.GetComponent<Image>();
+            if (bgImage != null)
+            {
+                bgImage.color = new Color(0, 0, 0, 0);
+                bgImage.DOFade(0.92f, UIDesignSystem.AnimFadeIn).SetEase(UIDesignSystem.EaseFade);
+            }
+
+            mainPanel.transform.localScale = Vector3.one * 0.85f;
+            if (mainPanelCanvasGroup != null)
+            {
+                mainPanelCanvasGroup.alpha = 0f;
+                mainPanelCanvasGroup.DOFade(1f, UIDesignSystem.AnimFadeIn).SetEase(UIDesignSystem.EaseFade);
+            }
+            mainPanel.transform.DOScale(1f, UIDesignSystem.AnimSlideIn).SetEase(UIDesignSystem.EasePopIn);
+
+            if (TimeFractureManager.Instance != null && TimeFractureManager.Instance.CanFracture())
+            {
+                StartFractureButtonGlowAnimation();
+            }
+
+            // Apply button polish for press/release animations
+            if (UI.UIPolishManager.Instance != null)
+            {
+                UI.UIPolishManager.Instance.PolishButtonsInPanel(panelRoot);
+            }
+
+            if (PopupManager.Instance != null)
+                PopupManager.Instance.RegisterPopupOpen("TimeFractureUI");
         }
 
-        /// <summary>
-        /// Hides the Time Fracture panel.
-        /// </summary>
         public void HidePanel()
         {
-            if (!panelRoot.activeSelf) return;
+            if (panelRoot == null || !panelRoot.activeSelf) return;
 
-            panelRoot.GetComponent<Image>().DOFade(0f, animationDuration * 0.5f);
-            mainPanel.transform.DOScale(0.8f, animationDuration * 0.5f)
-                .SetEase(Ease.InBack)
-                .OnComplete(() => panelRoot.SetActive(false));
+            if (PopupManager.Instance != null)
+                PopupManager.Instance.RegisterPopupClosed("TimeFractureUI");
+
+            DOTween.Kill(panelRoot.transform);
+            DOTween.Kill(mainPanel.transform);
+            StopFractureButtonGlowAnimation();
+
+            var bgImage = panelRoot.GetComponent<Image>();
+            if (bgImage != null)
+            {
+                bgImage.DOFade(0f, UIDesignSystem.AnimFadeOut).SetEase(UIDesignSystem.EaseFade);
+            }
+
+            Sequence hideSeq = DOTween.Sequence();
+            if (mainPanelCanvasGroup != null)
+            {
+                hideSeq.Join(mainPanelCanvasGroup.DOFade(0f, UIDesignSystem.AnimFadeOut).SetEase(UIDesignSystem.EaseFade));
+            }
+            hideSeq.Join(mainPanel.transform.DOScale(0.85f, UIDesignSystem.AnimSlideOut).SetEase(UIDesignSystem.EasePopOut));
+            hideSeq.OnComplete(() => panelRoot.SetActive(false));
         }
 
-        /// <summary>
-        /// Toggles the Time Fracture panel visibility.
-        /// </summary>
         public void Toggle()
         {
             if (panelRoot != null && panelRoot.activeSelf)
                 HidePanel();
             else
                 ShowPanel();
+        }
+
+        #endregion
+
+        #region Animations
+
+        private void StartFractureButtonGlowAnimation()
+        {
+            if (fractureButtonGlow == null) return;
+
+            fractureButtonGlow.gameObject.SetActive(true);
+            fractureGlowTween = fractureButtonGlow.DOFade(0.25f, 0.8f)
+                .SetLoops(-1, LoopType.Yoyo)
+                .SetEase(Ease.InOutSine);
+        }
+
+        private void StopFractureButtonGlowAnimation()
+        {
+            if (fractureGlowTween != null)
+            {
+                fractureGlowTween.Kill();
+                fractureGlowTween = null;
+            }
+            if (fractureButtonGlow != null)
+            {
+                fractureButtonGlow.gameObject.SetActive(false);
+            }
         }
 
         #endregion
@@ -409,41 +738,76 @@ namespace Incredicer.TimeFracture
 
             var manager = TimeFractureManager.Instance;
 
-            // Level
-            levelText.text = $"Fracture Level: {manager.FractureLevel}";
+            if (levelText != null)
+                levelText.text = $"Fracture Level: {manager.FractureLevel}";
+
+            if (timeShardsText != null)
+            {
+                double currentShards = CurrencyManager.Instance?.TimeShards ?? 0;
+                timeShardsText.text = $"Time Shards: {currentShards:N0}";
+            }
 
             // Requirements
-            double moneyReq = manager.GetMoneyRequired();
-            double dmReq = manager.GetDarkMatterRequired();
-            double currentMoney = CurrencyManager.Instance?.Money ?? 0;
-            double currentDM = CurrencyManager.Instance?.DarkMatter ?? 0;
+            if (requirementsText != null)
+            {
+                double moneyReq = manager.GetMoneyRequired();
+                double dmReq = manager.GetDarkMatterRequired();
+                double currentMoney = CurrencyManager.Instance?.Money ?? 0;
+                double currentDM = CurrencyManager.Instance?.DarkMatter ?? 0;
 
-            string moneyColor = currentMoney >= moneyReq ? "#88FF88" : "#FF8888";
-            string dmColor = currentDM >= dmReq ? "#88FF88" : "#FF8888";
+                bool moneyMet = currentMoney >= moneyReq;
+                bool dmMet = currentDM >= dmReq;
 
-            requirementsText.text = $"<color={moneyColor}>${GameUI.FormatNumber(moneyReq)}</color> Money\n" +
-                                    $"<color={dmColor}>{GameUI.FormatNumber(dmReq)}</color> Dark Matter";
+                string moneyColor = moneyMet ? "#88FF88" : "#FF8888";
+                string dmColor = dmMet ? "#88FF88" : "#FF8888";
+                string moneyIcon = moneyMet ? "<color=#00FF00>OK</color>" : "<color=#FF0000>X</color>";
+                string dmIcon = dmMet ? "<color=#00FF00>OK</color>" : "<color=#FF0000>X</color>";
+
+                requirementsText.text = $"<color={moneyColor}>{moneyIcon} ${GameUI.FormatNumber(moneyReq)} Money</color>\n" +
+                                        $"<color={dmColor}>{dmIcon} {GameUI.FormatNumber(dmReq)} Dark Matter</color>";
+            }
 
             // Rewards
-            double potentialShards = manager.CalculatePotentialTimeShards();
-            rewardsText.text = $"+{potentialShards:N0} Time Shards\n" +
-                               manager.GetNextBonusPreview();
+            if (rewardsText != null)
+            {
+                double potentialShards = manager.CalculatePotentialTimeShards();
+                string bonusPreview = manager.GetNextBonusPreview();
+                rewardsText.text = $"<color=#66CCFF>+{potentialShards:N0} Time Shards</color>\n" +
+                                   $"<color=#AAFFAA>{bonusPreview}</color>";
+            }
 
             // Current bonuses
-            currentBonusesText.text = manager.GetBonusDescription();
+            if (currentBonusesText != null)
+            {
+                string bonuses = manager.GetBonusDescription();
+                currentBonusesText.text = string.IsNullOrEmpty(bonuses) ? "<color=#888888>No bonuses yet</color>" : bonuses;
+            }
 
             // Warning
-            warningText.text = "WARNING: All Money, Dark Matter,\nDice, and Skills will be RESET!";
+            if (warningText != null)
+            {
+                warningText.text = "All Money, Dark Matter, Dice & Skills RESET!";
+            }
 
             // Button state
-            bool canFracture = manager.CanFracture();
-            fractureButton.interactable = canFracture;
-            fractureButtonText.text = canFracture ? "FRACTURE!" : "Not Ready";
-        }
+            if (fractureButton != null)
+            {
+                bool canFracture = manager.CanFracture();
+                fractureButton.interactable = canFracture;
 
-        private void UpdateHudDisplay()
-        {
-            // HUD display is disabled - we use the main menu instead
+                if (fractureButtonText != null)
+                {
+                    fractureButtonText.text = canFracture ? "ACTIVATE TIME FRACTURE" : "REQUIREMENTS NOT MET";
+                }
+
+                if (panelRoot != null && panelRoot.activeSelf)
+                {
+                    if (canFracture)
+                        StartFractureButtonGlowAnimation();
+                    else
+                        StopFractureButtonGlowAnimation();
+                }
+            }
         }
 
         #endregion

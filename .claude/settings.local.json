@@ -29,7 +29,10 @@
       "mcp__coplay-mcp__remove_component",
       "mcp__coplay-mcp__set_sibling_index",
       "Bash(find:*)",
-      "mcp__ide__getDiagnostics"
+      "mcp__ide__getDiagnostics",
+      "Bash(uuidgen:*)",
+      "mcp__coplay-mcp__parent_gameobject",
+      "Bash(xargs:*)"
     ],
     "deny": [],
     "ask": []

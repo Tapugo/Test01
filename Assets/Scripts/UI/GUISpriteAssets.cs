@@ -50,6 +50,7 @@ namespace Incredicer.UI
         public Sprite iconStar;
         public Sprite iconCoin;
         public Sprite iconAdd;
+        public Sprite iconCheck;
 
         [Header("Labels/Ribbons")]
         public Sprite ribbonYellow;

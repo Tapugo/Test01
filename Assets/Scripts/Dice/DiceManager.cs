@@ -24,6 +24,14 @@ namespace Incredicer.Dice
         private float minX, maxX, minY, maxY;
         private Camera mainCamera;
 
+        // UI exclusion zones (in world units from screen edges)
+        // These should match the values in Dice.cs
+        private const float LEFT_UI_ZONE_WIDTH = 2.5f;   // How far from left edge for Skills/Ascend buttons
+        private const float LEFT_UI_ZONE_TOP = 3.5f;     // How far down from top the zone extends
+        private const float BOTTOM_UI_ZONE_HEIGHT = 1.8f; // How far up from bottom for shop panel
+        private const float RIGHT_UI_ZONE_WIDTH = 2.5f;  // How far from right edge for currency panel and menu
+        private const float RIGHT_UI_ZONE_TOP = 3.0f;    // How far down from top the right zone extends
+
         [Header("State")]
         [SerializeField] private bool darkMatterUnlocked = false;
 
@@ -127,6 +135,14 @@ namespace Incredicer.Dice
         }
 
         /// <summary>
+        /// Gets the basic dice data (convenience method).
+        /// </summary>
+        public DiceData GetBasicDiceData()
+        {
+            return GetDiceData(DiceType.Basic);
+        }
+
+        /// <summary>
         /// Checks if a dice type is unlocked.
         /// </summary>
         public bool IsDiceTypeUnlocked(DiceType type)
@@ -214,7 +230,7 @@ namespace Incredicer.Dice
                 sr.sortingOrder = 1;
                 
                 var collider = diceObj.AddComponent<CircleCollider2D>();
-                collider.radius = 0.5f;
+                collider.radius = 0.25f; // Smaller radius for tighter click detection
                 
                 diceObj.AddComponent<Dice>();
             }
@@ -271,6 +287,36 @@ namespace Incredicer.Dice
 
             // Destroy the game object
             Destroy(dice.gameObject);
+
+            // Ensure at least one dice always exists (prevent soft-lock)
+            EnsureAtLeastOneDice();
+        }
+
+        /// <summary>
+        /// Ensures the player always has at least one dice to prevent soft-lock.
+        /// Spawns a free basic dice if all dice have been destroyed.
+        /// </summary>
+        private void EnsureAtLeastOneDice()
+        {
+            // Clean up null references first
+            activeDice.RemoveAll(d => d == null);
+
+            // If no dice remain, spawn a free basic dice
+            if (activeDice.Count == 0)
+            {
+                Debug.Log("[DiceManager] No dice remaining! Spawning free basic dice to prevent soft-lock.");
+
+                DiceData basicData = allDiceData.Find(d => d.type == DiceType.Basic);
+                if (basicData == null && allDiceData.Count > 0)
+                {
+                    basicData = allDiceData[0]; // Fallback to first available
+                }
+
+                if (basicData != null)
+                {
+                    SpawnDice(basicData, Vector2.zero);
+                }
+            }
         }
 
         /// <summary>
@@ -360,20 +406,57 @@ namespace Incredicer.Dice
         }
 
         /// <summary>
-        /// Gets a random spawn position within screen bounds.
+        /// Checks if a position is inside a UI exclusion zone.
+        /// </summary>
+        private bool IsInUIZone(Vector2 pos)
+        {
+            if (mainCamera == null) return false;
+
+            float cameraHeight = mainCamera.orthographicSize;
+            float cameraWidth = cameraHeight * mainCamera.aspect;
+            float camX = mainCamera.transform.position.x;
+            float camY = mainCamera.transform.position.y;
+
+            float screenLeft = camX - cameraWidth;
+            float screenRight = camX + cameraWidth;
+            float screenTop = camY + cameraHeight;
+            float screenBottom = camY - cameraHeight;
+
+            // Check if in left buttons zone (top-left corner - Skills/Ascend buttons)
+            bool inLeftZone = pos.x < screenLeft + LEFT_UI_ZONE_WIDTH &&
+                              pos.y > screenTop - LEFT_UI_ZONE_TOP;
+
+            // Check if in right UI zone (top-right corner - currency panel and menu)
+            bool inRightZone = pos.x > screenRight - RIGHT_UI_ZONE_WIDTH &&
+                               pos.y > screenTop - RIGHT_UI_ZONE_TOP;
+
+            // Check if in bottom shop panel zone (center-bottom)
+            bool inBottomZone = pos.y < screenBottom + BOTTOM_UI_ZONE_HEIGHT;
+
+            return inLeftZone || inRightZone || inBottomZone;
+        }
+
+        /// <summary>
+        /// Gets a random spawn position within screen bounds, avoiding UI zones.
         /// </summary>
         private Vector2 GetRandomSpawnPosition()
         {
             // Recalculate bounds in case camera changed
             CalculateScreenBounds();
 
-            // Try to find a position that doesn't overlap with existing dice
-            for (int attempts = 0; attempts < 30; attempts++)
+            // Try to find a position that doesn't overlap with existing dice and avoids UI zones
+            for (int attempts = 0; attempts < 50; attempts++)
             {
                 Vector2 pos = new Vector2(
                     Random.Range(minX, maxX),
                     Random.Range(minY, maxY)
                 );
+
+                // Skip if position is in a UI zone
+                if (IsInUIZone(pos))
+                {
+                    continue;
+                }
 
                 bool valid = true;
                 foreach (Dice dice in activeDice)
@@ -388,11 +471,22 @@ namespace Incredicer.Dice
                 if (valid) return pos;
             }
 
-            // Fallback to random position within bounds
-            return new Vector2(
-                Random.Range(minX, maxX),
-                Random.Range(minY, maxY)
-            );
+            // Fallback: try to find any position outside UI zones
+            for (int attempts = 0; attempts < 20; attempts++)
+            {
+                Vector2 pos = new Vector2(
+                    Random.Range(minX, maxX),
+                    Random.Range(minY, maxY)
+                );
+
+                if (!IsInUIZone(pos))
+                {
+                    return pos;
+                }
+            }
+
+            // Last resort: return center of screen
+            return mainCamera != null ? (Vector2)mainCamera.transform.position : Vector2.zero;
         }
 
         /// <summary>

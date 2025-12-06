@@ -14,16 +14,16 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   nodeId: 5
   displayName: Big Payouts
-  description: Jackpots are now worth 3x instead of 2x.
+  description: "Global money from all sources \xD72."
   icon: {fileID: 0}
   branch: 1
-  tier: 4
-  treePosition: {x: -200, y: -400}
-  darkMatterCost: 10
-  prerequisites: 07000000
+  tier: 3
+  treePosition: {x: -200, y: -300}
+  darkMatterCost: 250000
+  prerequisites: 03000000
   effects:
-  - effectType: 5
-    value: 1.5
+  - effectType: 1
+    value: 2
     targetDiceType: 0
     unlockSkill: 0
     specialFlag: 0

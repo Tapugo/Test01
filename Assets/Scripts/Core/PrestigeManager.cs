@@ -15,7 +15,7 @@ namespace Incredicer.Core
         public static PrestigeManager Instance { get; private set; }
 
         [Header("Ascension Settings")]
-        [SerializeField] private double ascensionCost = 1000;
+        [SerializeField] private double ascensionCost = 10000;
 
         [Header("State")]
         [SerializeField] private int ascensionLevel = 0;

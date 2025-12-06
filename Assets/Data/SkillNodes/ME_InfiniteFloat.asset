@@ -14,16 +14,21 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   nodeId: 8
   displayName: Infinite Float
-  description: All money gains increased by +100%.
+  description: "Helper-hand (idle) rolls: +200% money. Manual rolls: \u201320% money."
   icon: {fileID: 0}
   branch: 1
   tier: 5
   treePosition: {x: -250, y: -500}
-  darkMatterCost: 25
-  prerequisites: 0500000004000000
+  darkMatterCost: 15000000
+  prerequisites: 07000000
   effects:
-  - effectType: 1
-    value: 2
+  - effectType: 3
+    value: 3
+    targetDiceType: 0
+    unlockSkill: 0
+    specialFlag: 0
+  - effectType: 2
+    value: 0.8
     targetDiceType: 0
     unlockSkill: 0
     specialFlag: 0

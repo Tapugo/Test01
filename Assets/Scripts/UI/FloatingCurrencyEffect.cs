@@ -21,14 +21,14 @@ namespace Incredicer.UI
 
         [Header("Settings")]
         [SerializeField] private float travelDuration = 0.6f;
-        [SerializeField] private float startScale = 1.2f;
-        [SerializeField] private float endScale = 0.5f;
+        [SerializeField] private float startScale = 2.4f;
+        [SerializeField] private float endScale = 1.0f;
         [SerializeField] private float arcHeight = 100f;
 
         [Header("Particle Settings")]
         [SerializeField] private int particleCount = 5;
         [SerializeField] private float particleSpread = 30f;
-        [SerializeField] private float particleSize = 40f;
+        [SerializeField] private float particleSize = 80f;
         [SerializeField] private float particleStagger = 0.05f;
 
         [Header("Prefab")]
@@ -189,6 +189,14 @@ namespace Incredicer.UI
         {
             if (moneyTargetPosition == null || canvas == null) return;
 
+            // Don't spawn effects when a popup is open
+            if (Core.PopupManager.Instance != null && Core.PopupManager.Instance.IsAnyPopupOpen)
+            {
+                // Still add the money directly since we're skipping the visual effect
+                Core.CurrencyManager.Instance?.AddMoneyDirect(amount);
+                return;
+            }
+
             Color effectColor = isJackpot ? new Color(1f, 0.85f, 0.2f) : new Color(0.4f, 1f, 0.4f);
             string text = $"+${GameUI.FormatNumber(amount)}";
 
@@ -206,6 +214,14 @@ namespace Incredicer.UI
         public void SpawnDarkMatterEffect(Vector3 worldPosition, double amount)
         {
             if (darkMatterTargetPosition == null || canvas == null) return;
+
+            // Don't spawn effects when a popup is open
+            if (Core.PopupManager.Instance != null && Core.PopupManager.Instance.IsAnyPopupOpen)
+            {
+                // Still add the dark matter directly since we're skipping the visual effect
+                Core.CurrencyManager.Instance?.AddDarkMatterDirect(amount);
+                return;
+            }
 
             Color effectColor = new Color(0.8f, 0.5f, 1f);
             string text = $"+{GameUI.FormatNumber(amount)} DM";
@@ -343,7 +359,7 @@ namespace Incredicer.UI
             effectObj.transform.SetParent(canvas.transform, false);
 
             RectTransform rt = effectObj.AddComponent<RectTransform>();
-            rt.sizeDelta = new Vector2(200, 60);
+            rt.sizeDelta = new Vector2(400, 120);
 
             // Convert world position to screen position
             Vector3 screenPos = mainCamera.WorldToScreenPoint(worldPosition);
@@ -359,7 +375,7 @@ namespace Incredicer.UI
             // Add text
             TextMeshProUGUI tmp = effectObj.AddComponent<TextMeshProUGUI>();
             tmp.text = text;
-            tmp.fontSize = 36;
+            tmp.fontSize = 72;
             tmp.fontStyle = FontStyles.Bold;
             tmp.alignment = TextAlignmentOptions.Center;
             tmp.color = color;

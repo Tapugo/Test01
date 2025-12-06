@@ -14,16 +14,16 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   nodeId: 1
   displayName: Loose Change
-  description: All dice earn +10% more money.
+  description: +25% money from all dice rolls.
   icon: {fileID: 0}
   branch: 1
   tier: 1
   treePosition: {x: -200, y: -100}
-  darkMatterCost: 1
+  darkMatterCost: 5000
   prerequisites: 00000000
   effects:
-  - effectType: 1
-    value: 1.1
+  - effectType: 0
+    value: 0.25
     targetDiceType: 0
     unlockSkill: 0
     specialFlag: 0

@@ -16,7 +16,7 @@ namespace Incredicer.Helpers
     public class HelperHand : MonoBehaviour
     {
         [Header("Settings")]
-        [SerializeField] private float baseCooldown = 2f;
+        [SerializeField] private float baseCooldown = 4f;
         [SerializeField] private float moveSpeed = 5f;
 
         [Header("Visual")]

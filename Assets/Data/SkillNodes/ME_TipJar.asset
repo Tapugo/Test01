@@ -14,16 +14,17 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   nodeId: 4
   displayName: Tip Jar
-  description: Rolling a 6 now gives +50% bonus money.
+  description: When Table Tax procs, bonus coin is 5% of current money instead of
+    +50 flat.
   icon: {fileID: 0}
   branch: 1
-  tier: 3
+  tier: 2
   treePosition: {x: -300, y: -250}
-  darkMatterCost: 4
+  darkMatterCost: 50000
   prerequisites: 02000000
   effects:
-  - effectType: 5
-    value: 1.25
+  - effectType: 19
+    value: 0.05
     targetDiceType: 0
     unlockSkill: 0
     specialFlag: 0

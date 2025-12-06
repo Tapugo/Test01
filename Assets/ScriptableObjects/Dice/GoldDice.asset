@@ -18,6 +18,6 @@ MonoBehaviour:
   dmPerRoll: 0.2
   sprite: {fileID: 0}
   tintColor: {r: 1, g: 0.84, b: 0, a: 1}
-  shopBaseCost: 2500
-  shopCostGrowth: 1.22
+  shopBaseCost: 18000
+  shopCostGrowth: 1.48
   rollCooldown: 0.35

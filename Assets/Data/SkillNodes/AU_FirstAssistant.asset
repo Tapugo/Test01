@@ -14,12 +14,12 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   nodeId: 9
   displayName: First Assistant
-  description: Unlock your first Helper Hand to auto-roll dice.
+  description: Unlocks Helper Hands system. +1 free Helper Hand.
   icon: {fileID: 0}
   branch: 2
   tier: 1
   treePosition: {x: 0, y: -150}
-  darkMatterCost: 2
+  darkMatterCost: 7500
   prerequisites: 00000000
   effects:
   - effectType: 9

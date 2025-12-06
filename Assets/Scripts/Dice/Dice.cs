@@ -33,7 +33,7 @@ namespace Incredicer.Dice
 
         [Header("Animation Settings")]
         [SerializeField] private float bounceHeight = 1.5f;
-        [SerializeField] private float bounceDuration = 0.25f;
+        [SerializeField] private float bounceDuration = 15.0f; // 5x slower (was 3.0f)
         [SerializeField] private float moveDistance = 2.5f;
         [SerializeField] private float spinSpeed = 720f;
         [SerializeField] private int bounceCount = 2;
@@ -48,6 +48,9 @@ namespace Incredicer.Dice
         private const float LEFT_UI_ZONE_TOP = 3.5f;     // How far down from top the zone extends
         // Bottom shop panel zone: center-bottom where Buy/Upgrade buttons are
         private const float BOTTOM_UI_ZONE_HEIGHT = 1.8f; // How far up from bottom
+        // Right UI zone: top-right corner where currency panel and menu are
+        private const float RIGHT_UI_ZONE_WIDTH = 2.5f;  // How far from right edge
+        private const float RIGHT_UI_ZONE_TOP = 3.0f;    // How far down from top
 
         // Dice face sprites (generated at runtime)
         private Sprite[] faceSprites;
@@ -64,7 +67,7 @@ namespace Incredicer.Dice
         private double dmMultiplier = 1.0;
 
         // Store the initial scale set during Initialize
-        private Vector3 initialScale = Vector3.one * 0.504f; // 30% smaller than original 0.7f (10% smaller than 0.56)
+        private Vector3 initialScale = Vector3.one * 0.3226f; // 20% smaller than 0.4032f
 
         // FocusedGravity / PrecisionAim movement
         [Header("Gravity Settings")]
@@ -245,17 +248,22 @@ namespace Incredicer.Dice
             float camY = mainCamera.transform.position.y;
 
             float screenLeft = camX - cameraWidth;
+            float screenRight = camX + cameraWidth;
             float screenTop = camY + cameraHeight;
             float screenBottom = camY - cameraHeight;
 
-            // Check if in left buttons zone (top-left corner)
+            // Check if in left buttons zone (top-left corner - Skills/Ascend buttons)
             bool inLeftZone = pos.x < screenLeft + LEFT_UI_ZONE_WIDTH &&
                               pos.y > screenTop - LEFT_UI_ZONE_TOP;
+
+            // Check if in right UI zone (top-right corner - currency panel and menu)
+            bool inRightZone = pos.x > screenRight - RIGHT_UI_ZONE_WIDTH &&
+                               pos.y > screenTop - RIGHT_UI_ZONE_TOP;
 
             // Check if in bottom shop panel zone (center-bottom)
             bool inBottomZone = pos.y < screenBottom + BOTTOM_UI_ZONE_HEIGHT;
 
-            return inLeftZone || inBottomZone;
+            return inLeftZone || inRightZone || inBottomZone;
         }
 
         /// <summary>
@@ -418,10 +426,10 @@ namespace Incredicer.Dice
             initialScale = Vector3.one * 0.504f; // 30% smaller than original 0.7f (10% smaller than 0.56)
             transform.localScale = initialScale;
 
-            // Update collider to match
+            // Update collider to match - smaller radius for tighter click detection
             if (circleCollider != null)
             {
-                circleCollider.radius = 0.5f;
+                circleCollider.radius = 0.25f;
             }
         }
 
@@ -835,6 +843,9 @@ namespace Incredicer.Dice
         /// </summary>
         private void SpawnRollEffect(bool isJackpot)
         {
+            // Don't spawn particle effects when a popup is open
+            if (Core.PopupManager.Instance != null && Core.PopupManager.Instance.IsAnyPopupOpen) return;
+
             GameObject prefab = isJackpot ? jackpotEffectPrefab : rollEffectPrefab;
 
             if (prefab != null)

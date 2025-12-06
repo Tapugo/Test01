@@ -14,16 +14,16 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   nodeId: 14
   displayName: Perfect Rhythm
-  description: Helper Hands earn +50% more money.
+  description: "Helper Hand roll cooldown \u201330% (stacks with Greased Gears)."
   icon: {fileID: 0}
   branch: 2
-  tier: 4
+  tier: 3
   treePosition: {x: 0, y: -450}
-  darkMatterCost: 8
-  prerequisites: 0c0000000d000000
+  darkMatterCost: 600000
+  prerequisites: 0c000000
   effects:
-  - effectType: 3
-    value: 1.5
+  - effectType: 8
+    value: 1.43
     targetDiceType: 0
     unlockSkill: 0
     specialFlag: 0

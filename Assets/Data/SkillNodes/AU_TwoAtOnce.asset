@@ -13,13 +13,13 @@ MonoBehaviour:
   m_Name: AU_TwoAtOnce
   m_EditorClassIdentifier: 
   nodeId: 12
-  displayName: Two at Once
-  description: Each Helper Hand rolls 2 dice per action.
+  displayName: Two-at-Once
+  description: Each Helper Hand now rolls 2 different dice per cycle.
   icon: {fileID: 0}
   branch: 2
-  tier: 3
+  tier: 2
   treePosition: {x: -50, y: -350}
-  darkMatterCost: 6
+  darkMatterCost: 80000
   prerequisites: 0a000000
   effects:
   - effectType: 10

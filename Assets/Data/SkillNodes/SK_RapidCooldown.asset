@@ -17,9 +17,9 @@ MonoBehaviour:
   description: Active skills recharge 25% faster.
   icon: {fileID: 0}
   branch: 4
-  tier: 3
+  tier: 2
   treePosition: {x: -100, y: -300}
-  darkMatterCost: 6
+  darkMatterCost: 100000
   prerequisites: 1d000000
   effects:
   - effectType: 12
