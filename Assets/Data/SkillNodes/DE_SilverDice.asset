@@ -19,7 +19,7 @@ MonoBehaviour:
   branch: 3
   tier: 2
   treePosition: {x: 250, y: -200}
-  darkMatterCost: 50000
+  darkMatterCost: 25000
   prerequisites: 11000000
   effects:
   - effectType: 14

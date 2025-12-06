@@ -32,7 +32,9 @@
       "mcp__ide__getDiagnostics",
       "Bash(uuidgen:*)",
       "mcp__coplay-mcp__parent_gameobject",
-      "Bash(xargs:*)"
+      "Bash(xargs:*)",
+      "Bash(grep:*)",
+      "Bash(sort:*)"
     ],
     "deny": [],
     "ask": []

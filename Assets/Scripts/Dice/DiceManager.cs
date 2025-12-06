@@ -96,8 +96,8 @@ namespace Incredicer.Dice
 
                 if (basicData != null)
                 {
-                    SpawnDice(basicData, Vector2.zero);
-                    Debug.Log("[DiceManager] Spawned initial basic dice");
+                    SpawnDiceWithoutCountIncrement(basicData, Vector2.zero);
+                    Debug.Log("[DiceManager] Spawned initial basic dice (free, doesn't affect price)");
                 }
                 else
                 {
@@ -213,8 +213,24 @@ namespace Incredicer.Dice
         /// </summary>
         public Dice SpawnDice(DiceData data, Vector2 position)
         {
+            return SpawnDiceInternal(data, position, incrementCount: true);
+        }
+
+        /// <summary>
+        /// Spawns a dice without incrementing the owned count (used for free starting dice).
+        /// </summary>
+        private Dice SpawnDiceWithoutCountIncrement(DiceData data, Vector2 position)
+        {
+            return SpawnDiceInternal(data, position, incrementCount: false);
+        }
+
+        /// <summary>
+        /// Internal method to spawn a dice with optional count increment.
+        /// </summary>
+        private Dice SpawnDiceInternal(DiceData data, Vector2 position, bool incrementCount)
+        {
             GameObject diceObj;
-            
+
             if (dicePrefab != null)
             {
                 diceObj = Instantiate(dicePrefab, position, Quaternion.identity);
@@ -224,14 +240,14 @@ namespace Incredicer.Dice
                 // Create dice object manually if no prefab
                 diceObj = new GameObject($"Dice_{data.type}");
                 diceObj.transform.position = position;
-                
+
                 // Add required components
                 var sr = diceObj.AddComponent<SpriteRenderer>();
                 sr.sortingOrder = 1;
-                
+
                 var collider = diceObj.AddComponent<CircleCollider2D>();
                 collider.radius = 0.25f; // Smaller radius for tighter click detection
-                
+
                 diceObj.AddComponent<Dice>();
             }
 
@@ -242,7 +258,10 @@ namespace Incredicer.Dice
             dice.OnDarkMatterGenerated += HandleDarkMatterGenerated;
 
             activeDice.Add(dice);
-            ownedDiceCount[data.type]++;
+            if (incrementCount)
+            {
+                ownedDiceCount[data.type]++;
+            }
 
             OnDiceSpawned?.Invoke(dice);
             return dice;

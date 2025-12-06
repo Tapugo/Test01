@@ -19,6 +19,6 @@ MonoBehaviour:
   branch: 0
   tier: 0
   treePosition: {x: 0, y: 0}
-  darkMatterCost: 0
+  darkMatterCost: 1
   prerequisites: 
   effects: []

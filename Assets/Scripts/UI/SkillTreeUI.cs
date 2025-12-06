@@ -153,66 +153,39 @@ namespace Incredicer.UI
         private void InitializeSkillNodeDefinitions()
         {
             allNodes.Clear();
-            Color coreColor = branchColors[SkillBranch.Core];
-            Color moneyColor = branchColors[SkillBranch.MoneyEngine];
-            Color autoColor = branchColors[SkillBranch.Automation];
-            Color diceColor = branchColors[SkillBranch.DiceEvolution];
-            Color skillColor = branchColors[SkillBranch.SkillsUtility];
 
-            // Core - costs 1 DM to unlock the skill tree
-            AddNode(SkillNodeId.CORE_DarkMatterCore, "Dark Matter Core", "Unlocks the skill tree. Your journey begins here.", 1, SkillBranch.Core, coreColor);
+            // Load skill data from SkillTreeManager's ScriptableObjects (the source of truth)
+            if (SkillTreeManager.Instance != null)
+            {
+                // Get all branches and their nodes from the manager
+                foreach (var branch in branchOrder)
+                {
+                    Color branchColor = branchColors.ContainsKey(branch) ? branchColors[branch] : Color.white;
+                    var nodesInBranch = SkillTreeManager.Instance.GetNodesInBranch(branch);
 
-            // Money Engine
-            AddNode(SkillNodeId.ME_LooseChange, "Loose Change", "+10% to all money gains", 5, SkillBranch.MoneyEngine, moneyColor, SkillNodeId.CORE_DarkMatterCore);
-            AddNode(SkillNodeId.ME_TableTax, "Table Tax", "1% chance for bonus coin on each roll", 10, SkillBranch.MoneyEngine, moneyColor, SkillNodeId.CORE_DarkMatterCore);
-            AddNode(SkillNodeId.ME_CompoundInterest, "Compound Interest", "+5% money per owned dice", 15, SkillBranch.MoneyEngine, moneyColor, SkillNodeId.ME_LooseChange);
-            AddNode(SkillNodeId.ME_TipJar, "Tip Jar", "Idle earnings +20%", 15, SkillBranch.MoneyEngine, moneyColor, SkillNodeId.ME_LooseChange);
-            AddNode(SkillNodeId.ME_BigPayouts, "Big Payouts", "Jackpot multiplier x1.5", 20, SkillBranch.MoneyEngine, moneyColor, SkillNodeId.ME_TableTax);
-            AddNode(SkillNodeId.ME_JackpotChance, "Jackpot Chance", "+5% jackpot chance", 30, SkillBranch.MoneyEngine, moneyColor, SkillNodeId.ME_CompoundInterest, SkillNodeId.ME_TipJar);
-            AddNode(SkillNodeId.ME_DarkDividends, "Dark Dividends", "+25% Dark Matter from rolls", 40, SkillBranch.MoneyEngine, moneyColor, SkillNodeId.ME_BigPayouts);
-            AddNode(SkillNodeId.ME_InfiniteFloat, "Infinite Float", "All money gains x2", 100, SkillBranch.MoneyEngine, moneyColor, SkillNodeId.ME_JackpotChance, SkillNodeId.ME_DarkDividends);
+                    foreach (var nodeData in nodesInBranch)
+                    {
+                        if (nodeData != null)
+                        {
+                            allNodes[nodeData.nodeId] = new SkillNodeDef(
+                                nodeData.nodeId,
+                                nodeData.displayName,
+                                nodeData.description,
+                                nodeData.darkMatterCost,
+                                nodeData.branch,
+                                branchColor,
+                                nodeData.prerequisites.ToArray()
+                            );
+                        }
+                    }
+                }
 
-            // Automation
-            AddNode(SkillNodeId.AU_FirstAssistant, "First Assistant", "Unlock Helper Hand automation", 5, SkillBranch.Automation, autoColor, SkillNodeId.CORE_DarkMatterCore);
-            AddNode(SkillNodeId.AU_GreasedGears, "Greased Gears", "Helpers roll 25% faster", 10, SkillBranch.Automation, autoColor, SkillNodeId.AU_FirstAssistant);
-            AddNode(SkillNodeId.AU_MoreHands, "More Hands", "+1 max helper hand", 15, SkillBranch.Automation, autoColor, SkillNodeId.AU_FirstAssistant);
-            AddNode(SkillNodeId.AU_TwoAtOnce, "Two at Once", "Each helper rolls 2 dice", 25, SkillBranch.Automation, autoColor, SkillNodeId.AU_GreasedGears);
-            AddNode(SkillNodeId.AU_Overtime, "Overtime", "Helpers 50% faster", 30, SkillBranch.Automation, autoColor, SkillNodeId.AU_MoreHands);
-            AddNode(SkillNodeId.AU_PerfectRhythm, "Perfect Rhythm", "Helpers sync for combo bonuses", 50, SkillBranch.Automation, autoColor, SkillNodeId.AU_TwoAtOnce, SkillNodeId.AU_Overtime);
-            AddNode(SkillNodeId.AU_AssemblyLine, "Assembly Line", "+2 max helper hands", 75, SkillBranch.Automation, autoColor, SkillNodeId.AU_Overtime);
-            AddNode(SkillNodeId.AU_IdleKing, "Idle King", "Helpers earn bonus Dark Matter", 150, SkillBranch.Automation, autoColor, SkillNodeId.AU_PerfectRhythm, SkillNodeId.AU_AssemblyLine);
-
-            // Dice Evolution
-            AddNode(SkillNodeId.DE_BronzeDice, "Bronze Dice", "Unlock Bronze tier dice", 10, SkillBranch.DiceEvolution, diceColor, SkillNodeId.CORE_DarkMatterCore);
-            AddNode(SkillNodeId.DE_PolishedBronze, "Polished Bronze", "Bronze dice +15% money", 15, SkillBranch.DiceEvolution, diceColor, SkillNodeId.DE_BronzeDice);
-            AddNode(SkillNodeId.DE_SilverDice, "Silver Dice", "Unlock Silver tier dice", 25, SkillBranch.DiceEvolution, diceColor, SkillNodeId.DE_BronzeDice);
-            AddNode(SkillNodeId.DE_SilverVeins, "Silver Veins", "Silver dice +20% money", 35, SkillBranch.DiceEvolution, diceColor, SkillNodeId.DE_PolishedBronze, SkillNodeId.DE_SilverDice);
-            AddNode(SkillNodeId.DE_GoldDice, "Gold Dice", "Unlock Gold tier dice", 50, SkillBranch.DiceEvolution, diceColor, SkillNodeId.DE_SilverDice);
-            AddNode(SkillNodeId.DE_GoldRush, "Gold Rush", "Gold dice +25% Dark Matter", 75, SkillBranch.DiceEvolution, diceColor, SkillNodeId.DE_SilverVeins, SkillNodeId.DE_GoldDice);
-            AddNode(SkillNodeId.DE_EmeraldDice, "Emerald Dice", "Unlock Emerald tier dice", 100, SkillBranch.DiceEvolution, diceColor, SkillNodeId.DE_GoldDice);
-            AddNode(SkillNodeId.DE_GemSynergy, "Gem Synergy", "All gem dice +10% bonus", 150, SkillBranch.DiceEvolution, diceColor, SkillNodeId.DE_GoldRush, SkillNodeId.DE_EmeraldDice);
-            AddNode(SkillNodeId.DE_RubyDice, "Ruby Dice", "Unlock Ruby tier dice", 200, SkillBranch.DiceEvolution, diceColor, SkillNodeId.DE_EmeraldDice);
-            AddNode(SkillNodeId.DE_DiamondDice, "Diamond Dice", "Unlock Diamond tier dice", 500, SkillBranch.DiceEvolution, diceColor, SkillNodeId.DE_GemSynergy, SkillNodeId.DE_RubyDice);
-
-            // Skills & Utility
-            AddNode(SkillNodeId.SK_QuickFlick, "Quick Flick", "Unlock Roll Burst ability", 10, SkillBranch.SkillsUtility, skillColor, SkillNodeId.CORE_DarkMatterCore);
-            AddNode(SkillNodeId.SK_LongReach, "Long Reach", "+25% click radius", 10, SkillBranch.SkillsUtility, skillColor, SkillNodeId.CORE_DarkMatterCore);
-            AddNode(SkillNodeId.SK_RollBurstII, "Roll Burst II", "Roll Burst triggers x2 rolls", 25, SkillBranch.SkillsUtility, skillColor, SkillNodeId.SK_QuickFlick);
-            AddNode(SkillNodeId.SK_RapidCooldown, "Rapid Cooldown", "-20% skill cooldown", 25, SkillBranch.SkillsUtility, skillColor, SkillNodeId.SK_QuickFlick);
-            AddNode(SkillNodeId.SK_FocusedGravity, "Focused Gravity", "Dice cluster together", 35, SkillBranch.SkillsUtility, skillColor, SkillNodeId.SK_LongReach);
-            AddNode(SkillNodeId.SK_PrecisionAim, "Precision Aim", "Hold to attract dice to cursor", 50, SkillBranch.SkillsUtility, skillColor, SkillNodeId.SK_FocusedGravity);
-            AddNode(SkillNodeId.SK_Hyperburst, "Hyperburst", "Unlock mega burst ability", 75, SkillBranch.SkillsUtility, skillColor, SkillNodeId.SK_RollBurstII, SkillNodeId.SK_RapidCooldown);
-            AddNode(SkillNodeId.SK_TimeDilation, "Time Dilation", "2x Dark Matter during skills", 100, SkillBranch.SkillsUtility, skillColor, SkillNodeId.SK_RapidCooldown);
-
-            // Feature Unlocks - Order: Daily Rewards, Missions, Milestones, Leaderboard, Global Events, Time Fracture, Overclock
-            Color featureColor = branchColors.ContainsKey(SkillBranch.FeatureUnlocks) ? branchColors[SkillBranch.FeatureUnlocks] : new Color(0.2f, 0.8f, 0.9f);
-            AddNode(SkillNodeId.FU_DailyLogin, "Daily Rewards", "Unlock daily login bonuses - roll dice for rewards!", 15, SkillBranch.FeatureUnlocks, featureColor, SkillNodeId.CORE_DarkMatterCore);
-            AddNode(SkillNodeId.FU_Missions, "Missions", "Unlock daily and weekly missions for extra rewards!", 20, SkillBranch.FeatureUnlocks, featureColor, SkillNodeId.FU_DailyLogin);
-            AddNode(SkillNodeId.FU_Milestones, "Milestones", "Unlock milestone achievements with permanent rewards!", 30, SkillBranch.FeatureUnlocks, featureColor, SkillNodeId.FU_Missions);
-            AddNode(SkillNodeId.FU_Leaderboard, "Leaderboard", "Unlock global leaderboards to compete with other players!", 50, SkillBranch.FeatureUnlocks, featureColor, SkillNodeId.FU_Milestones);
-            AddNode(SkillNodeId.FU_GlobalEvents, "Global Events", "Unlock community events with shared goals and rewards!", 75, SkillBranch.FeatureUnlocks, featureColor, SkillNodeId.FU_Leaderboard);
-            AddNode(SkillNodeId.FU_TimeFracture, "Time Fracture", "Unlock Time Fracture mode - risk it all for massive rewards!", 100, SkillBranch.FeatureUnlocks, featureColor, SkillNodeId.FU_GlobalEvents);
-            AddNode(SkillNodeId.FU_Overclock, "Overclock", "Supercharge dice for 2.5x payout - but they will explode!", 125, SkillBranch.FeatureUnlocks, featureColor, SkillNodeId.FU_TimeFracture);
+                Debug.Log($"[SkillTreeUI] Loaded {allNodes.Count} skill nodes from SkillTreeManager");
+            }
+            else
+            {
+                Debug.LogWarning("[SkillTreeUI] SkillTreeManager not found, skill tree will be empty!");
+            }
         }
 
         private void AddNode(SkillNodeId id, string name, string desc, double cost, SkillBranch branch, Color color, params SkillNodeId[] prereqs)
