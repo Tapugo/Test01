@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.EventSystems;
+using UnityEngine.InputSystem;
 using Incredicer.Core;
 
 namespace Incredicer.Dice
@@ -48,25 +49,16 @@ namespace Incredicer.Dice
                 if (mainCamera == null) return;
             }
 
-            // Check for mouse click or touch
+            // Check for mouse click or touch using new Input System
             bool clicked = false;
             Vector3 inputPosition = Vector3.zero;
 
-            // Handle mouse input
-            if (Input.GetMouseButtonDown(0))
+            // Handle pointer input (works for both mouse and touch)
+            var pointer = Pointer.current;
+            if (pointer != null && pointer.press.wasPressedThisFrame)
             {
                 clicked = true;
-                inputPosition = Input.mousePosition;
-            }
-            // Handle touch input
-            else if (Input.touchCount > 0)
-            {
-                Touch touch = Input.GetTouch(0);
-                if (touch.phase == TouchPhase.Began)
-                {
-                    clicked = true;
-                    inputPosition = touch.position;
-                }
+                inputPosition = pointer.position.ReadValue();
             }
 
             if (!clicked) return;
@@ -78,12 +70,6 @@ namespace Incredicer.Dice
 
             // Don't process if clicking on UI elements (this handles popups too since they have UI)
             bool isOverUI = EventSystem.current != null && EventSystem.current.IsPointerOverGameObject();
-
-            // For touch input, need to check the touch finger ID
-            if (Input.touchCount > 0)
-            {
-                isOverUI = EventSystem.current != null && EventSystem.current.IsPointerOverGameObject(Input.GetTouch(0).fingerId);
-            }
 
             if (isOverUI)
             {

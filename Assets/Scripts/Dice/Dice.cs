@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.InputSystem;
 using Incredicer.Core;
 using Incredicer.UI;
 using Incredicer.Overclock;
@@ -142,10 +143,12 @@ namespace Incredicer.Dice
                 }
             }
 
-            // PrecisionAim: When mouse is held, dice are pulled toward cursor
-            if (GameStats.Instance.PrecisionAimActive && Input.GetMouseButton(0))
+            // PrecisionAim: When pointer is held, dice are pulled toward cursor
+            var pointer = Pointer.current;
+            bool isPointerPressed = pointer != null && pointer.press.isPressed;
+            if (GameStats.Instance.PrecisionAimActive && isPointerPressed)
             {
-                Vector3 mouseWorldPos = mainCamera.ScreenToWorldPoint(Input.mousePosition);
+                Vector3 mouseWorldPos = mainCamera.ScreenToWorldPoint((Vector3)pointer.position.ReadValue());
                 mouseWorldPos.z = 0;
 
                 Vector2 toCursor = (Vector2)mouseWorldPos - (Vector2)currentPos;

@@ -997,9 +997,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 55afeeb5f25e042d7a82229b5c256a54, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  skillTreePanel: {fileID: 1199254803}
-  panelCanvasGroup: {fileID: 1199254805}
-  panelRect: {fileID: 1199254804}
+  panelPrefab: {fileID: 0}
   darkMatterText: {fileID: 0}
   closeButton: {fileID: 0}
   scrollRect: {fileID: 0}
@@ -1512,10 +1510,10 @@ RectTransform:
   - {fileID: 1623899379}
   m_Father: {fileID: 573822856}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 1}
-  m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 230, y: -90}
-  m_SizeDelta: {x: 400, y: 150}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 0, y: 0}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 400, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &572803811
 MonoBehaviour:
@@ -2538,7 +2536,23 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e7f8cccfc70bb4bac98bf89ba796bb6e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  canvas: {fileID: 0}
+  panelPrefab: {fileID: 0}
+  panelRoot: {fileID: 0}
+  mainPanel: {fileID: 0}
+  mainPanelCanvasGroup: {fileID: 0}
+  titleText: {fileID: 0}
+  levelText: {fileID: 0}
+  timeShardsText: {fileID: 0}
+  requirementsText: {fileID: 0}
+  rewardsText: {fileID: 0}
+  currentBonusesText: {fileID: 0}
+  warningText: {fileID: 0}
+  fractureButtonText: {fileID: 0}
+  fractureButton: {fileID: 0}
+  closeButton: {fileID: 0}
+  backgroundButton: {fileID: 0}
+  fractureButtonGlow: {fileID: 0}
+  timeShardsIcon: {fileID: 0}
   animationDuration: 0.3
 --- !u!114 &929496645
 MonoBehaviour:
@@ -2554,6 +2568,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   canvas: {fileID: 0}
   guiAssets: {fileID: 0}
+  panelPrefab: {fileID: 0}
   maxDiceToOverclock: 10
   animationDuration: 0.3
 --- !u!114 &929496646
@@ -2621,8 +2636,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3bc94869cfd10422bb283a25f47f2e3f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  mainPanel: {fileID: 0}
-  panelCanvasGroup: {fileID: 0}
+  panelPrefab: {fileID: 0}
   titleText: {fileID: 0}
   closeButton: {fileID: 0}
   dailyTabButton: {fileID: 0}
@@ -2818,10 +2832,10 @@ RectTransform:
   - {fileID: 562528667}
   m_Father: {fileID: 573822856}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 1}
-  m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 650, y: -90}
-  m_SizeDelta: {x: 400, y: 150}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 0, y: 0}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 400, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1067784474
 MonoBehaviour:
@@ -3092,10 +3106,10 @@ RectTransform:
   m_Children: []
   m_Father: {fileID: 401842343}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 1}
-  m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 110, y: -42.5}
-  m_SizeDelta: {x: 180, y: 45}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 0, y: 0}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1135372094
 MonoBehaviour:
@@ -3241,17 +3255,26 @@ MonoBehaviour:
   m_GameObject: {fileID: 1165492901}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 4f231c4fb786f3946a6b90b886c48677, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  m_SendPointerHoverToParent: 1
-  m_HorizontalAxis: Horizontal
-  m_VerticalAxis: Vertical
-  m_SubmitButton: Submit
-  m_CancelButton: Cancel
-  m_InputActionsPerSecond: 10
-  m_RepeatDelay: 0.5
-  m_ForceModuleActive: 0
+  m_Script: {fileID: 11500000, guid: c392b68ab9f61264ca1ab3fde7760191, type: 3}
+  m_Name:
+  m_EditorClassIdentifier:
+  m_MoveRepeatDelay: 0.5
+  m_MoveRepeatRate: 0.1
+  m_XRTrackingOrigin: {fileID: 0}
+  m_ActionsAsset: {fileID: -944628639613478452, guid: ca9f5fa95ffab41fb9a615ab714db018, type: 3}
+  m_PointAction: {fileID: -1654692200621890270, guid: ca9f5fa95ffab41fb9a615ab714db018, type: 3}
+  m_MoveAction: {fileID: -8784545083839296357, guid: ca9f5fa95ffab41fb9a615ab714db018, type: 3}
+  m_SubmitAction: {fileID: 392368643174621400, guid: ca9f5fa95ffab41fb9a615ab714db018, type: 3}
+  m_CancelAction: {fileID: 7727032971491509498, guid: ca9f5fa95ffab41fb9a615ab714db018, type: 3}
+  m_LeftClickAction: {fileID: 3001919216989983466, guid: ca9f5fa95ffab41fb9a615ab714db018, type: 3}
+  m_MiddleClickAction: {fileID: -2185481485913320682, guid: ca9f5fa95ffab41fb9a615ab714db018, type: 3}
+  m_RightClickAction: {fileID: -4090225696740746782, guid: ca9f5fa95ffab41fb9a615ab714db018, type: 3}
+  m_ScrollWheelAction: {fileID: -1143915591783270682, guid: ca9f5fa95ffab41fb9a615ab714db018, type: 3}
+  m_TrackedDevicePositionAction: {fileID: 6270408358119745556, guid: ca9f5fa95ffab41fb9a615ab714db018, type: 3}
+  m_TrackedDeviceOrientationAction: {fileID: -5765815786096265942, guid: ca9f5fa95ffab41fb9a615ab714db018, type: 3}
+  m_DeselectOnBackgroundClick: 1
+  m_PointerBehavior: 0
+  m_CursorLockBehavior: 0
 --- !u!114 &1165492903
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3922,10 +3945,10 @@ RectTransform:
   - {fileID: 686617707}
   m_Father: {fileID: 401842343}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 1}
-  m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 110, y: -90}
-  m_SizeDelta: {x: 180, y: 40}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 0, y: 0}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1417193741
 MonoBehaviour:
@@ -4180,8 +4203,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: eca6d3cd206eb4fa99374729d49b278e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  shopPanel: {fileID: 1383441757}
-  panelCanvasGroup: {fileID: 1383441759}
+  panelPrefab: {fileID: 0}
   openButton: {fileID: 1949402527}
   openButtonText: {fileID: 1107053302}
   closeButton: {fileID: 1347823085}

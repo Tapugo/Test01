@@ -48,12 +48,14 @@ namespace Incredicer.Core
             if (!hapticsEnabled) return;
 
 #if UNITY_IOS || UNITY_ANDROID
+#if MOREMOUNTAINS_NICEVIBRATIONS
             if (MoreMountains.NiceVibrations.MMVibrationManager.HapticsSupported())
             {
                 MoreMountains.NiceVibrations.MMVibrationManager.Haptic(
                     MoreMountains.NiceVibrations.HapticTypes.LightImpact
                 );
             }
+#endif
 #endif
         }
 
@@ -65,12 +67,14 @@ namespace Incredicer.Core
             if (!hapticsEnabled) return;
 
 #if UNITY_IOS || UNITY_ANDROID
+#if MOREMOUNTAINS_NICEVIBRATIONS
             if (MoreMountains.NiceVibrations.MMVibrationManager.HapticsSupported())
             {
                 MoreMountains.NiceVibrations.MMVibrationManager.Haptic(
                     MoreMountains.NiceVibrations.HapticTypes.MediumImpact
                 );
             }
+#endif
 #endif
         }
 
@@ -82,12 +86,14 @@ namespace Incredicer.Core
             if (!hapticsEnabled) return;
 
 #if UNITY_IOS || UNITY_ANDROID
+#if MOREMOUNTAINS_NICEVIBRATIONS
             if (MoreMountains.NiceVibrations.MMVibrationManager.HapticsSupported())
             {
                 MoreMountains.NiceVibrations.MMVibrationManager.Haptic(
                     MoreMountains.NiceVibrations.HapticTypes.HeavyImpact
                 );
             }
+#endif
 #endif
         }
 
@@ -99,12 +105,14 @@ namespace Incredicer.Core
             if (!hapticsEnabled) return;
 
 #if UNITY_IOS || UNITY_ANDROID
+#if MOREMOUNTAINS_NICEVIBRATIONS
             if (MoreMountains.NiceVibrations.MMVibrationManager.HapticsSupported())
             {
                 MoreMountains.NiceVibrations.MMVibrationManager.Haptic(
                     MoreMountains.NiceVibrations.HapticTypes.Success
                 );
             }
+#endif
 #endif
         }
 
@@ -116,12 +124,14 @@ namespace Incredicer.Core
             if (!hapticsEnabled) return;
 
 #if UNITY_IOS || UNITY_ANDROID
+#if MOREMOUNTAINS_NICEVIBRATIONS
             if (MoreMountains.NiceVibrations.MMVibrationManager.HapticsSupported())
             {
                 MoreMountains.NiceVibrations.MMVibrationManager.Haptic(
                     MoreMountains.NiceVibrations.HapticTypes.Warning
                 );
             }
+#endif
 #endif
         }
 
@@ -133,12 +143,14 @@ namespace Incredicer.Core
             if (!hapticsEnabled) return;
 
 #if UNITY_IOS || UNITY_ANDROID
+#if MOREMOUNTAINS_NICEVIBRATIONS
             if (MoreMountains.NiceVibrations.MMVibrationManager.HapticsSupported())
             {
                 MoreMountains.NiceVibrations.MMVibrationManager.Haptic(
                     MoreMountains.NiceVibrations.HapticTypes.Failure
                 );
             }
+#endif
 #endif
         }
 
@@ -150,12 +162,14 @@ namespace Incredicer.Core
             if (!hapticsEnabled) return;
 
 #if UNITY_IOS || UNITY_ANDROID
+#if MOREMOUNTAINS_NICEVIBRATIONS
             if (MoreMountains.NiceVibrations.MMVibrationManager.HapticsSupported())
             {
                 MoreMountains.NiceVibrations.MMVibrationManager.Haptic(
                     MoreMountains.NiceVibrations.HapticTypes.Selection
                 );
             }
+#endif
 #endif
         }
     }

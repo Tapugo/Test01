@@ -2022,10 +2022,12 @@ namespace Incredicer.DailyLogin
 
             // Also trigger haptic feedback on mobile
             #if UNITY_IOS || UNITY_ANDROID
+            #if MOREMOUNTAINS_NICEVIBRATIONS
             if (MoreMountains.NiceVibrations.MMVibrationManager.HapticsSupported())
             {
                 MoreMountains.NiceVibrations.MMVibrationManager.Haptic(MoreMountains.NiceVibrations.HapticTypes.MediumImpact);
             }
+            #endif
             #endif
         }
 
@@ -2041,10 +2043,12 @@ namespace Incredicer.DailyLogin
 
             // Also trigger haptic feedback on mobile
             #if UNITY_IOS || UNITY_ANDROID
+            #if MOREMOUNTAINS_NICEVIBRATIONS
             if (MoreMountains.NiceVibrations.MMVibrationManager.HapticsSupported())
             {
                 MoreMountains.NiceVibrations.MMVibrationManager.Haptic(MoreMountains.NiceVibrations.HapticTypes.Success);
             }
+            #endif
             #endif
         }
 
@@ -2060,10 +2064,12 @@ namespace Incredicer.DailyLogin
 
             // Strong haptic for jackpot
             #if UNITY_IOS || UNITY_ANDROID
+            #if MOREMOUNTAINS_NICEVIBRATIONS
             if (MoreMountains.NiceVibrations.MMVibrationManager.HapticsSupported())
             {
                 MoreMountains.NiceVibrations.MMVibrationManager.Haptic(MoreMountains.NiceVibrations.HapticTypes.HeavyImpact);
             }
+            #endif
             #endif
         }
     }
