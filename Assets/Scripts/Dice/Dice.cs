@@ -945,12 +945,6 @@ namespace Incredicer.Dice
                     cam.transform.DOKill();
                     cam.transform.DOShakePosition(0.15f, 0.08f, 15, 90f, false, true);
                 }
-
-                // Play a sound
-                if (Core.AudioManager.Instance != null)
-                {
-                    Core.AudioManager.Instance.PlayRollSound();
-                }
             }
 
             // Value 6: JACKPOT! Maximum effects!

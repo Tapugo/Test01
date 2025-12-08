@@ -143,6 +143,9 @@ namespace Incredicer.UI
             // Setup floating currency effect targets (delayed to ensure FloatingCurrencyEffect is ready)
             Invoke(nameof(SetupFloatingCurrencyTargets), 0.2f);
 
+            // Setup settings UI if not already present
+            SetupSettingsUI();
+
             // Setup button listeners
             Debug.Log($"[GameUI] Setting up buttons - buyDiceButton: {(buyDiceButton != null ? "OK" : "NULL")}, upgradeDiceButton: {(upgradeDiceButton != null ? "OK" : "NULL")}");
 
@@ -306,6 +309,34 @@ namespace Incredicer.UI
                 CurrencyManager.Instance.OnMoneyChanged += UpdateMoneyDisplay;
                 CurrencyManager.Instance.OnDarkMatterChanged += UpdateDarkMatterDisplay;
             }
+        }
+
+        /// <summary>
+        /// Sets up the SettingsUI component on the canvas.
+        /// </summary>
+        private void SetupSettingsUI()
+        {
+            // Check if SettingsUI already exists
+            if (SettingsUI.Instance != null)
+            {
+                Debug.Log("[GameUI] SettingsUI already exists");
+                return;
+            }
+
+            // Create SettingsUI container
+            GameObject settingsObj = new GameObject("SettingsUI");
+            settingsObj.transform.SetParent(transform, false);
+
+            RectTransform rt = settingsObj.AddComponent<RectTransform>();
+            rt.anchorMin = Vector2.zero;
+            rt.anchorMax = Vector2.one;
+            rt.offsetMin = Vector2.zero;
+            rt.offsetMax = Vector2.zero;
+
+            // Add SettingsUI component - it will build itself
+            settingsObj.AddComponent<SettingsUI>();
+
+            Debug.Log("[GameUI] SettingsUI created");
         }
 
         private void SetupFloatingCurrencyTargets()

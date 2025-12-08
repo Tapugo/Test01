@@ -825,17 +825,26 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   sfxSource: {fileID: 0}
   musicSource: {fileID: 0}
-  rollSound: {fileID: 0}
-  jackpotSound: {fileID: 0}
+  musicClip: {fileID: 8300000, guid: c1f8b8d952484435ab92bfee5f76b30d, type: 3}
+  rollSound: {fileID: 8300000, guid: 1e91d09b2378846e0a90bd5ab6b6b51f, type: 3}
+  jackpotSound: {fileID: 8300000, guid: 066d851bb8d3c4b8aa414359e6771556, type: 3}
   purchaseSound: {fileID: 0}
-  skillUnlockSound: {fileID: 0}
-  buttonClickSound: {fileID: 0}
+  skillUnlockSound: {fileID: 8300000, guid: 7e3acc5a0c7ec40bd91acd1c35e81427, type: 3}
+  buttonClickSound: {fileID: 8300000, guid: 2c6c4f11db8d444a3823e6c6abd3486b, type: 3}
   prestigeSound: {fileID: 0}
   errorSound: {fileID: 0}
   sfxVolume: 1
   musicVolume: 0.5
   sfxEnabled: 1
   musicEnabled: 1
+  rollSoundVolume: 0.2
+  jackpotSoundVolume: 1
+  purchaseSoundVolume: 1
+  skillUnlockSoundVolume: 1
+  buttonClickSoundVolume: 0.7
+  prestigeSoundVolume: 1
+  errorSoundVolume: 0.8
+  rollPitchVariation: 0.15
 --- !u!1 &401842342
 GameObject:
   m_ObjectHideFlags: 0
@@ -995,8 +1004,8 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 55afeeb5f25e042d7a82229b5c256a54, type: 3}
-  m_Name:
-  m_EditorClassIdentifier:
+  m_Name: 
+  m_EditorClassIdentifier: 
   panelPrefab: {fileID: 7872004006179193803, guid: 6d38163c78d994bd6b79bfb76cab5e55, type: 3}
   darkMatterText: {fileID: 0}
   closeButton: {fileID: 0}
@@ -3256,95 +3265,8 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: c392b68ab9f61264ca1ab3fde7760191, type: 3}
-  m_Name:
-  m_EditorClassIdentifier:
-  m_SendPointerHoverToParent: 1
-  m_MoveRepeatDelay: 0.5
-  m_MoveRepeatRate: 0.1
-  m_XRTrackingOrigin: {fileID: 0}
-  m_ActionsAsset: {fileID: -944628639613478452, guid: ca9f5fa95ffab41fb9a615ab714db018, type: 3}
-  m_PointAction:
-    m_Name:
-    m_Type: 0
-    m_ExpectedControlType:
-    m_Id:
-    m_Processors:
-    m_Interactions:
-    m_SingletonActionBindings: []
-  m_MoveAction:
-    m_Name:
-    m_Type: 0
-    m_ExpectedControlType:
-    m_Id:
-    m_Processors:
-    m_Interactions:
-    m_SingletonActionBindings: []
-  m_SubmitAction:
-    m_Name:
-    m_Type: 0
-    m_ExpectedControlType:
-    m_Id:
-    m_Processors:
-    m_Interactions:
-    m_SingletonActionBindings: []
-  m_CancelAction:
-    m_Name:
-    m_Type: 0
-    m_ExpectedControlType:
-    m_Id:
-    m_Processors:
-    m_Interactions:
-    m_SingletonActionBindings: []
-  m_LeftClickAction:
-    m_Name:
-    m_Type: 0
-    m_ExpectedControlType:
-    m_Id:
-    m_Processors:
-    m_Interactions:
-    m_SingletonActionBindings: []
-  m_MiddleClickAction:
-    m_Name:
-    m_Type: 0
-    m_ExpectedControlType:
-    m_Id:
-    m_Processors:
-    m_Interactions:
-    m_SingletonActionBindings: []
-  m_RightClickAction:
-    m_Name:
-    m_Type: 0
-    m_ExpectedControlType:
-    m_Id:
-    m_Processors:
-    m_Interactions:
-    m_SingletonActionBindings: []
-  m_ScrollWheelAction:
-    m_Name:
-    m_Type: 0
-    m_ExpectedControlType:
-    m_Id:
-    m_Processors:
-    m_Interactions:
-    m_SingletonActionBindings: []
-  m_TrackedDevicePositionAction:
-    m_Name:
-    m_Type: 0
-    m_ExpectedControlType:
-    m_Id:
-    m_Processors:
-    m_Interactions:
-    m_SingletonActionBindings: []
-  m_TrackedDeviceOrientationAction:
-    m_Name:
-    m_Type: 0
-    m_ExpectedControlType:
-    m_Id:
-    m_Processors:
-    m_Interactions:
-    m_SingletonActionBindings: []
-  m_DeselectOnBackgroundClick: 1
-  m_PointerBehavior: 0
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!114 &1165492903
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -4271,8 +4193,8 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: eca6d3cd206eb4fa99374729d49b278e, type: 3}
-  m_Name:
-  m_EditorClassIdentifier:
+  m_Name: 
+  m_EditorClassIdentifier: 
   panelPrefab: {fileID: 4146515842775801525, guid: be14619e3b0c94f9d8c62a3e559b882a, type: 3}
   openButton: {fileID: 1949402527}
   openButtonText: {fileID: 1107053302}
