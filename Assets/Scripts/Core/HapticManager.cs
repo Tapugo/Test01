@@ -1,4 +1,7 @@
 using UnityEngine;
+#if MOREMOUNTAINS_NICEVIBRATIONS
+using Lofelt.NiceVibrations;
+#endif
 
 namespace Incredicer.Core
 {
@@ -38,6 +41,11 @@ namespace Incredicer.Core
 
             // Load haptics preference
             hapticsEnabled = PlayerPrefs.GetInt("HapticsEnabled", 1) == 1;
+
+#if MOREMOUNTAINS_NICEVIBRATIONS && !UNITY_EDITOR
+            // Initialize haptic controller
+            HapticController.Init();
+#endif
         }
 
         /// <summary>
@@ -47,15 +55,8 @@ namespace Incredicer.Core
         {
             if (!hapticsEnabled) return;
 
-#if UNITY_IOS || UNITY_ANDROID
-#if MOREMOUNTAINS_NICEVIBRATIONS
-            if (MoreMountains.NiceVibrations.MMVibrationManager.HapticsSupported())
-            {
-                MoreMountains.NiceVibrations.MMVibrationManager.Haptic(
-                    MoreMountains.NiceVibrations.HapticTypes.LightImpact
-                );
-            }
-#endif
+#if MOREMOUNTAINS_NICEVIBRATIONS && !UNITY_EDITOR
+            HapticPatterns.PlayPreset(HapticPatterns.PresetType.LightImpact);
 #endif
         }
 
@@ -66,15 +67,8 @@ namespace Incredicer.Core
         {
             if (!hapticsEnabled) return;
 
-#if UNITY_IOS || UNITY_ANDROID
-#if MOREMOUNTAINS_NICEVIBRATIONS
-            if (MoreMountains.NiceVibrations.MMVibrationManager.HapticsSupported())
-            {
-                MoreMountains.NiceVibrations.MMVibrationManager.Haptic(
-                    MoreMountains.NiceVibrations.HapticTypes.MediumImpact
-                );
-            }
-#endif
+#if MOREMOUNTAINS_NICEVIBRATIONS && !UNITY_EDITOR
+            HapticPatterns.PlayPreset(HapticPatterns.PresetType.MediumImpact);
 #endif
         }
 
@@ -85,15 +79,8 @@ namespace Incredicer.Core
         {
             if (!hapticsEnabled) return;
 
-#if UNITY_IOS || UNITY_ANDROID
-#if MOREMOUNTAINS_NICEVIBRATIONS
-            if (MoreMountains.NiceVibrations.MMVibrationManager.HapticsSupported())
-            {
-                MoreMountains.NiceVibrations.MMVibrationManager.Haptic(
-                    MoreMountains.NiceVibrations.HapticTypes.HeavyImpact
-                );
-            }
-#endif
+#if MOREMOUNTAINS_NICEVIBRATIONS && !UNITY_EDITOR
+            HapticPatterns.PlayPreset(HapticPatterns.PresetType.HeavyImpact);
 #endif
         }
 
@@ -104,15 +91,8 @@ namespace Incredicer.Core
         {
             if (!hapticsEnabled) return;
 
-#if UNITY_IOS || UNITY_ANDROID
-#if MOREMOUNTAINS_NICEVIBRATIONS
-            if (MoreMountains.NiceVibrations.MMVibrationManager.HapticsSupported())
-            {
-                MoreMountains.NiceVibrations.MMVibrationManager.Haptic(
-                    MoreMountains.NiceVibrations.HapticTypes.Success
-                );
-            }
-#endif
+#if MOREMOUNTAINS_NICEVIBRATIONS && !UNITY_EDITOR
+            HapticPatterns.PlayPreset(HapticPatterns.PresetType.Success);
 #endif
         }
 
@@ -123,15 +103,8 @@ namespace Incredicer.Core
         {
             if (!hapticsEnabled) return;
 
-#if UNITY_IOS || UNITY_ANDROID
-#if MOREMOUNTAINS_NICEVIBRATIONS
-            if (MoreMountains.NiceVibrations.MMVibrationManager.HapticsSupported())
-            {
-                MoreMountains.NiceVibrations.MMVibrationManager.Haptic(
-                    MoreMountains.NiceVibrations.HapticTypes.Warning
-                );
-            }
-#endif
+#if MOREMOUNTAINS_NICEVIBRATIONS && !UNITY_EDITOR
+            HapticPatterns.PlayPreset(HapticPatterns.PresetType.Warning);
 #endif
         }
 
@@ -142,15 +115,8 @@ namespace Incredicer.Core
         {
             if (!hapticsEnabled) return;
 
-#if UNITY_IOS || UNITY_ANDROID
-#if MOREMOUNTAINS_NICEVIBRATIONS
-            if (MoreMountains.NiceVibrations.MMVibrationManager.HapticsSupported())
-            {
-                MoreMountains.NiceVibrations.MMVibrationManager.Haptic(
-                    MoreMountains.NiceVibrations.HapticTypes.Failure
-                );
-            }
-#endif
+#if MOREMOUNTAINS_NICEVIBRATIONS && !UNITY_EDITOR
+            HapticPatterns.PlayPreset(HapticPatterns.PresetType.Failure);
 #endif
         }
 
@@ -161,15 +127,8 @@ namespace Incredicer.Core
         {
             if (!hapticsEnabled) return;
 
-#if UNITY_IOS || UNITY_ANDROID
-#if MOREMOUNTAINS_NICEVIBRATIONS
-            if (MoreMountains.NiceVibrations.MMVibrationManager.HapticsSupported())
-            {
-                MoreMountains.NiceVibrations.MMVibrationManager.Haptic(
-                    MoreMountains.NiceVibrations.HapticTypes.Selection
-                );
-            }
-#endif
+#if MOREMOUNTAINS_NICEVIBRATIONS && !UNITY_EDITOR
+            HapticPatterns.PlayPreset(HapticPatterns.PresetType.Selection);
 #endif
         }
     }
