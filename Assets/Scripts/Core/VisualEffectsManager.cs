@@ -31,7 +31,7 @@ namespace Incredicer.Core
         [Header("Settings")]
         [SerializeField] private bool effectsEnabled = true;
         [SerializeField] private float particleLifetime = 3f;
-        [SerializeField] private float screenShakeIntensity = 0.15f;
+        [SerializeField] private float screenShakeIntensity = 0.25f; // Increased for more impact
 
         public bool EffectsEnabled
         {
@@ -92,13 +92,13 @@ namespace Incredicer.Core
 
         private void CreateDefaultParticlePrefabs()
         {
-            // Roll effect - satisfying white burst
+            // Roll effect - satisfying white burst with more particles
             if (rollParticlePrefab == null)
             {
                 rollParticlePrefab = CreateEnhancedBurstParticle("RollParticle",
-                    new Color(1f, 1f, 1f, 0.9f),
-                    new Color(0.8f, 0.9f, 1f, 0.6f),
-                    15, 0.25f, 4f, true);
+                    new Color(1f, 1f, 1f, 1f),
+                    new Color(0.7f, 0.85f, 1f, 0.8f),
+                    25, 0.35f, 5f, true); // More particles, bigger, faster
             }
 
             // Jackpot effect - EPIC gold explosion with multiple layers
@@ -107,22 +107,22 @@ namespace Incredicer.Core
                 jackpotParticlePrefab = CreateJackpotParticle();
             }
 
-            // Purchase effect - satisfying green burst
+            // Purchase effect - satisfying green burst with extra juice
             if (purchaseParticlePrefab == null)
             {
                 purchaseParticlePrefab = CreateEnhancedBurstParticle("PurchaseParticle",
-                    new Color(0.2f, 1f, 0.4f, 1f),
-                    new Color(0.5f, 1f, 0.7f, 0.5f),
-                    20, 0.35f, 5f, true);
+                    new Color(0.3f, 1f, 0.5f, 1f),
+                    new Color(0.6f, 1f, 0.8f, 0.7f),
+                    30, 0.45f, 6f, true); // More particles, bigger
             }
 
-            // Skill unlock - magical blue spiral
+            // Skill unlock - magical blue spiral with sparkles
             if (skillUnlockParticlePrefab == null)
             {
                 skillUnlockParticlePrefab = CreateSpiralParticle("SkillUnlockParticle",
-                    new Color(0.3f, 0.7f, 1f, 1f),
-                    new Color(0.6f, 0.9f, 1f, 0.7f),
-                    25, 0.4f);
+                    new Color(0.4f, 0.8f, 1f, 1f),
+                    new Color(0.7f, 0.95f, 1f, 0.8f),
+                    35, 0.5f); // More particles, bigger
             }
 
             // Prestige/Ascension - MASSIVE purple explosion
@@ -131,11 +131,11 @@ namespace Incredicer.Core
                 prestigeParticlePrefab = CreatePrestigeParticle();
             }
 
-            // Money collect - quick green sparkles (2x size)
+            // Money collect - quick green sparkles (juicier)
             if (moneyCollectParticlePrefab == null)
             {
                 moneyCollectParticlePrefab = CreateSparkleParticle("MoneyCollectParticle",
-                    new Color(0.3f, 1f, 0.5f, 1f), 12, 0.3f);
+                    new Color(0.4f, 1f, 0.6f, 1f), 18, 0.4f); // More sparkles, bigger
             }
 
             // Dark matter - deep purple with trails
@@ -248,28 +248,29 @@ namespace Incredicer.Core
             prefab.transform.SetParent(transform);
             prefab.SetActive(false);
 
-            // Main gold burst
+            // Main gold burst - EPIC explosion
             ParticleSystem ps = prefab.AddComponent<ParticleSystem>();
 
             var main = ps.main;
-            main.duration = 1.5f;
+            main.duration = 2f;
             main.loop = false;
-            main.startLifetime = new ParticleSystem.MinMaxCurve(0.6f, 1.2f);
-            main.startSpeed = new ParticleSystem.MinMaxCurve(5f, 10f);
-            main.startSize = new ParticleSystem.MinMaxCurve(0.3f, 0.6f);
-            main.startColor = new Color(1f, 0.85f, 0f, 1f);
+            main.startLifetime = new ParticleSystem.MinMaxCurve(0.8f, 1.5f);
+            main.startSpeed = new ParticleSystem.MinMaxCurve(8f, 15f); // Faster burst
+            main.startSize = new ParticleSystem.MinMaxCurve(0.4f, 0.8f); // Bigger particles
+            main.startColor = new Color(1f, 0.9f, 0.2f, 1f); // Brighter gold
             main.simulationSpace = ParticleSystemSimulationSpace.World;
             main.playOnAwake = true;
             main.stopAction = ParticleSystemStopAction.Destroy;
-            main.gravityModifier = 0.5f;
+            main.gravityModifier = 0.4f;
             main.startRotation = new ParticleSystem.MinMaxCurve(0f, Mathf.PI * 2f);
 
             var emission = ps.emission;
             emission.rateOverTime = 0;
             emission.SetBursts(new ParticleSystem.Burst[] {
-                new ParticleSystem.Burst(0f, 40),
-                new ParticleSystem.Burst(0.1f, 20),
-                new ParticleSystem.Burst(0.2f, 10)
+                new ParticleSystem.Burst(0f, 60),    // More particles
+                new ParticleSystem.Burst(0.08f, 35),
+                new ParticleSystem.Burst(0.16f, 20),
+                new ParticleSystem.Burst(0.25f, 15)
             });
 
             var shape = ps.shape;
@@ -306,45 +307,50 @@ namespace Incredicer.Core
             );
             sizeOverLifetime.size = new ParticleSystem.MinMaxCurve(1f, sizeCurve);
 
-            // Trails
+            // Trails - longer and more visible
             var trails = ps.trails;
             trails.enabled = true;
-            trails.ratio = 0.7f;
-            trails.lifetime = new ParticleSystem.MinMaxCurve(0.15f, 0.3f);
+            trails.ratio = 0.85f; // More particles have trails
+            trails.lifetime = new ParticleSystem.MinMaxCurve(0.2f, 0.4f); // Longer trails
             trails.widthOverTrail = new ParticleSystem.MinMaxCurve(1f, AnimationCurve.EaseInOut(0f, 1f, 1f, 0f));
 
             Gradient trailGrad = new Gradient();
             trailGrad.SetKeys(
                 new GradientColorKey[] {
-                    new GradientColorKey(new Color(1f, 0.9f, 0.3f), 0f),
-                    new GradientColorKey(new Color(1f, 0.7f, 0f), 1f)
+                    new GradientColorKey(new Color(1f, 1f, 0.5f), 0f), // Brighter start
+                    new GradientColorKey(new Color(1f, 0.8f, 0.1f), 0.5f),
+                    new GradientColorKey(new Color(1f, 0.6f, 0f), 1f)
                 },
                 new GradientAlphaKey[] {
-                    new GradientAlphaKey(0.8f, 0f),
+                    new GradientAlphaKey(1f, 0f),
+                    new GradientAlphaKey(0.7f, 0.5f),
                     new GradientAlphaKey(0f, 1f)
                 }
             );
             trails.colorOverLifetime = trailGrad;
 
-            // Add sparkle sub-emitter child
+            // Add sparkle sub-emitter child - more sparkles!
             GameObject sparkleChild = new GameObject("Sparkles");
             sparkleChild.transform.SetParent(prefab.transform);
             sparkleChild.transform.localPosition = Vector3.zero;
 
             ParticleSystem sparklePS = sparkleChild.AddComponent<ParticleSystem>();
             var sparkleMain = sparklePS.main;
-            sparkleMain.duration = 1.5f;
+            sparkleMain.duration = 2f;
             sparkleMain.loop = false;
-            sparkleMain.startLifetime = new ParticleSystem.MinMaxCurve(0.2f, 0.5f);
-            sparkleMain.startSpeed = new ParticleSystem.MinMaxCurve(2f, 4f);
-            sparkleMain.startSize = new ParticleSystem.MinMaxCurve(0.05f, 0.15f);
-            sparkleMain.startColor = new Color(1f, 1f, 0.8f, 1f);
+            sparkleMain.startLifetime = new ParticleSystem.MinMaxCurve(0.3f, 0.7f);
+            sparkleMain.startSpeed = new ParticleSystem.MinMaxCurve(3f, 6f);
+            sparkleMain.startSize = new ParticleSystem.MinMaxCurve(0.08f, 0.2f); // Bigger sparkles
+            sparkleMain.startColor = new Color(1f, 1f, 0.9f, 1f);
             sparkleMain.simulationSpace = ParticleSystemSimulationSpace.World;
             sparkleMain.playOnAwake = true;
 
             var sparkleEmission = sparklePS.emission;
-            sparkleEmission.rateOverTime = 50;
-            sparkleEmission.SetBursts(new ParticleSystem.Burst[] { new ParticleSystem.Burst(0f, 30) });
+            sparkleEmission.rateOverTime = 80; // More continuous sparkles
+            sparkleEmission.SetBursts(new ParticleSystem.Burst[] {
+                new ParticleSystem.Burst(0f, 50),  // More initial burst
+                new ParticleSystem.Burst(0.15f, 25)
+            });
 
             var sparkleShape = sparklePS.shape;
             sparkleShape.shapeType = ParticleSystemShapeType.Circle;
@@ -374,23 +380,24 @@ namespace Incredicer.Core
             ParticleSystem ps = prefab.AddComponent<ParticleSystem>();
 
             var main = ps.main;
-            main.duration = 2f;
+            main.duration = 2.5f;
             main.loop = false;
-            main.startLifetime = new ParticleSystem.MinMaxCurve(1f, 2f);
-            main.startSpeed = new ParticleSystem.MinMaxCurve(8f, 15f);
-            main.startSize = new ParticleSystem.MinMaxCurve(0.4f, 0.8f);
-            main.startColor = new Color(0.7f, 0.3f, 1f, 1f);
+            main.startLifetime = new ParticleSystem.MinMaxCurve(1.2f, 2.5f);
+            main.startSpeed = new ParticleSystem.MinMaxCurve(10f, 20f); // Faster burst!
+            main.startSize = new ParticleSystem.MinMaxCurve(0.5f, 1f);   // Bigger particles
+            main.startColor = new Color(0.8f, 0.4f, 1f, 1f);            // Brighter purple
             main.simulationSpace = ParticleSystemSimulationSpace.World;
             main.playOnAwake = true;
             main.stopAction = ParticleSystemStopAction.Destroy;
-            main.gravityModifier = -0.2f; // Float upward
+            main.gravityModifier = -0.15f; // Float upward
 
             var emission = ps.emission;
             emission.rateOverTime = 0;
             emission.SetBursts(new ParticleSystem.Burst[] {
-                new ParticleSystem.Burst(0f, 60),
-                new ParticleSystem.Burst(0.15f, 40),
-                new ParticleSystem.Burst(0.3f, 30),
+                new ParticleSystem.Burst(0f, 80),     // MASSIVE initial burst
+                new ParticleSystem.Burst(0.1f, 50),
+                new ParticleSystem.Burst(0.2f, 40),
+                new ParticleSystem.Burst(0.35f, 30),
                 new ParticleSystem.Burst(0.5f, 20)
             });
 
@@ -427,33 +434,36 @@ namespace Incredicer.Core
             );
             sizeOverLifetime.size = new ParticleSystem.MinMaxCurve(1f, sizeCurve);
 
-            // Trails
+            // Trails - longer and more intense
             var trails = ps.trails;
             trails.enabled = true;
-            trails.ratio = 0.8f;
-            trails.lifetime = new ParticleSystem.MinMaxCurve(0.3f, 0.6f);
+            trails.ratio = 0.9f;  // Almost all particles have trails
+            trails.lifetime = new ParticleSystem.MinMaxCurve(0.4f, 0.8f); // Longer trails
             trails.widthOverTrail = new ParticleSystem.MinMaxCurve(1f, AnimationCurve.EaseInOut(0f, 1f, 1f, 0f));
             trails.colorOverLifetime = grad;
 
-            // Add ring sub-effect
+            // Add ring sub-effect - BIGGER!
             GameObject ringChild = new GameObject("Ring");
             ringChild.transform.SetParent(prefab.transform);
             ringChild.transform.localPosition = Vector3.zero;
 
             ParticleSystem ringPS = ringChild.AddComponent<ParticleSystem>();
             var ringMain = ringPS.main;
-            ringMain.duration = 1f;
+            ringMain.duration = 1.5f;
             ringMain.loop = false;
-            ringMain.startLifetime = 0.8f;
-            ringMain.startSpeed = 12f;
-            ringMain.startSize = 0.2f;
-            ringMain.startColor = new Color(0.9f, 0.6f, 1f, 0.8f);
+            ringMain.startLifetime = 1f;
+            ringMain.startSpeed = 18f;  // Faster expansion
+            ringMain.startSize = 0.3f;  // Bigger ring particles
+            ringMain.startColor = new Color(1f, 0.7f, 1f, 0.9f); // Brighter
             ringMain.simulationSpace = ParticleSystemSimulationSpace.World;
             ringMain.playOnAwake = true;
 
             var ringEmission = ringPS.emission;
             ringEmission.rateOverTime = 0;
-            ringEmission.SetBursts(new ParticleSystem.Burst[] { new ParticleSystem.Burst(0f, 80) });
+            ringEmission.SetBursts(new ParticleSystem.Burst[] {
+                new ParticleSystem.Burst(0f, 100),  // More particles
+                new ParticleSystem.Burst(0.1f, 60)
+            });
 
             var ringShape = ringPS.shape;
             ringShape.shapeType = ParticleSystemShapeType.Circle;
@@ -733,23 +743,26 @@ namespace Incredicer.Core
 
             SpawnParticle(jackpotParticlePrefab, position);
 
-            // Extra screen flash for jackpot
-            FlashScreen(new Color(1f, 0.9f, 0.3f, 0.4f), 0.3f);
+            // Epic screen flash sequence for jackpot - double flash!
+            FlashScreen(new Color(1f, 1f, 0.6f, 0.5f), 0.15f); // Bright initial flash
+            DOVirtual.DelayedCall(0.1f, () => FlashScreen(new Color(1f, 0.85f, 0.2f, 0.35f), 0.3f)); // Gold afterglow
 
-            // Camera shake
-            ShakeCamera(0.25f, 0.2f);
+            // Strong camera shake with extra punch
+            ShakeCamera(0.35f, 0.35f);
         }
 
         public void SpawnPurchaseEffect(Vector3 position)
         {
             SpawnParticle(purchaseParticlePrefab, position);
-            FlashScreen(new Color(0.2f, 1f, 0.4f, 0.15f), 0.15f);
+            FlashScreen(new Color(0.3f, 1f, 0.5f, 0.25f), 0.2f); // Brighter flash
+            ShakeCamera(0.1f, 0.08f); // Subtle satisfying shake
         }
 
         public void SpawnSkillUnlockEffect(Vector3 position)
         {
             SpawnParticle(skillUnlockParticlePrefab, position);
-            FlashScreen(new Color(0.3f, 0.7f, 1f, 0.2f), 0.2f);
+            FlashScreen(new Color(0.4f, 0.8f, 1f, 0.3f), 0.25f); // Brighter blue
+            ShakeCamera(0.15f, 0.12f); // Satisfying shake
         }
 
         public void SpawnPrestigeEffect(Vector3 position)
@@ -758,11 +771,13 @@ namespace Incredicer.Core
 
             SpawnParticle(prestigeParticlePrefab, position);
 
-            // Epic screen flash
-            FlashScreen(new Color(0.7f, 0.3f, 1f, 0.5f), 0.5f);
+            // EPIC screen flash sequence - multiple waves!
+            FlashScreen(new Color(1f, 0.8f, 1f, 0.6f), 0.2f); // Bright white-purple initial
+            DOVirtual.DelayedCall(0.15f, () => FlashScreen(new Color(0.8f, 0.4f, 1f, 0.4f), 0.4f)); // Purple wave
+            DOVirtual.DelayedCall(0.4f, () => FlashScreen(new Color(0.5f, 0.2f, 0.8f, 0.25f), 0.5f)); // Deep purple fade
 
-            // Strong camera shake
-            ShakeCamera(0.4f, 0.3f);
+            // Strong sustained camera shake
+            ShakeCamera(0.5f, 0.45f);
         }
 
         public void SpawnMoneyCollectEffect(Vector3 position)
@@ -801,7 +816,31 @@ namespace Incredicer.Core
         public void SpawnComboEffect(Vector3 position)
         {
             SpawnParticle(comboParticlePrefab, position);
-            FlashScreen(new Color(1f, 1f, 1f, 0.2f), 0.15f);
+            FlashScreen(new Color(1f, 1f, 1f, 0.3f), 0.2f); // Brighter
+            ShakeCamera(0.12f, 0.1f); // Subtle punch
+        }
+
+        /// <summary>
+        /// Spawns a big number pop effect for significant currency gains
+        /// </summary>
+        public void SpawnBigWinEffect(Vector3 position)
+        {
+            if (!effectsEnabled) return;
+
+            SpawnParticle(jackpotParticlePrefab, position);
+            SpawnParticle(comboParticlePrefab, position);
+
+            FlashScreen(new Color(1f, 0.95f, 0.4f, 0.4f), 0.25f);
+            ShakeCamera(0.2f, 0.2f);
+        }
+
+        /// <summary>
+        /// Spawns a subtle sparkle effect at position
+        /// </summary>
+        public void SpawnMicroSparkle(Vector3 position)
+        {
+            if (!effectsEnabled) return;
+            SpawnParticle(sparkleParticlePrefab, position);
         }
 
         // ========== SCREEN EFFECTS ==========

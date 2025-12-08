@@ -20,10 +20,10 @@ namespace Incredicer.UI
         [SerializeField] private GUISpriteAssets guiAssets;
 
         [Header("Button Press Settings")]
-        [SerializeField] private float buttonPressScale = 0.92f;
-        [SerializeField] private float buttonReleaseScale = 1.05f;
-        [SerializeField] private float buttonPressDuration = 0.08f;
-        [SerializeField] private float buttonReleaseDuration = 0.12f;
+        [SerializeField] private float buttonPressScale = 0.88f;      // More squish on press
+        [SerializeField] private float buttonReleaseScale = 1.12f;    // Bigger bounce on release
+        [SerializeField] private float buttonPressDuration = 0.06f;   // Snappier press
+        [SerializeField] private float buttonReleaseDuration = 0.15f; // Juicier release
 
         [Header("Audio")]
         [SerializeField] private bool playButtonSounds = true;
@@ -230,13 +230,16 @@ namespace Incredicer.UI
                 cg.alpha = 0f;
             }
 
-            panel.transform.localScale = Vector3.one * 0.85f;
+            panel.transform.localScale = Vector3.one * 0.7f; // Start smaller for more pop
 
             Sequence seq = DOTween.Sequence();
 
             if (withBounce)
             {
-                seq.Append(panel.transform.DOScale(1f, UIDesignSystem.AnimFadeIn).SetEase(Ease.OutBack));
+                // JUICY bounce sequence!
+                seq.Append(panel.transform.DOScale(1.08f, UIDesignSystem.AnimFadeIn * 0.6f).SetEase(Ease.OutBack, 2f));
+                seq.Append(panel.transform.DOScale(0.97f, UIDesignSystem.AnimFadeIn * 0.2f).SetEase(Ease.InQuad));
+                seq.Append(panel.transform.DOScale(1f, UIDesignSystem.AnimFadeIn * 0.2f).SetEase(Ease.OutQuad));
             }
             else
             {
@@ -245,7 +248,7 @@ namespace Incredicer.UI
 
             if (cg != null)
             {
-                seq.Join(cg.DOFade(1f, UIDesignSystem.AnimFadeIn).SetEase(Ease.OutQuad));
+                seq.Join(cg.DOFade(1f, UIDesignSystem.AnimFadeIn * 0.7f).SetEase(Ease.OutQuad));
             }
 
             // Play sound
@@ -265,7 +268,9 @@ namespace Incredicer.UI
             CanvasGroup cg = panel.GetComponent<CanvasGroup>();
 
             Sequence seq = DOTween.Sequence();
-            seq.Append(panel.transform.DOScale(0.9f, UIDesignSystem.AnimFadeOut).SetEase(Ease.InBack));
+            // Quick shrink with slight bounce
+            seq.Append(panel.transform.DOScale(1.03f, UIDesignSystem.AnimFadeOut * 0.2f).SetEase(Ease.OutQuad));
+            seq.Append(panel.transform.DOScale(0.85f, UIDesignSystem.AnimFadeOut * 0.8f).SetEase(Ease.InBack, 1.5f));
 
             if (cg != null)
             {
@@ -292,16 +297,18 @@ namespace Incredicer.UI
         {
             if (target == null) return;
 
-            // Scale pop
+            // JUICY scale pop with multiple bounces
             target.DOKill();
             Sequence seq = DOTween.Sequence();
-            seq.Append(target.DOScale(1.3f, 0.15f).SetEase(Ease.OutBack));
-            seq.Append(target.DOScale(1f, 0.2f).SetEase(Ease.InOutSine));
+            seq.Append(target.DOScale(1.4f, 0.1f).SetEase(Ease.OutBack, 2f));
+            seq.Append(target.DOScale(0.95f, 0.08f).SetEase(Ease.InQuad));
+            seq.Append(target.DOScale(1.1f, 0.1f).SetEase(Ease.OutQuad));
+            seq.Append(target.DOScale(1f, 0.08f).SetEase(Ease.InOutQuad));
 
-            // Screen flash
+            // Screen flash - brighter
             if (VisualEffectsManager.Instance != null)
             {
-                VisualEffectsManager.Instance.FlashScreen(UIDesignSystem.SuccessGreen * 0.5f, 0.2f);
+                VisualEffectsManager.Instance.FlashScreen(new Color(0.4f, 1f, 0.5f, 0.4f), 0.25f);
             }
 
             // Sound
@@ -318,22 +325,27 @@ namespace Incredicer.UI
         {
             if (target == null) return;
 
-            // Shake
+            // More intense shake
             target.DOKill();
-            target.DOShakePosition(0.3f, 10f, 30, 0f, false, true);
+            target.DOShakePosition(0.35f, 15f, 35, 0f, false, true);
 
-            // Flash red
+            // Flash red - more intense
             Image img = target.GetComponent<Image>();
             if (img != null)
             {
                 Color originalColor = img.color;
-                img.DOColor(UIDesignSystem.ErrorRed, 0.1f).OnComplete(() =>
-                {
-                    img.DOColor(originalColor, 0.2f);
-                });
+                Sequence colorSeq = DOTween.Sequence();
+                colorSeq.Append(img.DOColor(UIDesignSystem.ErrorRed, 0.08f));
+                colorSeq.Append(img.DOColor(originalColor, 0.1f));
+                colorSeq.Append(img.DOColor(UIDesignSystem.ErrorRed * 0.7f, 0.06f));
+                colorSeq.Append(img.DOColor(originalColor, 0.15f));
             }
 
-            // Sound (could add error sound)
+            // Screen flash red
+            if (VisualEffectsManager.Instance != null)
+            {
+                VisualEffectsManager.Instance.FlashScreen(new Color(1f, 0.3f, 0.3f, 0.25f), 0.15f);
+            }
         }
 
         /// <summary>
@@ -476,16 +488,19 @@ namespace Incredicer.UI
             if (button == null) return;
 
             button.DOKill();
-            button.DOScale(buttonPressScale, buttonPressDuration).SetEase(Ease.InQuad);
+            // Snappy squish with slight overshoot
+            button.DOScale(buttonPressScale, buttonPressDuration).SetEase(Ease.OutQuad);
         }
 
         public void OnButtonReleased(Transform button)
         {
             if (button == null) return;
 
+            // Juicy bounce sequence with overshoot and settle
             Sequence seq = DOTween.Sequence();
-            seq.Append(button.DOScale(buttonReleaseScale, buttonReleaseDuration * 0.5f).SetEase(Ease.OutBack));
-            seq.Append(button.DOScale(1f, buttonReleaseDuration * 0.5f).SetEase(Ease.InOutSine));
+            seq.Append(button.DOScale(buttonReleaseScale, buttonReleaseDuration * 0.4f).SetEase(Ease.OutBack, 2f)); // Strong overshoot
+            seq.Append(button.DOScale(0.97f, buttonReleaseDuration * 0.25f).SetEase(Ease.InQuad)); // Subtle undershoot
+            seq.Append(button.DOScale(1f, buttonReleaseDuration * 0.35f).SetEase(Ease.OutQuad)); // Settle to normal
         }
 
         public void OnButtonClicked(Transform button)
@@ -504,19 +519,21 @@ namespace Incredicer.UI
         {
             if (target == null) return;
 
-            // Scale punch effect
+            // JUICY scale punch effect with multiple bounces
             target.DOKill();
             Sequence seq = DOTween.Sequence();
-            seq.Append(target.DOScale(0.85f, 0.05f).SetEase(Ease.InQuad));
-            seq.Append(target.DOScale(1.15f, 0.12f).SetEase(Ease.OutBack));
-            seq.Append(target.DOScale(1f, 0.1f).SetEase(Ease.InOutSine));
+            seq.Append(target.DOScale(0.8f, 0.04f).SetEase(Ease.InQuad));   // Quick squish
+            seq.Append(target.DOScale(1.25f, 0.1f).SetEase(Ease.OutBack, 2.5f)); // Big bounce
+            seq.Append(target.DOScale(0.95f, 0.06f).SetEase(Ease.InQuad));  // Undershoot
+            seq.Append(target.DOScale(1.05f, 0.08f).SetEase(Ease.OutQuad)); // Small bounce
+            seq.Append(target.DOScale(1f, 0.06f).SetEase(Ease.InOutSine));  // Settle
 
-            // Subtle camera shake for tactile feedback
+            // Satisfying camera shake
             Camera cam = Camera.main;
             if (cam != null)
             {
                 cam.transform.DOKill();
-                cam.transform.DOShakePosition(0.12f, 0.015f, 12, 90f, false, true);
+                cam.transform.DOShakePosition(0.15f, 0.025f, 15, 90f, false, true);
             }
 
             // Play purchase sound for important actions
@@ -525,10 +542,10 @@ namespace Incredicer.UI
                 AudioManager.Instance.PlayPurchaseSound();
             }
 
-            // Screen flash for extra juice
+            // Screen flash for extra juice - brighter
             if (VisualEffectsManager.Instance != null)
             {
-                VisualEffectsManager.Instance.FlashScreen(UIDesignSystem.SuccessGreen * 0.4f, 0.15f);
+                VisualEffectsManager.Instance.FlashScreen(new Color(0.4f, 1f, 0.5f, 0.35f), 0.2f);
             }
         }
 

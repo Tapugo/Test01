@@ -20,16 +20,16 @@ namespace Incredicer.UI
         [SerializeField] private Canvas canvas;
 
         [Header("Settings")]
-        [SerializeField] private float travelDuration = 0.6f;
-        [SerializeField] private float startScale = 2.4f;
-        [SerializeField] private float endScale = 1.0f;
-        [SerializeField] private float arcHeight = 100f;
+        [SerializeField] private float travelDuration = 0.5f;        // Slightly faster for snappier feel
+        [SerializeField] private float startScale = 2.8f;            // Bigger initial pop
+        [SerializeField] private float endScale = 0.8f;              // Smaller at end
+        [SerializeField] private float arcHeight = 140f;             // Higher arc for more drama
 
         [Header("Particle Settings")]
-        [SerializeField] private int particleCount = 5;
-        [SerializeField] private float particleSpread = 30f;
-        [SerializeField] private float particleSize = 80f;
-        [SerializeField] private float particleStagger = 0.05f;
+        [SerializeField] private int particleCount = 8;              // More coins!
+        [SerializeField] private float particleSpread = 50f;         // More spread
+        [SerializeField] private float particleSize = 100f;          // Bigger coins
+        [SerializeField] private float particleStagger = 0.04f;      // Tighter stagger for wave effect
 
         [Header("Prefab")]
         [SerializeField] private GameObject currencyEffectPrefab;
@@ -203,8 +203,8 @@ namespace Incredicer.UI
             // Spawn text effect
             SpawnEffect(worldPosition, moneyTargetPosition, text, effectColor, amount, true);
 
-            // Spawn coin particle effects
-            int coins = isJackpot ? particleCount + 3 : particleCount;
+            // Spawn coin particle effects - more for jackpots!
+            int coins = isJackpot ? particleCount + 6 : particleCount;
             SpawnParticleEffects(worldPosition, moneyTargetPosition, coinSprite, coins, true, amount);
         }
 
@@ -306,14 +306,15 @@ namespace Incredicer.UI
             // Delay before starting
             seq.AppendInterval(delay);
 
-            // Pop in
-            seq.Append(rt.DOScale(1f, 0.1f).SetEase(Ease.OutBack));
+            // Pop in with bounce - juicier!
+            seq.Append(rt.DOScale(1.3f, 0.08f).SetEase(Ease.OutBack, 2f));
+            seq.Append(rt.DOScale(1f, 0.05f).SetEase(Ease.InQuad));
 
-            // Add rotation for visual interest
-            float randomRotation = UnityEngine.Random.Range(-180f, 180f);
-            seq.Join(rt.DORotate(new Vector3(0, 0, randomRotation), duration, RotateMode.FastBeyond360));
+            // Add faster rotation for visual interest
+            float randomRotation = UnityEngine.Random.Range(-360f, 360f);
+            seq.Join(rt.DORotate(new Vector3(0, 0, randomRotation), duration * 0.8f, RotateMode.FastBeyond360).SetEase(Ease.OutQuad));
 
-            // Move along bezier curve
+            // Move along bezier curve with easing for more satisfying arc
             seq.Append(DOTween.To(() => 0f, t =>
             {
                 float oneMinusT = 1f - t;
@@ -321,13 +322,13 @@ namespace Incredicer.UI
                               2f * oneMinusT * t * midPoint +
                               t * t * endPos;
                 rt.anchoredPosition = pos;
-            }, 1f, duration).SetEase(Ease.InQuad));
+            }, 1f, duration).SetEase(Ease.InOutQuad)); // Smoother acceleration
 
-            // Shrink as it travels
-            seq.Join(rt.DOScale(endScale * 0.8f, duration).SetEase(Ease.InQuad));
+            // Shrink as it travels - more dramatic
+            seq.Join(rt.DOScale(endScale * 0.6f, duration).SetEase(Ease.InQuad));
 
-            // Fade out at end
-            seq.Join(img.DOFade(0f, duration * 0.2f).SetDelay(duration * 0.8f));
+            // Fade out at end - quicker fade
+            seq.Join(img.DOFade(0f, duration * 0.15f).SetDelay(duration * 0.85f));
 
             // On complete
             seq.OnComplete(() =>
@@ -415,11 +416,13 @@ namespace Incredicer.UI
             // Animate position along a bezier-like curve using custom path
             float duration = travelDuration;
 
-            // Initial pop
-            seq.Append(rt.DOScale(startScale * 1.3f, 0.1f).SetEase(Ease.OutBack));
-            seq.Append(rt.DOScale(startScale, 0.05f));
+            // Initial pop - JUICIER with multiple bounces!
+            seq.Append(rt.DOScale(startScale * 1.5f, 0.08f).SetEase(Ease.OutBack, 2.5f));
+            seq.Append(rt.DOScale(startScale * 0.9f, 0.04f).SetEase(Ease.InQuad));
+            seq.Append(rt.DOScale(startScale * 1.1f, 0.05f).SetEase(Ease.OutQuad));
+            seq.Append(rt.DOScale(startScale, 0.03f).SetEase(Ease.InOutQuad));
 
-            // Move to target with arc
+            // Move to target with arc - smoother motion
             seq.Append(DOTween.To(() => 0f, t =>
             {
                 // Quadratic bezier curve
@@ -430,11 +433,11 @@ namespace Incredicer.UI
                 rt.anchoredPosition = pos;
             }, 1f, duration).SetEase(Ease.InOutQuad));
 
-            // Shrink as it travels
-            seq.Join(rt.DOScale(endScale, duration).SetEase(Ease.InQuad));
+            // Shrink as it travels - more dramatic
+            seq.Join(rt.DOScale(endScale * 0.7f, duration).SetEase(Ease.InQuad));
 
-            // Fade out near the end
-            seq.Join(tmp.DOFade(0f, duration * 0.3f).SetDelay(duration * 0.7f));
+            // Fade out near the end - snappier
+            seq.Join(tmp.DOFade(0f, duration * 0.2f).SetDelay(duration * 0.8f));
 
             // On complete - just destroy (particles now handle currency add)
             seq.OnComplete(() =>
