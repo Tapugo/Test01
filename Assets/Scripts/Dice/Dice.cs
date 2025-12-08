@@ -143,12 +143,27 @@ namespace Incredicer.Dice
                 }
             }
 
-            // PrecisionAim: When pointer is held, dice are pulled toward cursor
-            var pointer = Pointer.current;
-            bool isPointerPressed = pointer != null && pointer.press.isPressed;
-            if (GameStats.Instance.PrecisionAimActive && isPointerPressed)
+            // PrecisionAim: When mouse/touch is held, dice are pulled toward cursor
+            bool pointerHeld = false;
+            Vector3 pointerScreenPos = Vector3.zero;
+
+            var mouse = Mouse.current;
+            var touchscreen = Touchscreen.current;
+
+            if (mouse != null && mouse.leftButton.isPressed)
             {
-                Vector3 mouseWorldPos = mainCamera.ScreenToWorldPoint((Vector3)pointer.position.ReadValue());
+                pointerHeld = true;
+                pointerScreenPos = mouse.position.ReadValue();
+            }
+            else if (touchscreen != null && touchscreen.primaryTouch.press.isPressed)
+            {
+                pointerHeld = true;
+                pointerScreenPos = touchscreen.primaryTouch.position.ReadValue();
+            }
+
+            if (GameStats.Instance.PrecisionAimActive && pointerHeld)
+            {
+                Vector3 mouseWorldPos = mainCamera.ScreenToWorldPoint(pointerScreenPos);
                 mouseWorldPos.z = 0;
 
                 Vector2 toCursor = (Vector2)mouseWorldPos - (Vector2)currentPos;

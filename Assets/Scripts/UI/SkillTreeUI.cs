@@ -195,22 +195,30 @@ namespace Incredicer.UI
 
         private void BuildUI()
         {
+            Debug.Log($"[SkillTreeUI] BuildUI() called. isInitialized={isInitialized}");
             if (isInitialized) return;
             isInitialized = true;
 
             // Instantiate from prefab if needed
+            Debug.Log($"[SkillTreeUI] skillTreePanel={skillTreePanel}, panelPrefab={panelPrefab}");
             if (skillTreePanel == null && panelPrefab != null)
             {
                 Canvas canvas = GetComponentInParent<Canvas>();
                 if (canvas == null) canvas = FindObjectOfType<Canvas>();
+                Debug.Log($"[SkillTreeUI] Found canvas={canvas}");
                 if (canvas != null)
                 {
                     skillTreePanel = Instantiate(panelPrefab, canvas.transform);
                     skillTreePanel.name = "SkillTreePanel";
+                    Debug.Log($"[SkillTreeUI] Created skillTreePanel from prefab");
                 }
             }
 
-            if (skillTreePanel == null) return;
+            if (skillTreePanel == null)
+            {
+                Debug.LogError("[SkillTreeUI] skillTreePanel is STILL null after BuildUI! Cannot show skill tree.");
+                return;
+            }
 
             // Ensure skill definitions are initialized
             if (allNodes.Count == 0)
@@ -689,11 +697,14 @@ namespace Incredicer.UI
 
         public void Show()
         {
+            Debug.Log($"[SkillTreeUI] Show() called. isOpen={isOpen}");
             if (isOpen) return;
             isOpen = true;
 
             isInitialized = false;
+            Debug.Log($"[SkillTreeUI] About to call BuildUI(). panelPrefab={panelPrefab}");
             BuildUI();
+            Debug.Log($"[SkillTreeUI] After BuildUI(). skillTreePanel={skillTreePanel}");
 
             // Apply shared font to all text for consistency
             ApplySharedFontToPanel();
@@ -771,6 +782,7 @@ namespace Incredicer.UI
 
         public void Toggle()
         {
+            Debug.Log($"[SkillTreeUI] Toggle called. isOpen={isOpen}, skillTreePanel={skillTreePanel}, panel.activeSelf={skillTreePanel?.activeSelf}");
             if (isOpen) Hide();
             else Show();
         }

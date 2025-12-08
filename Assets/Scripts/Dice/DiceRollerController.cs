@@ -49,16 +49,23 @@ namespace Incredicer.Dice
                 if (mainCamera == null) return;
             }
 
-            // Check for mouse click or touch using new Input System
+            // Check for mouse click or touch using Input System
             bool clicked = false;
             Vector3 inputPosition = Vector3.zero;
 
             // Handle pointer input (works for both mouse and touch)
-            var pointer = Pointer.current;
-            if (pointer != null && pointer.press.wasPressedThisFrame)
+            var mouse = Mouse.current;
+            var touchscreen = Touchscreen.current;
+
+            if (mouse != null && mouse.leftButton.wasPressedThisFrame)
             {
                 clicked = true;
-                inputPosition = pointer.position.ReadValue();
+                inputPosition = mouse.position.ReadValue();
+            }
+            else if (touchscreen != null && touchscreen.primaryTouch.press.wasPressedThisFrame)
+            {
+                clicked = true;
+                inputPosition = touchscreen.primaryTouch.position.ReadValue();
             }
 
             if (!clicked) return;
