@@ -1203,7 +1203,7 @@ namespace Incredicer.UI
 
             if (ascendButtonText != null)
             {
-                ascendButtonText.text = $"Ascend\n${FormatNumber(required)}";
+                ascendButtonText.text = $"Unlock DM\n${FormatNumber(required)}";
             }
         }
 

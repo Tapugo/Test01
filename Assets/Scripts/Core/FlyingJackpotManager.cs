@@ -20,7 +20,7 @@ namespace Incredicer.Core
         [Header("Timing")]
         [SerializeField] private float minSpawnInterval = 45f;
         [SerializeField] private float maxSpawnInterval = 120f;
-        [SerializeField] private float flyDuration = 10f;
+        [SerializeField] private float flyDuration = 18f; // Slower movement for easier tapping on mobile
 
         [Header("Rewards")]
         [SerializeField] private float baseMoneyRewardPercent = 0.1f;  // 10% of current money
@@ -31,7 +31,7 @@ namespace Incredicer.Core
         [SerializeField] private int baseTimeShardsReward = 1;
 
         [Header("Visual")]
-        [SerializeField] private float jackpotSize = 120f;
+        [SerializeField] private float jackpotSize = 150f; // Larger for easier tapping on mobile
         [SerializeField] private float pulseSpeed = 2f;
         [SerializeField] private float pulseAmount = 1.15f;
         [SerializeField] private float rotationSpeed = 90f;

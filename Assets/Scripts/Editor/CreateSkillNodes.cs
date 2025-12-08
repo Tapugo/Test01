@@ -33,7 +33,7 @@ namespace Incredicer.Editor
                 SkillBranch.Core,
                 0,
                 Vector2.zero,
-                0 // Free - first node
+                1 // 1 DM - first unlock
             );
             createdNodes.Add(darkMatterCore);
 
@@ -589,21 +589,118 @@ namespace Incredicer.Editor
             );
             createdNodes.Add(timeDilation);
 
-            // SK-09 Daily Login - 5,000 DM (early unlock, requires Quick Flick)
-            var dailyLogin = CreateNode(
-                SkillNodeId.SK_DailyLogin,
-                "Daily Rewards",
-                "Unlock daily login bonuses - roll dice for amazing rewards every day!",
-                SkillBranch.SkillsUtility,
-                2,
-                new Vector2(100, -200),
-                5000, // Tier 2: 5,000 DM - early unlock
-                new List<SkillNodeId> { SkillNodeId.SK_QuickFlick },
+            // ===== FEATURE UNLOCKS =====
+            // FU-01 Daily Login - 2,500 DM
+            var fuDailyLogin = CreateNode(
+                SkillNodeId.FU_DailyLogin,
+                "Daily Login",
+                "Unlock the Daily Login system - claim daily rewards and build streaks for bonus prizes!",
+                SkillBranch.FeatureUnlocks,
+                1,
+                new Vector2(0, -100),
+                2500, // Early unlock
+                new List<SkillNodeId> { SkillNodeId.CORE_DarkMatterCore },
                 new List<SkillEffect> {
-                    new SkillEffect { effectType = SkillEffectType.UnlockActiveSkill, unlockSkill = ActiveSkillType.DailyLogin }
+                    new SkillEffect { effectType = SkillEffectType.SpecialFlag, specialFlag = SpecialFlagType.None }
                 }
             );
-            createdNodes.Add(dailyLogin);
+            createdNodes.Add(fuDailyLogin);
+
+            // FU-02 Missions - 5,000 DM
+            var fuMissions = CreateNode(
+                SkillNodeId.FU_Missions,
+                "Missions",
+                "Unlock the Missions system - complete daily and weekly objectives for Dark Matter rewards!",
+                SkillBranch.FeatureUnlocks,
+                1,
+                new Vector2(-100, -200),
+                5000,
+                new List<SkillNodeId> { SkillNodeId.FU_DailyLogin },
+                new List<SkillEffect> {
+                    new SkillEffect { effectType = SkillEffectType.SpecialFlag, specialFlag = SpecialFlagType.None }
+                }
+            );
+            createdNodes.Add(fuMissions);
+
+            // FU-03 Milestones - 7,500 DM
+            var fuMilestones = CreateNode(
+                SkillNodeId.FU_Milestones,
+                "Milestones",
+                "Unlock the Milestones system - track your achievements and earn milestone rewards!",
+                SkillBranch.FeatureUnlocks,
+                1,
+                new Vector2(100, -200),
+                7500,
+                new List<SkillNodeId> { SkillNodeId.FU_DailyLogin },
+                new List<SkillEffect> {
+                    new SkillEffect { effectType = SkillEffectType.SpecialFlag, specialFlag = SpecialFlagType.None }
+                }
+            );
+            createdNodes.Add(fuMilestones);
+
+            // FU-04 Global Events - 25,000 DM
+            var fuGlobalEvents = CreateNode(
+                SkillNodeId.FU_GlobalEvents,
+                "Global Events",
+                "Unlock Global Events - participate in limited-time events with special bonuses!",
+                SkillBranch.FeatureUnlocks,
+                2,
+                new Vector2(-50, -350),
+                25000,
+                new List<SkillNodeId> { SkillNodeId.FU_Missions },
+                new List<SkillEffect> {
+                    new SkillEffect { effectType = SkillEffectType.SpecialFlag, specialFlag = SpecialFlagType.None }
+                }
+            );
+            createdNodes.Add(fuGlobalEvents);
+
+            // FU-05 Leaderboard - 50,000 DM
+            var fuLeaderboard = CreateNode(
+                SkillNodeId.FU_Leaderboard,
+                "Leaderboard",
+                "Unlock the Leaderboard - compete with other players and climb the rankings!",
+                SkillBranch.FeatureUnlocks,
+                2,
+                new Vector2(50, -350),
+                50000,
+                new List<SkillNodeId> { SkillNodeId.FU_Milestones },
+                new List<SkillEffect> {
+                    new SkillEffect { effectType = SkillEffectType.SpecialFlag, specialFlag = SpecialFlagType.None }
+                }
+            );
+            createdNodes.Add(fuLeaderboard);
+
+            // FU-06 Overclock - 100,000 DM
+            var fuOverclock = CreateNode(
+                SkillNodeId.FU_Overclock,
+                "Overclock",
+                "Unlock the Overclock system - supercharge your dice with temporary power boosts!",
+                SkillBranch.FeatureUnlocks,
+                3,
+                new Vector2(0, -450),
+                100000,
+                new List<SkillNodeId> { SkillNodeId.FU_GlobalEvents, SkillNodeId.FU_Leaderboard },
+                new List<SkillEffect> {
+                    new SkillEffect { effectType = SkillEffectType.UnlockActiveSkill, unlockSkill = ActiveSkillType.Overclock }
+                }
+            );
+            createdNodes.Add(fuOverclock);
+
+            // FU-07 Time Fracture - 500,000 DM
+            var fuTimeFracture = CreateNode(
+                SkillNodeId.FU_TimeFracture,
+                "Time Fracture",
+                "Unlock Time Fractures - enter alternate dimensions for massive rewards and unique challenges!",
+                SkillBranch.FeatureUnlocks,
+                4,
+                new Vector2(0, -550),
+                500000,
+                new List<SkillNodeId> { SkillNodeId.FU_Overclock },
+                new List<SkillEffect> {
+                    new SkillEffect { effectType = SkillEffectType.SpecialFlag, specialFlag = SpecialFlagType.None }
+                }
+            );
+            createdNodes.Add(fuTimeFracture);
 
             // Refresh asset database
             AssetDatabase.SaveAssets();

@@ -51,6 +51,11 @@ namespace Incredicer.UI
         public Sprite iconCoin;
         public Sprite iconAdd;
         public Sprite iconCheck;
+        public Sprite iconSettings;
+
+        [Header("Toggles")]
+        public Sprite toggleOn;
+        public Sprite toggleOff;
 
         [Header("Labels/Ribbons")]
         public Sprite ribbonYellow;

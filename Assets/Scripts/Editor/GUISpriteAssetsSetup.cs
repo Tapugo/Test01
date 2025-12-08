@@ -56,6 +56,11 @@ namespace Incredicer.Editor
             asset.iconStar = LoadSpriteFromPath("Assets/Layer Lab/GUI-CasualFantasy/ResourcesData/Sprites/Components/IconMisc/Icon_Star03_m.png");
             asset.iconAdd = LoadSpriteFromPath("Assets/Layer Lab/GUI-CasualFantasy/ResourcesData/Sprites/Components/IconMisc/Icon_Add02.png");
             asset.iconCoin = LoadSpriteFromPath("Assets/Layer Lab/GUI-CasualFantasy/ResourcesData/Sprites/Components/Icon_ItemIcons/64/ItemIcon_Gold.png");
+            asset.iconSettings = LoadSpriteFromPath("Assets/Layer Lab/GUI-CasualFantasy/ResourcesData/Sprites/Components/IconMisc/Icon_Setting01.Png");
+
+            // Toggles
+            asset.toggleOn = LoadSpriteFromPath("Assets/Layer Lab/GUI-CasualFantasy/ResourcesData/Sprites/Components/UI_Etc/Toggle01_White_On.png");
+            asset.toggleOff = LoadSpriteFromPath("Assets/Layer Lab/GUI-CasualFantasy/ResourcesData/Sprites/Components/UI_Etc/Toggle01_White_Off.png");
 
             // Labels/Ribbons - try to find matching files
             asset.ribbonYellow = LoadSpriteFromPath("Assets/Layer Lab/GUI-CasualFantasy/ResourcesData/Sprites/Components/Label/Label01_Demo_Yellow.png");

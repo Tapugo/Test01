@@ -3,9 +3,6 @@ using UnityEngine.UI;
 using TMPro;
 using DG.Tweening;
 using Incredicer.Core;
-#if UNITY_EDITOR
-using UnityEditor;
-#endif
 
 namespace Incredicer.UI
 {
@@ -91,42 +88,60 @@ namespace Incredicer.UI
         }
 
         /// <summary>
-        /// Loads all required sprites from the GUI package.
+        /// Loads all required sprites from the GUI package via GUISpriteAssets.
         /// </summary>
         private void LoadSprites()
         {
+            // Load sprites from GUISpriteAssets (works in builds, not just editor)
+            GUISpriteAssets guiAssets = GUISpriteAssets.Instance;
+
+            if (guiAssets != null)
+            {
+                if (settingsIconSprite == null)
+                    settingsIconSprite = guiAssets.iconSettings;
+
+                if (toggleOnSprite == null)
+                    toggleOnSprite = guiAssets.toggleOn;
+
+                if (toggleOffSprite == null)
+                    toggleOffSprite = guiAssets.toggleOff;
+
+                if (popupBgSprite == null)
+                    popupBgSprite = guiAssets.popupBackground;
+
+                if (closeButtonSprite == null)
+                    closeButtonSprite = guiAssets.buttonGreen;
+            }
+
+            // Fallback: try loading from AssetDatabase in editor if GUISpriteAssets not set up
 #if UNITY_EDITOR
-            // Settings icon
             if (settingsIconSprite == null)
             {
-                settingsIconSprite = AssetDatabase.LoadAssetAtPath<Sprite>(
+                settingsIconSprite = UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>(
                     "Assets/Layer Lab/GUI-CasualFantasy/ResourcesData/Sprites/Components/IconMisc/Icon_Setting01.Png");
             }
 
-            // Toggle sprites
             if (toggleOnSprite == null)
             {
-                toggleOnSprite = AssetDatabase.LoadAssetAtPath<Sprite>(
+                toggleOnSprite = UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>(
                     "Assets/Layer Lab/GUI-CasualFantasy/ResourcesData/Sprites/Components/UI_Etc/Toggle01_White_On.png");
             }
 
             if (toggleOffSprite == null)
             {
-                toggleOffSprite = AssetDatabase.LoadAssetAtPath<Sprite>(
+                toggleOffSprite = UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>(
                     "Assets/Layer Lab/GUI-CasualFantasy/ResourcesData/Sprites/Components/UI_Etc/Toggle01_White_Off.png");
             }
 
-            // Popup background
             if (popupBgSprite == null)
             {
-                popupBgSprite = AssetDatabase.LoadAssetAtPath<Sprite>(
+                popupBgSprite = UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>(
                     "Assets/Layer Lab/GUI-CasualFantasy/ResourcesData/Sprites/Components/Popup/Popup01_White1.Png");
             }
 
-            // Close button
             if (closeButtonSprite == null)
             {
-                closeButtonSprite = AssetDatabase.LoadAssetAtPath<Sprite>(
+                closeButtonSprite = UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>(
                     "Assets/Layer Lab/GUI-CasualFantasy/ResourcesData/Sprites/Components/Button/Button01_Demo_Green.png");
             }
 #endif

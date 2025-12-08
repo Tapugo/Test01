@@ -837,8 +837,8 @@ MonoBehaviour:
   musicVolume: 0.5
   sfxEnabled: 1
   musicEnabled: 1
-  rollSoundVolume: 0.2
-  jackpotSoundVolume: 1
+  rollSoundVolume: 0.1
+  jackpotSoundVolume: 0.5
   purchaseSoundVolume: 1
   skillUnlockSoundVolume: 1
   buttonClickSoundVolume: 0.7
@@ -1012,8 +1012,8 @@ MonoBehaviour:
   scrollRect: {fileID: 0}
   contentContainer: {fileID: 0}
   guiAssets: {fileID: 0}
-  itemHeight: 140
-  headerHeight: 70
+  itemHeight: 180
+  headerHeight: 80
   unlockedColor: {r: 0.3, g: 0.9, b: 0.4, a: 1}
   availableColor: {r: 1, g: 0.85, b: 0.3, a: 1}
   lockedColor: {r: 0.35, g: 0.35, b: 0.4, a: 1}

@@ -10,20 +10,21 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: ddde9f38930aa462987125c689634be9, type: 3}
-  m_Name: SK_DailyLogin
+  m_Name: FU_Overclock
   m_EditorClassIdentifier: 
-  nodeId: 36
-  displayName: Daily Rewards
-  description: Unlock daily login bonuses - roll dice for amazing rewards every day!
+  nodeId: 43
+  displayName: Overclock
+  description: Unlock the Overclock system - supercharge your dice with temporary
+    power boosts!
   icon: {fileID: 0}
-  branch: 4
-  tier: 2
-  treePosition: {x: 100, y: -200}
-  darkMatterCost: 2500
-  prerequisites: 1b000000
+  branch: 5
+  tier: 3
+  treePosition: {x: 0, y: -450}
+  darkMatterCost: 100000
+  prerequisites: 2900000028000000
   effects:
   - effectType: 15
     value: 0
     targetDiceType: 0
-    unlockSkill: 4
+    unlockSkill: 3
     specialFlag: 0

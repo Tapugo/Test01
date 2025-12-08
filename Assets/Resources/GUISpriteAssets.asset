@@ -30,6 +30,9 @@ MonoBehaviour:
   iconCoin: {fileID: 0}
   iconAdd: {fileID: 21300000, guid: ffeafc38fb0654eb78d14da1ee37e496, type: 3}
   iconCheck: {fileID: 21300000, guid: 67d74fe0bc2ff4f04bb9d4f9e1d63c02, type: 3}
+  iconSettings: {fileID: 21300000, guid: 9a907db57cd564233bccfb07a9ad9060, type: 3}
+  toggleOn: {fileID: 21300000, guid: e8cd3cffd0d684631b8b486cc5fbe11e, type: 3}
+  toggleOff: {fileID: 21300000, guid: 7cdf7e77407074bd1a6157aa19871da6, type: 3}
   ribbonYellow: {fileID: 0}
   ribbonGreen: {fileID: 0}
   ribbonBlue: {fileID: 0}

@@ -10,20 +10,21 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: ddde9f38930aa462987125c689634be9, type: 3}
-  m_Name: SK_PrecisionAim
+  m_Name: FU_Missions
   m_EditorClassIdentifier: 
-  nodeId: 32
-  displayName: Precision Aim
-  description: Hold mouse to gently pull dice toward cursor.
+  nodeId: 38
+  displayName: Missions
+  description: Unlock the Missions system - complete daily and weekly objectives
+    for Dark Matter rewards!
   icon: {fileID: 0}
-  branch: 4
-  tier: 3
-  treePosition: {x: -200, y: -400}
-  darkMatterCost: 500000
-  prerequisites: 1f000000
+  branch: 5
+  tier: 1
+  treePosition: {x: -100, y: -200}
+  darkMatterCost: 5000
+  prerequisites: 25000000
   effects:
   - effectType: 16
     value: 0
     targetDiceType: 0
     unlockSkill: 0
-    specialFlag: 4
+    specialFlag: 0

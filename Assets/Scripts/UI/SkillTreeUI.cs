@@ -34,8 +34,8 @@ namespace Incredicer.UI
         [SerializeField] private GUISpriteAssets guiAssets;
 
         [Header("Visual Settings")]
-        [SerializeField] private float itemHeight = 280f; // MUCH bigger for mobile - 3x size
-        [SerializeField] private float headerHeight = 120f; // MUCH bigger branch headers
+        [SerializeField] private float itemHeight = 180f; // Compact height matching button proportions
+        [SerializeField] private float headerHeight = 80f; // Branch headers
         [SerializeField] private Color unlockedColor = new Color(0.3f, 0.9f, 0.4f);
         [SerializeField] private Color availableColor = new Color(1f, 0.85f, 0.3f);
         [SerializeField] private Color lockedColor = new Color(0.4f, 0.4f, 0.45f);
@@ -250,7 +250,7 @@ namespace Incredicer.UI
 
             // Calculate content height manually as fallback
             float totalHeight = 20; // padding top + bottom
-            int branchCount = 5;
+            int branchCount = 6; // Core, MoneyEngine, Automation, DiceEvolution, SkillsUtility, FeatureUnlocks
             int skillCount = skillItems.Count;
             totalHeight += branchCount * (headerHeight + 8); // branch headers + spacing
             totalHeight += skillCount * (itemHeight + 8); // skill items + spacing
