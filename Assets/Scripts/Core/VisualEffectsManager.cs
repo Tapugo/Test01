@@ -13,7 +13,7 @@ namespace Incredicer.Core
     {
         public static VisualEffectsManager Instance { get; private set; }
 
-        [Header("Particle Prefabs")]
+        [Header("Particle Prefabs (Auto-generated fallbacks)")]
         [SerializeField] private GameObject rollParticlePrefab;
         [SerializeField] private GameObject jackpotParticlePrefab;
         [SerializeField] private GameObject purchaseParticlePrefab;
@@ -23,6 +23,30 @@ namespace Incredicer.Core
         [SerializeField] private GameObject darkMatterParticlePrefab;
         [SerializeField] private GameObject sparkleParticlePrefab;
         [SerializeField] private GameObject comboParticlePrefab;
+
+        [Header("Epic Toon FX Prefabs")]
+        [SerializeField] private GameObject etfxGoldCoinBlast;
+        [SerializeField] private GameObject etfxGoldCoinFountain;
+        [SerializeField] private GameObject etfxSilverCoinBlast;
+        [SerializeField] private GameObject etfxSparkleYellow;
+        [SerializeField] private GameObject etfxSparkleRainbow;
+        [SerializeField] private GameObject etfxSparklePurple;
+        [SerializeField] private GameObject etfxLevelupNovaYellow;
+        [SerializeField] private GameObject etfxLevelupNovaPurple;
+        [SerializeField] private GameObject etfxStarExplosionOrange;
+        [SerializeField] private GameObject etfxStarExplosionPink;
+        [SerializeField] private GameObject etfxMagicNovaYellow;
+        [SerializeField] private GameObject etfxMagicNovaGreen;
+        [SerializeField] private GameObject etfxConfettiRainbow;
+        [SerializeField] private GameObject etfxGlowOrbYellow;
+        [SerializeField] private GameObject etfxGlowOrbPink;
+        [SerializeField] private GameObject etfxItemSparkleBurstYellow;
+        [SerializeField] private GameObject etfxItemSparkleBurstPurple;
+        [SerializeField] private GameObject etfxNovaFire;
+        [SerializeField] private GameObject etfxFireworkCluster;
+
+        // Flag to use Epic Toon FX when available
+        private bool useEpicToonFX = true;
 
         [Header("Screen Effects")]
         [SerializeField] private Image screenFlashImage;
@@ -54,9 +78,33 @@ namespace Incredicer.Core
 
             mainCamera = Camera.main;
 
-            // Create default particle prefabs if not assigned
+            // Try to load Epic Toon FX prefabs first
+            LoadEpicToonFXPrefabs();
+
+            // Create default particle prefabs if not assigned (fallback)
             CreateDefaultParticlePrefabs();
             CreateScreenEffectsCanvas();
+        }
+
+        /// <summary>
+        /// Attempts to load Epic Toon FX prefabs from Resources or direct paths.
+        /// </summary>
+        private void LoadEpicToonFXPrefabs()
+        {
+            // Try to load from Resources first (if moved there), otherwise we rely on editor assignment
+            // The prefabs will be assigned via the SetupVisualEffects editor script
+
+            // Check if any ETFX prefabs are assigned
+            useEpicToonFX = etfxGoldCoinBlast != null || etfxSparkleYellow != null || etfxLevelupNovaYellow != null;
+
+            if (useEpicToonFX)
+            {
+                Debug.Log("[VisualEffectsManager] Epic Toon FX prefabs detected - using enhanced effects!");
+            }
+            else
+            {
+                Debug.Log("[VisualEffectsManager] Epic Toon FX prefabs not assigned - using procedural effects. Run 'Incredicer/Setup/Assign Epic Toon FX Prefabs' to enable.");
+            }
         }
 
         private void CreateScreenEffectsCanvas()
@@ -734,47 +782,97 @@ namespace Incredicer.Core
 
         public void SpawnRollEffect(Vector3 position)
         {
-            SpawnParticle(rollParticlePrefab, position);
+            // Use Epic Toon FX sparkle for roll effects when available
+            if (useEpicToonFX && etfxSparkleYellow != null)
+            {
+                SpawnETFXParticle(etfxSparkleYellow, position, 0.6f);
+            }
+            else
+            {
+                SpawnParticle(rollParticlePrefab, position);
+            }
         }
 
         public void SpawnJackpotEffect(Vector3 position)
         {
             if (!effectsEnabled) return;
 
-            SpawnParticle(jackpotParticlePrefab, position);
+            // Use Epic Toon FX for jackpots - scaled down coin blast + star explosion
+            if (useEpicToonFX)
+            {
+                // Use coin blast instead of fountain (smaller effect)
+                if (etfxGoldCoinBlast != null)
+                    SpawnETFXParticle(etfxGoldCoinBlast, position, 2f, 0.7f);
+                // Smaller star explosion
+                if (etfxStarExplosionOrange != null)
+                    SpawnETFXParticle(etfxStarExplosionOrange, position, 1.5f, 0.6f);
+            }
+            else
+            {
+                SpawnParticle(jackpotParticlePrefab, position);
+            }
 
-            // Epic screen flash sequence for jackpot - double flash!
-            FlashScreen(new Color(1f, 1f, 0.6f, 0.5f), 0.15f); // Bright initial flash
-            DOVirtual.DelayedCall(0.1f, () => FlashScreen(new Color(1f, 0.85f, 0.2f, 0.35f), 0.3f)); // Gold afterglow
-
-            // Strong camera shake with extra punch
-            ShakeCamera(0.35f, 0.35f);
+            // Single moderate screen flash
+            FlashScreen(new Color(1f, 0.9f, 0.4f, 0.3f), 0.2f);
         }
 
         public void SpawnPurchaseEffect(Vector3 position)
         {
-            SpawnParticle(purchaseParticlePrefab, position);
-            FlashScreen(new Color(0.3f, 1f, 0.5f, 0.25f), 0.2f); // Brighter flash
-            ShakeCamera(0.1f, 0.08f); // Subtle satisfying shake
+            // Use Epic Toon FX for purchases - magic nova
+            if (useEpicToonFX && etfxMagicNovaGreen != null)
+            {
+                SpawnETFXParticle(etfxMagicNovaGreen, position, 2f);
+            }
+            else
+            {
+                SpawnParticle(purchaseParticlePrefab, position);
+            }
+            FlashScreen(new Color(0.3f, 1f, 0.5f, 0.25f), 0.2f);
+            ShakeCamera(0.1f, 0.08f);
         }
 
         public void SpawnSkillUnlockEffect(Vector3 position)
         {
-            SpawnParticle(skillUnlockParticlePrefab, position);
-            FlashScreen(new Color(0.4f, 0.8f, 1f, 0.3f), 0.25f); // Brighter blue
-            ShakeCamera(0.15f, 0.12f); // Satisfying shake
+            // Use Epic Toon FX for skill unlocks - level up nova
+            if (useEpicToonFX && etfxLevelupNovaYellow != null)
+            {
+                SpawnETFXParticle(etfxLevelupNovaYellow, position, 2.5f);
+                if (etfxItemSparkleBurstYellow != null)
+                    SpawnETFXParticle(etfxItemSparkleBurstYellow, position, 2f);
+            }
+            else
+            {
+                SpawnParticle(skillUnlockParticlePrefab, position);
+            }
+            FlashScreen(new Color(0.4f, 0.8f, 1f, 0.3f), 0.25f);
+            ShakeCamera(0.15f, 0.12f);
         }
 
         public void SpawnPrestigeEffect(Vector3 position)
         {
             if (!effectsEnabled) return;
 
-            SpawnParticle(prestigeParticlePrefab, position);
+            // Use Epic Toon FX for prestige - MASSIVE effect combination!
+            if (useEpicToonFX)
+            {
+                if (etfxLevelupNovaPurple != null)
+                    SpawnETFXParticle(etfxLevelupNovaPurple, position, 3f);
+                if (etfxStarExplosionPink != null)
+                    SpawnETFXParticle(etfxStarExplosionPink, position, 2.5f);
+                if (etfxFireworkCluster != null)
+                    DOVirtual.DelayedCall(0.15f, () => SpawnETFXParticle(etfxFireworkCluster, position + Vector3.up, 4f));
+                if (etfxConfettiRainbow != null)
+                    DOVirtual.DelayedCall(0.2f, () => SpawnETFXParticle(etfxConfettiRainbow, position + Vector3.up * 0.5f, 4f));
+            }
+            else
+            {
+                SpawnParticle(prestigeParticlePrefab, position);
+            }
 
             // EPIC screen flash sequence - multiple waves!
-            FlashScreen(new Color(1f, 0.8f, 1f, 0.6f), 0.2f); // Bright white-purple initial
-            DOVirtual.DelayedCall(0.15f, () => FlashScreen(new Color(0.8f, 0.4f, 1f, 0.4f), 0.4f)); // Purple wave
-            DOVirtual.DelayedCall(0.4f, () => FlashScreen(new Color(0.5f, 0.2f, 0.8f, 0.25f), 0.5f)); // Deep purple fade
+            FlashScreen(new Color(1f, 0.8f, 1f, 0.6f), 0.2f);
+            DOVirtual.DelayedCall(0.15f, () => FlashScreen(new Color(0.8f, 0.4f, 1f, 0.4f), 0.4f));
+            DOVirtual.DelayedCall(0.4f, () => FlashScreen(new Color(0.5f, 0.2f, 0.8f, 0.25f), 0.5f));
 
             // Strong sustained camera shake
             ShakeCamera(0.5f, 0.45f);
@@ -782,26 +880,71 @@ namespace Incredicer.Core
 
         public void SpawnMoneyCollectEffect(Vector3 position)
         {
-            SpawnParticle(moneyCollectParticlePrefab, position);
+            // Use Epic Toon FX coin blast when available
+            if (useEpicToonFX && etfxGoldCoinBlast != null)
+            {
+                SpawnETFXParticle(etfxGoldCoinBlast, position, 1.5f);
+            }
+            else
+            {
+                SpawnParticle(moneyCollectParticlePrefab, position);
+            }
         }
 
         public void SpawnDarkMatterEffect(Vector3 position)
         {
-            SpawnParticle(darkMatterParticlePrefab, position);
+            // Use Epic Toon FX purple glow orb for dark matter
+            if (useEpicToonFX && etfxGlowOrbPink != null)
+            {
+                SpawnETFXParticle(etfxGlowOrbPink, position, 2f);
+            }
+            else
+            {
+                SpawnParticle(darkMatterParticlePrefab, position);
+            }
         }
 
         public void SpawnSparkleEffect(Vector3 position)
         {
-            SpawnParticle(sparkleParticlePrefab, position);
+            // Use Epic Toon FX sparkle
+            if (useEpicToonFX && etfxSparkleYellow != null)
+            {
+                SpawnETFXParticle(etfxSparkleYellow, position, 1.5f);
+            }
+            else
+            {
+                SpawnParticle(sparkleParticlePrefab, position);
+            }
         }
 
         public void SpawnSparkleEffect(Vector3 position, Color color)
         {
             if (!effectsEnabled) return;
-            if (sparkleParticlePrefab == null) return;
 
             // Don't spawn particle effects when a popup is open
             if (PopupManager.Instance != null && PopupManager.Instance.IsAnyPopupOpen) return;
+
+            // Choose ETFX sparkle based on color
+            if (useEpicToonFX)
+            {
+                // Determine closest color match
+                GameObject sparklePrefab = null;
+                if (color.r > 0.7f && color.g > 0.7f) // Yellow/Gold
+                    sparklePrefab = etfxSparkleYellow;
+                else if (color.r > 0.6f && color.b > 0.6f) // Purple/Pink
+                    sparklePrefab = etfxSparklePurple;
+                else // Rainbow/other
+                    sparklePrefab = etfxSparkleRainbow;
+
+                if (sparklePrefab != null)
+                {
+                    SpawnETFXParticle(sparklePrefab, position, 1.5f);
+                    return;
+                }
+            }
+
+            // Fallback to procedural sparkle
+            if (sparkleParticlePrefab == null) return;
 
             GameObject effect = Instantiate(sparkleParticlePrefab, position, Quaternion.identity);
             ParticleSystem ps = effect.GetComponent<ParticleSystem>();
@@ -815,9 +958,19 @@ namespace Incredicer.Core
 
         public void SpawnComboEffect(Vector3 position)
         {
-            SpawnParticle(comboParticlePrefab, position);
-            FlashScreen(new Color(1f, 1f, 1f, 0.3f), 0.2f); // Brighter
-            ShakeCamera(0.12f, 0.1f); // Subtle punch
+            // Use Epic Toon FX rainbow sparkle for combos
+            if (useEpicToonFX && etfxSparkleRainbow != null)
+            {
+                SpawnETFXParticle(etfxSparkleRainbow, position, 2f);
+                if (etfxItemSparkleBurstYellow != null)
+                    SpawnETFXParticle(etfxItemSparkleBurstYellow, position, 1.5f);
+            }
+            else
+            {
+                SpawnParticle(comboParticlePrefab, position);
+            }
+            FlashScreen(new Color(1f, 1f, 1f, 0.3f), 0.2f);
+            ShakeCamera(0.12f, 0.1f);
         }
 
         /// <summary>
@@ -827,8 +980,21 @@ namespace Incredicer.Core
         {
             if (!effectsEnabled) return;
 
-            SpawnParticle(jackpotParticlePrefab, position);
-            SpawnParticle(comboParticlePrefab, position);
+            // Use Epic Toon FX for big wins
+            if (useEpicToonFX)
+            {
+                if (etfxGoldCoinFountain != null)
+                    SpawnETFXParticle(etfxGoldCoinFountain, position, 2.5f);
+                if (etfxStarExplosionOrange != null)
+                    SpawnETFXParticle(etfxStarExplosionOrange, position, 2f);
+                if (etfxMagicNovaYellow != null)
+                    SpawnETFXParticle(etfxMagicNovaYellow, position, 2f);
+            }
+            else
+            {
+                SpawnParticle(jackpotParticlePrefab, position);
+                SpawnParticle(comboParticlePrefab, position);
+            }
 
             FlashScreen(new Color(1f, 0.95f, 0.4f, 0.4f), 0.25f);
             ShakeCamera(0.2f, 0.2f);
@@ -840,7 +1006,135 @@ namespace Incredicer.Core
         public void SpawnMicroSparkle(Vector3 position)
         {
             if (!effectsEnabled) return;
-            SpawnParticle(sparkleParticlePrefab, position);
+
+            // Use smaller ETFX glow orb for micro sparkles
+            if (useEpicToonFX && etfxGlowOrbYellow != null)
+            {
+                SpawnETFXParticle(etfxGlowOrbYellow, position, 1f, 0.5f);
+            }
+            else
+            {
+                SpawnParticle(sparkleParticlePrefab, position);
+            }
+        }
+
+        // ========== EPIC TOON FX SPECIFIC EFFECTS ==========
+
+        /// <summary>
+        /// Spawns a coin fountain effect for big money wins
+        /// </summary>
+        public void SpawnCoinFountainEffect(Vector3 position)
+        {
+            if (!effectsEnabled) return;
+
+            if (useEpicToonFX && etfxGoldCoinFountain != null)
+            {
+                SpawnETFXParticle(etfxGoldCoinFountain, position, 3f);
+            }
+            else
+            {
+                // Fallback to multiple coin blasts
+                SpawnParticle(jackpotParticlePrefab, position);
+            }
+        }
+
+        /// <summary>
+        /// Spawns a silver coin blast for smaller wins
+        /// </summary>
+        public void SpawnSilverCoinEffect(Vector3 position)
+        {
+            if (!effectsEnabled) return;
+
+            if (useEpicToonFX && etfxSilverCoinBlast != null)
+            {
+                SpawnETFXParticle(etfxSilverCoinBlast, position, 1.5f);
+            }
+            else
+            {
+                SpawnParticle(moneyCollectParticlePrefab, position);
+            }
+        }
+
+        /// <summary>
+        /// Spawns confetti celebration effect
+        /// </summary>
+        public void SpawnConfettiEffect(Vector3 position)
+        {
+            if (!effectsEnabled) return;
+
+            if (useEpicToonFX && etfxConfettiRainbow != null)
+            {
+                SpawnETFXParticle(etfxConfettiRainbow, position, 4f);
+            }
+        }
+
+        /// <summary>
+        /// Spawns firework cluster effect for celebrations
+        /// </summary>
+        public void SpawnFireworkEffect(Vector3 position)
+        {
+            if (!effectsEnabled) return;
+
+            if (useEpicToonFX && etfxFireworkCluster != null)
+            {
+                SpawnETFXParticle(etfxFireworkCluster, position, 4f);
+            }
+        }
+
+        /// <summary>
+        /// Spawns level up nova effect
+        /// </summary>
+        public void SpawnLevelUpEffect(Vector3 position, bool isPurple = false)
+        {
+            if (!effectsEnabled) return;
+
+            if (useEpicToonFX)
+            {
+                GameObject novaPrefab = isPurple ? etfxLevelupNovaPurple : etfxLevelupNovaYellow;
+                if (novaPrefab != null)
+                    SpawnETFXParticle(novaPrefab, position, 2.5f);
+            }
+            else
+            {
+                SpawnParticle(skillUnlockParticlePrefab, position);
+            }
+        }
+
+        /// <summary>
+        /// Spawns fire nova effect for intense moments
+        /// </summary>
+        public void SpawnFireNovaEffect(Vector3 position)
+        {
+            if (!effectsEnabled) return;
+
+            if (useEpicToonFX && etfxNovaFire != null)
+            {
+                SpawnETFXParticle(etfxNovaFire, position, 2f);
+            }
+            else
+            {
+                SpawnParticle(comboParticlePrefab, position);
+            }
+            ShakeCamera(0.15f, 0.15f);
+        }
+
+        /// <summary>
+        /// Spawns item sparkle burst for item pickup/unlock
+        /// </summary>
+        public void SpawnItemBurstEffect(Vector3 position, bool isPurple = false)
+        {
+            if (!effectsEnabled) return;
+
+            if (useEpicToonFX)
+            {
+                GameObject burstPrefab = isPurple ? etfxItemSparkleBurstPurple : etfxItemSparkleBurstYellow;
+                if (burstPrefab != null)
+                    SpawnETFXParticle(burstPrefab, position, 2f);
+            }
+            else
+            {
+                SpawnParticle(sparkleParticlePrefab, position);
+            }
         }
 
         // ========== SCREEN EFFECTS ==========
@@ -900,6 +1194,28 @@ namespace Incredicer.Core
             Destroy(instance, particleLifetime);
         }
 
+        /// <summary>
+        /// Spawns an Epic Toon FX prefab with optional scale
+        /// </summary>
+        private void SpawnETFXParticle(GameObject prefab, Vector3 position, float lifetime, float scale = 1f)
+        {
+            if (!effectsEnabled || prefab == null) return;
+
+            // Don't spawn particle effects when a popup is open
+            if (PopupManager.Instance != null && PopupManager.Instance.IsAnyPopupOpen) return;
+
+            GameObject instance = Instantiate(prefab, position, Quaternion.identity);
+
+            // Apply scale if different from default
+            if (scale != 1f)
+            {
+                instance.transform.localScale = Vector3.one * scale;
+            }
+
+            instance.SetActive(true);
+            Destroy(instance, lifetime);
+        }
+
         public void SpawnCustomEffect(GameObject prefab, Vector3 position, float lifetime = 2f)
         {
             if (!effectsEnabled || prefab == null) return;
@@ -910,5 +1226,10 @@ namespace Incredicer.Core
             GameObject instance = Instantiate(prefab, position, Quaternion.identity);
             Destroy(instance, lifetime);
         }
+
+        /// <summary>
+        /// Returns whether Epic Toon FX effects are available and enabled
+        /// </summary>
+        public bool HasEpicToonFX => useEpicToonFX;
     }
 }

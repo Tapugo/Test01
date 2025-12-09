@@ -889,11 +889,12 @@ namespace Incredicer.Dice
 
         /// <summary>
         /// Spawns visual and audio effects based on the dice value.
-        /// Higher values produce more impressive effects!
+        /// Higher values produce more impressive effects using Epic Toon FX!
         /// </summary>
         private void SpawnValueBasedEffects(int value, bool isJackpot)
         {
             Camera cam = mainCamera ?? Camera.main;
+            var vfx = Core.VisualEffectsManager.Instance;
 
             // Base intensity scales with value (1-6)
             float intensity = value / 6f;
@@ -910,33 +911,34 @@ namespace Incredicer.Dice
             };
             Color effectColor = valueColors[Mathf.Clamp(value - 1, 0, 5)];
 
-            // Value 1-2: Subtle effect (small particles)
+            // Value 1-2: Subtle effect (small particles/glow orb)
             if (value >= 1)
             {
-                if (Core.VisualEffectsManager.Instance != null)
+                if (vfx != null)
                 {
-                    Core.VisualEffectsManager.Instance.SpawnRollEffect(transform.position);
+                    vfx.SpawnMicroSparkle(transform.position);
                 }
             }
 
-            // Value 3-4: Medium effect (sparkles + scale punch)
+            // Value 3: Medium effect (sparkles + scale punch)
             if (value >= 3)
             {
-                if (Core.VisualEffectsManager.Instance != null)
+                if (vfx != null)
                 {
-                    Core.VisualEffectsManager.Instance.SpawnSparkleEffect(transform.position, effectColor);
+                    vfx.SpawnSparkleEffect(transform.position, effectColor);
                 }
 
                 // Small punch scale
                 transform.DOPunchScale(initialScale * 0.1f, 0.1f, 4, 0.5f);
             }
 
-            // Value 4: Nice sparkle burst
+            // Value 4: Nice sparkle burst with item burst effect
             if (value >= 4)
             {
-                if (Core.VisualEffectsManager.Instance != null)
+                if (vfx != null)
                 {
-                    Core.VisualEffectsManager.Instance.SpawnMoneyCollectEffect(transform.position);
+                    vfx.SpawnItemBurstEffect(transform.position, false); // Yellow burst
+                    vfx.SpawnSilverCoinEffect(transform.position);
                 }
 
                 // Color flash
@@ -945,24 +947,23 @@ namespace Incredicer.Dice
                     .OnComplete(() => spriteRenderer.color = data != null ? data.tintColor : Color.white);
             }
 
-            // Value 5: Great effect (sparkles + mild shake) - no combo burst to keep dice visible
-            if (value >= 5)
+            // Value 5: Good effect (sparkles only, mild shake) - toned down
+            if (value >= 5 && !isJackpot)
             {
-                // Just add extra sparkles, no combo burst
-                if (Core.VisualEffectsManager.Instance != null)
+                if (vfx != null)
                 {
-                    Core.VisualEffectsManager.Instance.SpawnSparkleEffect(transform.position, effectColor);
+                    vfx.SpawnSparkleEffect(transform.position, effectColor);
                 }
 
-                // Mild screen shake
+                // Very mild screen shake
                 if (cam != null)
                 {
                     cam.transform.DOKill();
-                    cam.transform.DOShakePosition(0.15f, 0.08f, 15, 90f, false, true);
+                    cam.transform.DOShakePosition(0.1f, 0.05f, 10, 90f, false, true);
                 }
             }
 
-            // Value 6: JACKPOT! Maximum effects!
+            // Value 6: JACKPOT! Toned down but still celebratory
             if (isJackpot)
             {
                 // Play jackpot feedback
@@ -980,34 +981,18 @@ namespace Incredicer.Dice
                 // Spawn jackpot visual effect (radial burst) at the landed position
                 SpawnRollEffect(true); // true = jackpot effect
 
-                // Spawn jackpot particle effects at the landed position
-                if (Core.VisualEffectsManager.Instance != null)
+                // Spawn jackpot particle effects - reduced intensity
+                if (vfx != null)
                 {
-                    Core.VisualEffectsManager.Instance.SpawnJackpotEffect(transform.position);
-
-                    // Extra celebration sparkles around the dice
-                    for (int i = 0; i < 4; i++)
-                    {
-                        float angle = i * 90f * Mathf.Deg2Rad;
-                        Vector3 offset = new Vector3(Mathf.Cos(angle), Mathf.Sin(angle), 0) * 0.5f;
-                        DOVirtual.DelayedCall(i * 0.05f, () =>
-                        {
-                            Core.VisualEffectsManager.Instance.SpawnSparkleEffect(transform.position + offset, effectColor);
-                        });
-                    }
+                    // Main jackpot effect (uses ETFX coin fountain + star explosion)
+                    vfx.SpawnJackpotEffect(transform.position);
                 }
 
-                // Screen shake when dice lands on 6!
+                // Moderate screen shake when dice lands on 6
                 if (cam != null)
                 {
                     cam.transform.DOKill();
-                    cam.transform.DOShakePosition(0.4f, 0.25f, 30, 90f, false, true);
-                }
-
-                // Flash screen briefly
-                if (Core.VisualEffectsManager.Instance != null)
-                {
-                    Core.VisualEffectsManager.Instance.FlashScreen(new Color(1f, 0.9f, 0.4f, 0.3f), 0.15f);
+                    cam.transform.DOShakePosition(0.25f, 0.15f, 20, 90f, false, true);
                 }
             }
         }
