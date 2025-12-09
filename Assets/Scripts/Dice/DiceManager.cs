@@ -569,5 +569,14 @@ namespace Incredicer.Dice
         // Events
         public event System.Action<Dice> OnDiceSpawned;
         public event System.Action<DiceType> OnDiceTypeUnlocked;
+        public event System.Action<Dice, int> OnDiceRolled; // Fired when any dice is rolled (dice, value)
+
+        /// <summary>
+        /// Called by dice when they finish rolling. Notifies listeners.
+        /// </summary>
+        public void NotifyDiceRolled(Dice dice, int value)
+        {
+            OnDiceRolled?.Invoke(dice, value);
+        }
     }
 }

@@ -146,6 +146,9 @@ namespace Incredicer.UI
             // Setup settings UI if not already present
             SetupSettingsUI();
 
+            // Ensure tutorial manager exists
+            TutorialManager.EnsureExists();
+
             // Setup button listeners
             Debug.Log($"[GameUI] Setting up buttons - buyDiceButton: {(buyDiceButton != null ? "OK" : "NULL")}, upgradeDiceButton: {(upgradeDiceButton != null ? "OK" : "NULL")}");
 

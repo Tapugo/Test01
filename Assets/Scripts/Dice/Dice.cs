@@ -620,6 +620,12 @@ namespace Incredicer.Dice
             // Notify listeners
             OnRolled?.Invoke(this, finalMoney, isJackpot);
 
+            // Notify DiceManager for tutorial and other systems
+            if (DiceManager.Instance != null)
+            {
+                DiceManager.Instance.NotifyDiceRolled(this, currentFaceValue);
+            }
+
             return true;
         }
 
@@ -783,47 +789,55 @@ namespace Incredicer.Dice
                 }
 
                 // === SPAWN CURRENCY EFFECTS - coins/gems fly from dice to counters ===
+                // Delay particle effects by 0.3s so player can see the dice face first
                 if (CurrencyManager.Instance != null)
                 {
-                    // Spawn money coins flying to the counter
-                    CurrencyManager.Instance.AddMoneyWithEffect(moneyEarned, transform.position, isJackpot);
+                    Vector3 dicePos = transform.position;
 
-                    // Check for Table Tax bonus coin proc
-                    if (GameStats.Instance != null)
+                    DOVirtual.DelayedCall(0.6f, () =>
                     {
-                        double tableTaxBonus = GameStats.Instance.CheckTableTaxProc(CurrencyManager.Instance.Money);
-                        if (tableTaxBonus > 0)
+                        if (CurrencyManager.Instance == null) return;
+
+                        // Spawn money coins flying to the counter
+                        CurrencyManager.Instance.AddMoneyWithEffect(moneyEarned, dicePos, isJackpot);
+
+                        // Check for Table Tax bonus coin proc
+                        if (GameStats.Instance != null)
                         {
-                            // Spawn bonus coins with slight delay
-                            CurrencyManager.Instance.AddMoneyWithEffect(tableTaxBonus, transform.position + Vector3.up * 0.3f, true);
-
-                            if (GameUI.Instance != null)
+                            double tableTaxBonus = GameStats.Instance.CheckTableTaxProc(CurrencyManager.Instance.Money);
+                            if (tableTaxBonus > 0)
                             {
-                                Color bonusColor = new Color(1f, 0.8f, 0.2f);
-                                GameUI.Instance.ShowFloatingText(transform.position + Vector3.up * 0.5f, $"+${GameUI.FormatNumber(tableTaxBonus)} BONUS!", bonusColor);
-                            }
+                                // Spawn bonus coins with slight delay
+                                CurrencyManager.Instance.AddMoneyWithEffect(tableTaxBonus, dicePos + Vector3.up * 0.3f, true);
 
-                            if (Core.AudioManager.Instance != null)
-                            {
-                                Core.AudioManager.Instance.PlayJackpotSound();
+                                if (GameUI.Instance != null)
+                                {
+                                    Color bonusColor = new Color(1f, 0.8f, 0.2f);
+                                    GameUI.Instance.ShowFloatingText(dicePos + Vector3.up * 0.5f, $"+${GameUI.FormatNumber(tableTaxBonus)} BONUS!", bonusColor);
+                                }
+
+                                if (Core.AudioManager.Instance != null)
+                                {
+                                    Core.AudioManager.Instance.PlayJackpotSound();
+                                }
                             }
                         }
-                    }
 
-                    // Spawn dark matter gems flying to the counter
-                    if (dmEarned > 0)
-                    {
-                        CurrencyManager.Instance.AddDarkMatterWithEffect(dmEarned, transform.position);
-
-                        // Track for statistics
-                        if (PrestigeManager.Instance != null)
+                        // Spawn dark matter gems flying to the counter
+                        if (dmEarned > 0)
                         {
-                            PrestigeManager.Instance.TrackDarkMatterEarned(dmEarned);
-                        }
+                            CurrencyManager.Instance.AddDarkMatterWithEffect(dmEarned, dicePos);
 
-                        // Notify listeners about DM generation
-                        OnDarkMatterGenerated?.Invoke(dmEarned);
-                    }
+                            // Track for statistics
+                            if (PrestigeManager.Instance != null)
+                            {
+                                PrestigeManager.Instance.TrackDarkMatterEarned(dmEarned);
+                            }
+
+                            // Notify listeners about DM generation
+                            OnDarkMatterGenerated?.Invoke(dmEarned);
+                        }
+                    });
                 }
 
                 // === VALUE-BASED EFFECTS - higher numbers = better effects! ===
@@ -931,12 +945,13 @@ namespace Incredicer.Dice
                     .OnComplete(() => spriteRenderer.color = data != null ? data.tintColor : Color.white);
             }
 
-            // Value 5: Great effect (combo burst + mild shake)
+            // Value 5: Great effect (sparkles + mild shake) - no combo burst to keep dice visible
             if (value >= 5)
             {
+                // Just add extra sparkles, no combo burst
                 if (Core.VisualEffectsManager.Instance != null)
                 {
-                    Core.VisualEffectsManager.Instance.SpawnComboEffect(transform.position);
+                    Core.VisualEffectsManager.Instance.SpawnSparkleEffect(transform.position, effectColor);
                 }
 
                 // Mild screen shake
