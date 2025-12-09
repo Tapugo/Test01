@@ -203,8 +203,11 @@ namespace Incredicer.UI
             // Spawn text effect
             SpawnEffect(worldPosition, moneyTargetPosition, text, effectColor, amount, true);
 
-            // Spawn coin particle effects - more for jackpots!
-            int coins = isJackpot ? particleCount + 6 : particleCount;
+            // Calculate coin count based on amount - 1 coin per unit, clamped to reasonable range
+            // For small amounts (1-10), spawn that many coins
+            // For larger amounts, use logarithmic scaling to keep it manageable
+            int coins = CalculateParticleCount(amount);
+            if (isJackpot) coins = Mathf.Min(coins + 3, 20); // Bonus coins for jackpot, max 20
             SpawnParticleEffects(worldPosition, moneyTargetPosition, coinSprite, coins, true, amount);
         }
 
@@ -229,8 +232,47 @@ namespace Incredicer.UI
             // Spawn text effect
             SpawnEffect(worldPosition, darkMatterTargetPosition, text, effectColor, amount, false);
 
-            // Spawn gem particle effects
-            SpawnParticleEffects(worldPosition, darkMatterTargetPosition, gemSprite, particleCount, false, amount);
+            // Calculate gem count based on amount - dark matter is rarer so use direct count for small amounts
+            int gems = CalculateDarkMatterParticleCount(amount);
+            SpawnParticleEffects(worldPosition, darkMatterTargetPosition, gemSprite, gems, false, amount);
+        }
+
+        /// <summary>
+        /// Calculates the number of coin particles to spawn based on money amount.
+        /// Uses the dice face value (1-6) as the base, scaling with multipliers.
+        /// </summary>
+        private int CalculateParticleCount(double amount)
+        {
+            // For very small amounts (face value 1-6 with 1x multiplier = 1-6 coins)
+            if (amount <= 6) return Mathf.Max(1, (int)amount);
+
+            // For medium amounts, use square root scaling
+            // This gives a nice visual representation without too many particles
+            // amount 10 -> ~3 coins, 100 -> ~10 coins, 1000 -> ~15 coins
+            int count = Mathf.RoundToInt(Mathf.Sqrt((float)amount) * 0.5f);
+
+            // Clamp between 1 and 15 to keep performance reasonable
+            return Mathf.Clamp(count, 1, 15);
+        }
+
+        /// <summary>
+        /// Calculates the number of gem particles to spawn based on dark matter amount.
+        /// Dark matter amounts are typically smaller (0.05 to 25 per roll).
+        /// </summary>
+        private int CalculateDarkMatterParticleCount(double amount)
+        {
+            // For fractional amounts (< 1), always show at least 1 gem
+            if (amount < 1) return 1;
+
+            // For small whole amounts (1-10), spawn that many gems
+            if (amount <= 10) return Mathf.Max(1, (int)amount);
+
+            // For larger amounts, scale more gradually
+            // amount 25 -> ~8 gems, 100 -> ~12 gems
+            int count = Mathf.RoundToInt(5f + Mathf.Log10((float)amount) * 4f);
+
+            // Clamp between 1 and 15
+            return Mathf.Clamp(count, 1, 15);
         }
 
         /// <summary>
@@ -324,8 +366,22 @@ namespace Incredicer.UI
                 rt.anchoredPosition = pos;
             }, 1f, duration).SetEase(Ease.InOutQuad)); // Smoother acceleration
 
-            // Shrink as it travels - more dramatic
-            seq.Join(rt.DOScale(endScale * 0.6f, duration).SetEase(Ease.InQuad));
+            // Scale up then down - like it's coming toward camera then away
+            // Peak scale at 50% of travel, then shrink to end scale
+            float peakScale = 1.8f;
+            seq.Join(DOTween.To(() => 0f, t =>
+            {
+                // Use sine curve: scale up to peak at t=0.5, then back down
+                float scaleT = Mathf.Sin(t * Mathf.PI); // 0 -> 1 -> 0
+                float currentScale = Mathf.Lerp(1f, peakScale, scaleT * 0.7f); // Scale up to ~1.56x at midpoint
+                // Also blend toward end scale in the second half
+                if (t > 0.5f)
+                {
+                    float shrinkT = (t - 0.5f) * 2f; // 0 to 1 in second half
+                    currentScale = Mathf.Lerp(currentScale, endScale * 0.6f, shrinkT * shrinkT);
+                }
+                rt.localScale = Vector3.one * currentScale;
+            }, 1f, duration).SetEase(Ease.Linear));
 
             // Fade out at end - quicker fade
             seq.Join(img.DOFade(0f, duration * 0.15f).SetDelay(duration * 0.85f));

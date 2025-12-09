@@ -19,5 +19,5 @@ MonoBehaviour:
   sprite: {fileID: 0}
   tintColor: {r: 1, g: 0.84, b: 0, a: 1}
   shopBaseCost: 18000
-  shopCostGrowth: 1.48
+  shopCostGrowth: 1.68
   rollCooldown: 0.35

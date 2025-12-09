@@ -15,13 +15,13 @@ namespace Incredicer.Editor
             // Higher tiers: faster cooldowns, more DM, much higher payouts
             // Prices significantly increased and growth scaled up to slow down progression
             //                              Type              Name               Payout  DM      Cost       Growth  Color                            Cooldown
-            CreateDiceData(DiceType.Basic,   "Basic Dice",     1,      0f,      50,        1.35f,  new Color(0.9f, 0.9f, 0.9f),      0.5f);   // 1x multiplier
-            CreateDiceData(DiceType.Bronze,  "Bronze Dice",    3,      0f,      500,       1.40f,  new Color(0.8f, 0.5f, 0.2f),      0.45f);  // 3x multiplier
-            CreateDiceData(DiceType.Silver,  "Silver Dice",    10,     0.05f,   3000,      1.45f,  new Color(0.75f, 0.75f, 0.85f),   0.4f);   // 10x multiplier
-            CreateDiceData(DiceType.Gold,    "Gold Dice",      50,     0.2f,    18000,     1.48f,  new Color(1f, 0.84f, 0f),         0.35f);  // 50x multiplier!
-            CreateDiceData(DiceType.Emerald, "Emerald Dice",   250,    1f,      120000,    1.50f,  new Color(0.31f, 0.78f, 0.47f),   0.3f);   // 250x multiplier!
-            CreateDiceData(DiceType.Ruby,    "Ruby Dice",      1500,   5f,      800000,    1.52f,  new Color(0.88f, 0.07f, 0.37f),   0.25f);  // 1500x multiplier!
-            CreateDiceData(DiceType.Diamond, "Diamond Dice",   10000,  25f,     6000000,   1.55f,  new Color(0.73f, 0.95f, 1f),      0.2f);   // 10000x multiplier!!
+            CreateDiceData(DiceType.Basic,   "Basic Dice",     1,      0f,      50,        1.55f,  new Color(0.9f, 0.9f, 0.9f),      0.5f);   // 1x multiplier
+            CreateDiceData(DiceType.Bronze,  "Bronze Dice",    3,      0f,      500,       1.60f,  new Color(0.8f, 0.5f, 0.2f),      0.45f);  // 3x multiplier
+            CreateDiceData(DiceType.Silver,  "Silver Dice",    10,     0.05f,   3000,      1.65f,  new Color(0.75f, 0.75f, 0.85f),   0.4f);   // 10x multiplier
+            CreateDiceData(DiceType.Gold,    "Gold Dice",      50,     0.2f,    18000,     1.68f,  new Color(1f, 0.84f, 0f),         0.35f);  // 50x multiplier!
+            CreateDiceData(DiceType.Emerald, "Emerald Dice",   250,    1f,      120000,    1.70f,  new Color(0.31f, 0.78f, 0.47f),   0.3f);   // 250x multiplier!
+            CreateDiceData(DiceType.Ruby,    "Ruby Dice",      1500,   5f,      800000,    1.72f,  new Color(0.88f, 0.07f, 0.37f),   0.25f);  // 1500x multiplier!
+            CreateDiceData(DiceType.Diamond, "Diamond Dice",   10000,  25f,     6000000,   1.75f,  new Color(0.73f, 0.95f, 1f),      0.2f);   // 10000x multiplier!!
 
             AssetDatabase.SaveAssets();
             AssetDatabase.Refresh();
