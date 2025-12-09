@@ -11,11 +11,19 @@ namespace Incredicer.Editor
     public static class GUISpriteAssetsSetup
     {
         private const string GUI_PATH = "Assets/Layer Lab/GUI-CasualFantasy/ResourcesData/Sprites/Components";
+        private const string DEMO_PATH = "Assets/Layer Lab/GUI-CasualFantasy/ResourcesData/Sprites/Demo";
         private const string ASSET_PATH = "Assets/Resources/GUISpriteAssets.asset";
 
-        [MenuItem("Incredicer/Setup GUI Sprite Assets")]
+        [MenuItem("Incredicer/Setup/GUI Sprite Assets")]
         public static void SetupGUISpriteAssets()
         {
+            // Check if GUI-CasualFantasy exists
+            if (!Directory.Exists(Application.dataPath + "/Layer Lab/GUI-CasualFantasy"))
+            {
+                Debug.LogError("[GUISpriteAssetsSetup] GUI-CasualFantasy package not found! Please import it first.");
+                return;
+            }
+
             // Ensure Resources folder exists
             if (!AssetDatabase.IsValidFolder("Assets/Resources"))
             {
@@ -31,88 +39,187 @@ namespace Incredicer.Editor
                 Debug.Log("[GUISpriteAssetsSetup] Created new GUISpriteAssets");
             }
 
-            // Assign sprites - using actual filenames from the asset pack
-            // Popup backgrounds
-            asset.popupBackground = LoadSprite("Popup/popup02_Demo1.png");
-            asset.popupBackgroundAlt = LoadSprite("Popup/popup02_Demo2.png");
+            int assignedCount = 0;
 
-            // Buttons - using actual filenames
-            asset.buttonGreen = LoadSprite("Button/Button01_Demo_Teal.png"); // Teal is like green
-            asset.buttonBlue = LoadSprite("Button/Button01_Demo_Blue.png");
-            asset.buttonYellow = LoadSprite("Button/Button01_Demo_Yellow.png");
-            asset.buttonGray = LoadSprite("Button/Button01_Demo_Gray.png");
-            asset.buttonRed = LoadSprite("Button/Button01_Demo_Red.png");
-            asset.buttonPurple = LoadSprite("Button/Button01_Demo_Pink.png"); // Pink is like purple
+            // ===== POPUP/PANEL BACKGROUNDS =====
+            assignedCount += AssignSprite(ref asset.popupBackground, "Popup/Popup01_Demo.png");
+            assignedCount += AssignSprite(ref asset.popupBackgroundAlt, "Popup/popup02_Demo1.png");
+            assignedCount += AssignSprite(ref asset.slidePopup, "Popup/SlidePopup_Demo.png");
+            assignedCount += AssignSpriteFromDemo(ref asset.panelDimmed, "Demo_Background/Panel_Dimed.png");
 
-            // Frames - using actual filenames
-            asset.listFrame = LoadSprite("Frame/ItemFrame03_White1.png");
-            asset.itemFrame = LoadSprite("Frame/ItemFrame01_Demo_Gray.png");
-            asset.cardFrame = LoadSprite("Frame/CardFrame01_Demo_BottomBg.png");
-            asset.horizontalFrame = LoadSprite("Frame/SplitFrame02_Demo.png");
+            // ===== BUTTONS - PRIMARY =====
+            assignedCount += AssignSprite(ref asset.buttonGreen, "Button/Button01_Demo_Teal.png");
+            assignedCount += AssignSprite(ref asset.buttonBlue, "Button/Button01_Demo_Blue.png");
+            assignedCount += AssignSprite(ref asset.buttonYellow, "Button/Button01_Demo_Yellow.png");
+            assignedCount += AssignSprite(ref asset.buttonGray, "Button/Button01_Demo_Gray.png");
+            assignedCount += AssignSprite(ref asset.buttonRed, "Button/Button01_Demo_Red.png");
+            assignedCount += AssignSprite(ref asset.buttonPurple, "Button/Button01_Demo_Rose.png");
+            assignedCount += AssignSprite(ref asset.buttonPink, "Button/Button01_Demo_Pink.png");
+            assignedCount += AssignSprite(ref asset.buttonBlack, "Button/Button01_Demo_Black.png");
+            assignedCount += AssignSprite(ref asset.buttonSky, "Button/Button01_Demo_Sky.png");
 
-            // Icons
-            asset.iconClose = LoadSpriteFromPath("Assets/Layer Lab/GUI-CasualFantasy/ResourcesData/Sprites/Components/IconMisc/Icon_X.png");
-            asset.iconLock = LoadSpriteFromPath("Assets/Layer Lab/GUI-CasualFantasy/ResourcesData/Sprites/Components/IconMisc/Icon_Lock01.png");
-            asset.iconStar = LoadSpriteFromPath("Assets/Layer Lab/GUI-CasualFantasy/ResourcesData/Sprites/Components/IconMisc/Icon_Star03_m.png");
-            asset.iconAdd = LoadSpriteFromPath("Assets/Layer Lab/GUI-CasualFantasy/ResourcesData/Sprites/Components/IconMisc/Icon_Add02.png");
-            asset.iconCoin = LoadSpriteFromPath("Assets/Layer Lab/GUI-CasualFantasy/ResourcesData/Sprites/Components/Icon_ItemIcons/64/ItemIcon_Gold.png");
-            asset.iconSettings = LoadSpriteFromPath("Assets/Layer Lab/GUI-CasualFantasy/ResourcesData/Sprites/Components/IconMisc/Icon_Setting01.Png");
+            // ===== BUTTONS - SQUARE =====
+            assignedCount += AssignSprite(ref asset.buttonSquare, "Button/Button_Square02_Demo.png");
+            assignedCount += AssignSprite(ref asset.buttonSquareOutline, "Button/Button_SquareLIne01.png");
+            assignedCount += AssignSprite(ref asset.buttonSquareSolid, "Button/Button_SquareSolid01_Demo.png");
+            assignedCount += AssignSprite(ref asset.buttonCircle, "Button/Button_Circle01.png");
 
-            // Toggles
-            asset.toggleOn = LoadSpriteFromPath("Assets/Layer Lab/GUI-CasualFantasy/ResourcesData/Sprites/Components/UI_Etc/Toggle01_White_On.png");
-            asset.toggleOff = LoadSpriteFromPath("Assets/Layer Lab/GUI-CasualFantasy/ResourcesData/Sprites/Components/UI_Etc/Toggle01_White_Off.png");
+            // ===== FRAMES - ITEM =====
+            assignedCount += AssignSprite(ref asset.itemFrameGray, "Frame/ItemFrame01_Demo_Gray.png");
+            assignedCount += AssignSprite(ref asset.itemFrameGreen, "Frame/ItemFrame01_Demo_Green.png");
+            assignedCount += AssignSprite(ref asset.itemFrameBlue, "Frame/ItemFrame01_Demo_Sky.png");
+            assignedCount += AssignSprite(ref asset.itemFrameYellow, "Frame/ItemFrame01_Demo_Yellow.png");
+            assignedCount += AssignSprite(ref asset.itemFrameRed, "Frame/ItemFrame01_Demo_Red.png");
+            assignedCount += AssignSprite(ref asset.itemFramePurple, "Frame/ItemFrame01_Demo_Teal.png");
+            assignedCount += AssignSprite(ref asset.itemFrameSky, "Frame/ItemFrame01_Demo_Sky.png");
 
-            // Labels/Ribbons - try to find matching files
-            asset.ribbonYellow = LoadSpriteFromPath("Assets/Layer Lab/GUI-CasualFantasy/ResourcesData/Sprites/Components/Label/Label01_Demo_Yellow.png");
-            asset.ribbonGreen = LoadSpriteFromPath("Assets/Layer Lab/GUI-CasualFantasy/ResourcesData/Sprites/Components/Label/Label01_Demo_Green.png");
-            asset.ribbonBlue = LoadSpriteFromPath("Assets/Layer Lab/GUI-CasualFantasy/ResourcesData/Sprites/Components/Label/Label01_Demo_Sky.png");
-            asset.ribbonPurple = LoadSpriteFromPath("Assets/Layer Lab/GUI-CasualFantasy/ResourcesData/Sprites/Components/Label/Label01_Demo_Pink.png");
+            // ===== FRAMES - BASIC =====
+            assignedCount += AssignSprite(ref asset.frameSquareSolid, "Frame/BasicFrame_SquareSolid01_Demo01.png");
+            assignedCount += AssignSprite(ref asset.frameSquareOutline, "Frame/BasicFrame_SquareOutline02_Demo01.png");
+            assignedCount += AssignSprite(ref asset.frameOctagon, "Frame/BasicFrame_Octagon01_Demo.png");
+            assignedCount += AssignSprite(ref asset.frameCircle, "Frame/BasicFrame_CircleOutline01_Demo_Gray.png");
 
-            // Sliders
-            asset.sliderBackground = LoadSpriteFromPath("Assets/Layer Lab/GUI-CasualFantasy/ResourcesData/Sprites/Components/Slider/Slider_Rect70_White_Bg.png");
-            asset.sliderFill = LoadSpriteFromPath("Assets/Layer Lab/GUI-CasualFantasy/ResourcesData/Sprites/Components/Slider/Slider_Rect70_Demo_Fill.png");
+            // ===== FRAMES - CARD =====
+            assignedCount += AssignSprite(ref asset.cardFrame, "Frame/CardFrame01_Demo_BottomBg.png");
+            assignedCount += AssignSprite(ref asset.cardFrameBottom, "Frame/CardFrame01_Demo_BottomBg.png");
+            assignedCount += AssignSprite(ref asset.splitFrame, "Frame/SplitFrame02_Demo.png");
+
+            // ===== ICONS - NAVIGATION =====
+            assignedCount += AssignSprite(ref asset.iconClose, "IconMisc/Icon_Close01.png");
+            assignedCount += AssignSprite(ref asset.iconBack, "IconMisc/Icon_Arrow_Back.png");
+            assignedCount += AssignSprite(ref asset.iconMenu, "IconMisc/Icon_HamburgerMenu.png");
+            assignedCount += AssignSpriteSearch(ref asset.iconSettings, "IconMisc", "Setting");
+            assignedCount += AssignSpriteSearch(ref asset.iconAdd, "IconMisc", "Add");
+
+            // ===== ICONS - STATUS =====
+            assignedCount += AssignSprite(ref asset.iconLock, "IconMisc/Icon_Lock01.png");
+            assignedCount += AssignSpriteSearch(ref asset.iconCheck, "UI_Etc", "Chenk");
+            assignedCount += AssignSprite(ref asset.iconStar, "IconMisc/Icon_Star01_s.png");
+            assignedCount += AssignSprite(ref asset.iconHeart, "IconMisc/Icon_Heart01.png");
+            assignedCount += AssignSprite(ref asset.iconTrophy, "IconMisc/Icon_Trophy_s.png");
+            assignedCount += AssignSprite(ref asset.iconFire, "IconMisc/Icon_Fire01_512.png");
+
+            // ===== ICONS - CURRENCY =====
+            assignedCount += AssignSprite(ref asset.iconCoin, "IconMisc/Icon_Gold.png");
+            assignedCount += AssignSprite(ref asset.iconGem, "UI_Etc/Statusbar_Demo_Icon_Gem.png");
+            assignedCount += AssignSprite(ref asset.iconEnergy, "UI_Etc/Statusbar_Demo_Icon_Energy.png");
+
+            // ===== ICONS - GAME =====
+            assignedCount += AssignSprite(ref asset.iconSword, "IconMisc/Icon_Sword01_512.png");
+            assignedCount += AssignSprite(ref asset.iconShield, "IconMisc/Icon_Shield01.png");
+            assignedCount += AssignSprite(ref asset.iconHelmet, "IconMisc/Icon_Helmet02_256.png");
+            assignedCount += AssignSprite(ref asset.iconBoots, "IconMisc/Icon_Boots02_512.png");
+
+            // ===== TOGGLES & SWITCHES =====
+            assignedCount += AssignSprite(ref asset.toggleOn, "UI_Etc/Toggle01_White_On.png");
+            assignedCount += AssignSprite(ref asset.toggleOff, "UI_Etc/Toggle01_White_Off.png");
+            assignedCount += AssignSprite(ref asset.toggleCheckOn, "UI_Etc/Toggle01_Demo_ChenkIcon_Green.png");
+            assignedCount += AssignSprite(ref asset.toggleCheckOff, "UI_Etc/Toggle01_White_ChenkIcon.png");
+            assignedCount += AssignSprite(ref asset.switchOn, "UI_Etc/Switch01_Demo_Bg_On.png");
+            assignedCount += AssignSprite(ref asset.switchOff, "UI_Etc/Switch01_Demo_Bg_Off.png");
+            assignedCount += AssignSprite(ref asset.switchButton, "UI_Etc/Switch01_Demo_Button_On.png");
+
+            // ===== LABELS/RIBBONS =====
+            assignedCount += AssignSpriteSearch(ref asset.ribbonYellow, "Label", "Yellow");
+            assignedCount += AssignSpriteSearch(ref asset.ribbonGreen, "Label", "Green");
+            assignedCount += AssignSpriteSearch(ref asset.ribbonBlue, "Label", "Sky");
+            assignedCount += AssignSpriteSearch(ref asset.ribbonPurple, "Label", "Pink");
+            assignedCount += AssignSpriteSearch(ref asset.ribbonPink, "Label", "Rose");
+            assignedCount += AssignSpriteSearch(ref asset.ribbonRed, "Label", "Red");
+
+            // ===== ALERTS/BADGES =====
+            assignedCount += AssignSprite(ref asset.alertDotRed, "UI_Etc/Alert_Dot_Red.png");
+            assignedCount += AssignSprite(ref asset.alertDotWhite, "UI_Etc/Alert_Dot_White.png");
+            assignedCount += AssignSprite(ref asset.alertCountRed, "UI_Etc/Alert_Count_Red.png");
+            assignedCount += AssignSprite(ref asset.alertCountGreen, "UI_Etc/Alert_Count_Green.png");
+            assignedCount += AssignSprite(ref asset.alertTextYellow, "UI_Etc/Alert_Text_Yellow.png");
+            assignedCount += AssignSprite(ref asset.alertTextRed, "UI_Etc/Alert_Text_Red.png");
+
+            // ===== SLIDERS =====
+            assignedCount += AssignSpriteSearch(ref asset.sliderBackground, "Slider", "Bg");
+            assignedCount += AssignSpriteSearch(ref asset.sliderFill, "Slider", "Fill");
+            assignedCount += AssignSpriteSearch(ref asset.sliderFillGreen, "Slider", "Green");
+            assignedCount += AssignSpriteSearch(ref asset.sliderFillBlue, "Slider", "Blue");
+            assignedCount += AssignSpriteSearch(ref asset.sliderFillYellow, "Slider", "Yellow");
+            assignedCount += AssignSpriteSearch(ref asset.sliderFillRed, "Slider", "Red");
+            assignedCount += AssignSpriteSearch(ref asset.sliderHandle, "Slider", "Handle");
+
+            // ===== STATUS BAR =====
+            assignedCount += AssignSprite(ref asset.statusBarBackground, "UI_Etc/Statusbar_Demo_Bg.png");
+            assignedCount += AssignSprite(ref asset.statusBarButton, "UI_Etc/Statusbar_Demo_Button.png");
+
+            // ===== TAB MENU =====
+            assignedCount += AssignSprite(ref asset.tabMenuBackground, "UI_Etc/TabMenu_Top_Demo_Bg.png");
+            assignedCount += AssignSprite(ref asset.tabMenuFocus, "UI_Etc/TabMenu_Top_Demo_Focus.png");
+
+            // ===== DECORATIONS =====
+            assignedCount += AssignSpriteFromDemo(ref asset.decorGlow, "Demo_Image/Glow01.png");
+            assignedCount += AssignSpriteFromDemo(ref asset.decorLeaf, "Demo_Image/Image_Leaf.png");
+            assignedCount += AssignSpriteFromDemo(ref asset.decorCrown, "Demo_Image/Image_Crown.png");
+            assignedCount += AssignSpriteFromDemo(ref asset.decorLight, "Demo_Image/Image_Light.png");
+
+            // ===== LEGACY/COMPATIBILITY =====
+            assignedCount += AssignSprite(ref asset.listFrame, "Frame/ItemFrame03_White1.png");
+            assignedCount += AssignSprite(ref asset.itemFrame, "Frame/ItemFrame01_Demo_Gray.png");
+            assignedCount += AssignSprite(ref asset.horizontalFrame, "Frame/SplitFrame01_Demo2.png");
 
             EditorUtility.SetDirty(asset);
             AssetDatabase.SaveAssets();
             AssetDatabase.Refresh();
 
-            int assignedCount = CountAssignedSprites(asset);
             Debug.Log($"[GUISpriteAssetsSetup] GUI Sprite Assets setup complete! Assigned {assignedCount} sprites.");
         }
 
-        private static int CountAssignedSprites(GUISpriteAssets asset)
-        {
-            int count = 0;
-            if (asset.popupBackground != null) count++;
-            if (asset.popupBackgroundAlt != null) count++;
-            if (asset.buttonGreen != null) count++;
-            if (asset.buttonBlue != null) count++;
-            if (asset.buttonYellow != null) count++;
-            if (asset.buttonGray != null) count++;
-            if (asset.buttonRed != null) count++;
-            if (asset.buttonPurple != null) count++;
-            if (asset.listFrame != null) count++;
-            if (asset.itemFrame != null) count++;
-            if (asset.cardFrame != null) count++;
-            if (asset.horizontalFrame != null) count++;
-            if (asset.iconClose != null) count++;
-            if (asset.iconLock != null) count++;
-            if (asset.iconStar != null) count++;
-            if (asset.iconCoin != null) count++;
-            if (asset.iconAdd != null) count++;
-            if (asset.ribbonYellow != null) count++;
-            if (asset.ribbonGreen != null) count++;
-            if (asset.ribbonBlue != null) count++;
-            if (asset.ribbonPurple != null) count++;
-            if (asset.sliderBackground != null) count++;
-            if (asset.sliderFill != null) count++;
-            return count;
-        }
-
-        private static Sprite LoadSprite(string relativePath)
+        private static int AssignSprite(ref Sprite field, string relativePath)
         {
             string fullPath = $"{GUI_PATH}/{relativePath}";
-            return LoadSpriteFromPath(fullPath);
+            Sprite sprite = LoadSpriteFromPath(fullPath);
+            if (sprite != null)
+            {
+                field = sprite;
+                return 1;
+            }
+            return 0;
+        }
+
+        private static int AssignSpriteFromDemo(ref Sprite field, string relativePath)
+        {
+            string fullPath = $"{DEMO_PATH}/{relativePath}";
+            Sprite sprite = LoadSpriteFromPath(fullPath);
+            if (sprite != null)
+            {
+                field = sprite;
+                return 1;
+            }
+            return 0;
+        }
+
+        private static int AssignSpriteSearch(ref Sprite field, string folder, string searchTerm)
+        {
+            string directory = $"{GUI_PATH}/{folder}";
+            if (!Directory.Exists(directory))
+            {
+                Debug.LogWarning($"[GUISpriteAssetsSetup] Directory not found: {directory}");
+                return 0;
+            }
+
+            string[] files = Directory.GetFiles(directory, "*.png");
+            foreach (string file in files)
+            {
+                if (Path.GetFileName(file).ToLower().Contains(searchTerm.ToLower()))
+                {
+                    string assetPath = file.Replace(Application.dataPath, "Assets");
+                    Sprite sprite = AssetDatabase.LoadAssetAtPath<Sprite>(assetPath);
+                    if (sprite != null)
+                    {
+                        field = sprite;
+                        return 1;
+                    }
+                }
+            }
+
+            Debug.LogWarning($"[GUISpriteAssetsSetup] No sprite found in {folder} matching '{searchTerm}'");
+            return 0;
         }
 
         private static Sprite LoadSpriteFromPath(string fullPath)
@@ -121,28 +228,26 @@ namespace Incredicer.Editor
 
             if (sprite == null)
             {
-                // Try to find a similar file
+                // Try case-insensitive search
                 string directory = Path.GetDirectoryName(fullPath);
-                string fileName = Path.GetFileNameWithoutExtension(fullPath);
+                string fileName = Path.GetFileName(fullPath).ToLower();
 
                 if (Directory.Exists(directory))
                 {
                     string[] files = Directory.GetFiles(directory, "*.png");
                     foreach (string file in files)
                     {
-                        if (Path.GetFileNameWithoutExtension(file).Contains(fileName.Substring(0, Mathf.Min(fileName.Length, 8))))
+                        if (Path.GetFileName(file).ToLower() == fileName)
                         {
-                            sprite = AssetDatabase.LoadAssetAtPath<Sprite>(file);
+                            string assetPath = file.Replace(Application.dataPath, "Assets");
+                            sprite = AssetDatabase.LoadAssetAtPath<Sprite>(assetPath);
                             if (sprite != null)
                             {
-                                Debug.Log($"[GUISpriteAssetsSetup] Found alternative: {file}");
                                 return sprite;
                             }
                         }
                     }
                 }
-
-                Debug.LogWarning($"[GUISpriteAssetsSetup] Could not load sprite: {fullPath}");
             }
 
             return sprite;

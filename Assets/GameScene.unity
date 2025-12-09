@@ -4297,6 +4297,25 @@ MonoBehaviour:
   darkMatterParticlePrefab: {fileID: 0}
   sparkleParticlePrefab: {fileID: 0}
   comboParticlePrefab: {fileID: 0}
+  etfxGoldCoinBlast: {fileID: 0}
+  etfxGoldCoinFountain: {fileID: 0}
+  etfxSilverCoinBlast: {fileID: 0}
+  etfxSparkleYellow: {fileID: 0}
+  etfxSparkleRainbow: {fileID: 0}
+  etfxSparklePurple: {fileID: 0}
+  etfxLevelupNovaYellow: {fileID: 0}
+  etfxLevelupNovaPurple: {fileID: 0}
+  etfxStarExplosionOrange: {fileID: 0}
+  etfxStarExplosionPink: {fileID: 0}
+  etfxMagicNovaYellow: {fileID: 0}
+  etfxMagicNovaGreen: {fileID: 0}
+  etfxConfettiRainbow: {fileID: 0}
+  etfxGlowOrbYellow: {fileID: 0}
+  etfxGlowOrbPink: {fileID: 0}
+  etfxItemSparkleBurstYellow: {fileID: 0}
+  etfxItemSparkleBurstPurple: {fileID: 0}
+  etfxNovaFire: {fileID: 0}
+  etfxFireworkCluster: {fileID: 0}
   screenFlashImage: {fileID: 0}
   screenFlashGroup: {fileID: 0}
   effectsEnabled: 1

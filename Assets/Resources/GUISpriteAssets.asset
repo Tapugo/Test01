@@ -12,30 +12,89 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 50ed512888c6f40768d5808c21b0c715, type: 3}
   m_Name: GUISpriteAssets
   m_EditorClassIdentifier: 
-  popupBackground: {fileID: 21300000, guid: 370fec755724f4212a03c86bfadce990, type: 3}
-  popupBackgroundAlt: {fileID: 21300000, guid: 97ce45412ff524e61897958d42be2ca4, type: 3}
+  popupBackground: {fileID: 21300000, guid: 09feaf45571f841b3b9fad1e25eb2304, type: 3}
+  popupBackgroundAlt: {fileID: 21300000, guid: 370fec755724f4212a03c86bfadce990, type: 3}
+  slidePopup: {fileID: 21300000, guid: 456a8338c86a446ba8c9116838eb6ecd, type: 3}
+  panelDimmed: {fileID: 21300000, guid: f32c44861593941a3aec199f82fd60b1, type: 3}
   buttonGreen: {fileID: 21300000, guid: 949217e9c22e44fda92aff74ce0f24e3, type: 3}
   buttonBlue: {fileID: 21300000, guid: 00b246f18d3354d5baad68986295716b, type: 3}
   buttonYellow: {fileID: 21300000, guid: 40d10cf134e7d4b469ffd4f52cdcf21a, type: 3}
   buttonGray: {fileID: 21300000, guid: a793324cd29d041e499596ae81bdbcfc, type: 3}
   buttonRed: {fileID: 21300000, guid: d849eb66832ae43878a8bad5138b764c, type: 3}
-  buttonPurple: {fileID: 21300000, guid: a61ec4599917f4ddbb16e1933dfd3cc8, type: 3}
-  listFrame: {fileID: 21300000, guid: 39cba7c40821a4122891c4dd82645d59, type: 3}
-  itemFrame: {fileID: 21300000, guid: 695315d059c5a44a3ac75d6ff2b303f7, type: 3}
+  buttonPurple: {fileID: 21300000, guid: e576588bb6dcf406d8daeea96eba0d62, type: 3}
+  buttonPink: {fileID: 21300000, guid: a61ec4599917f4ddbb16e1933dfd3cc8, type: 3}
+  buttonBlack: {fileID: 21300000, guid: 9d1dacc9565bd4972b5eadd92341e003, type: 3}
+  buttonSky: {fileID: 21300000, guid: 2f3c72c0068e1477cbb19ffa8a9f03dd, type: 3}
+  buttonSquare: {fileID: 21300000, guid: edd8ce5141077402989d18611370c7d3, type: 3}
+  buttonSquareOutline: {fileID: 21300000, guid: f28fd3e45b9304a78a62d93d8db29582, type: 3}
+  buttonSquareSolid: {fileID: 21300000, guid: 8a3d82655439f4007ba62c72dc9f0b70, type: 3}
+  buttonCircle: {fileID: 21300000, guid: 5175143138b9e4f54b2c8ebd9ac1542c, type: 3}
+  itemFrameGray: {fileID: 21300000, guid: 695315d059c5a44a3ac75d6ff2b303f7, type: 3}
+  itemFrameGreen: {fileID: 21300000, guid: a0865d818466447edb9f7324a23a37c9, type: 3}
+  itemFrameBlue: {fileID: 21300000, guid: a42c17f97412d4c57b6058456062f329, type: 3}
+  itemFrameYellow: {fileID: 21300000, guid: 8e18b3a86bc10436584b8d995979a65c, type: 3}
+  itemFrameRed: {fileID: 21300000, guid: ce696151aa73f4aa8a47d5b00a32bed0, type: 3}
+  itemFramePurple: {fileID: 21300000, guid: 01e1819cb70344a41b5bc8385b250552, type: 3}
+  itemFrameSky: {fileID: 21300000, guid: a42c17f97412d4c57b6058456062f329, type: 3}
+  frameSquareSolid: {fileID: 21300000, guid: ad88fadd7bc384969bd45f53f0448093, type: 3}
+  frameSquareOutline: {fileID: 21300000, guid: 6e89665deabf841238f44ebf2fd1665d, type: 3}
+  frameOctagon: {fileID: 21300000, guid: a0c13c6d7e2a04ae796db88e60bd0923, type: 3}
+  frameCircle: {fileID: 21300000, guid: fdb8d6a0cb191473a90fa04c8407fcd7, type: 3}
   cardFrame: {fileID: 21300000, guid: 77696e2eaefc24456a1f21dfe2b5ee60, type: 3}
-  horizontalFrame: {fileID: 21300000, guid: e16893fb4ecdb4844bcaa6cd8cb4050d, type: 3}
-  iconClose: {fileID: 0}
-  iconLock: {fileID: 21300000, guid: 177c91d27d5534109a5f6b3bb3ccbb3b, type: 3}
-  iconStar: {fileID: 21300000, guid: 2065ff0dabc274004b9fb023c004769a, type: 3}
-  iconCoin: {fileID: 0}
-  iconAdd: {fileID: 21300000, guid: ffeafc38fb0654eb78d14da1ee37e496, type: 3}
-  iconCheck: {fileID: 21300000, guid: 67d74fe0bc2ff4f04bb9d4f9e1d63c02, type: 3}
+  cardFrameBottom: {fileID: 21300000, guid: 77696e2eaefc24456a1f21dfe2b5ee60, type: 3}
+  splitFrame: {fileID: 21300000, guid: e16893fb4ecdb4844bcaa6cd8cb4050d, type: 3}
+  iconClose: {fileID: 21300000, guid: 78711ed6bf9804974a5265512b8cbf62, type: 3}
+  iconBack: {fileID: 21300000, guid: fda9564e96d404ec384b9e32872d049a, type: 3}
+  iconMenu: {fileID: 21300000, guid: 5cc15811d8ac046bdae132f62597f2ec, type: 3}
   iconSettings: {fileID: 21300000, guid: 9a907db57cd564233bccfb07a9ad9060, type: 3}
+  iconAdd: {fileID: 21300000, guid: debda9ac064184b7b992b061dc2697ec, type: 3}
+  iconLock: {fileID: 21300000, guid: 177c91d27d5534109a5f6b3bb3ccbb3b, type: 3}
+  iconCheck: {fileID: 21300000, guid: 1e5c88a38d2ef40e5b7ca336263ca8e6, type: 3}
+  iconStar: {fileID: 21300000, guid: 72d705ce8d2ed45ae919811c15e03639, type: 3}
+  iconHeart: {fileID: 21300000, guid: a15beef3e99cc42118d9a86018e0767e, type: 3}
+  iconTrophy: {fileID: 21300000, guid: 74804d019901142ada85d7488445d1c1, type: 3}
+  iconFire: {fileID: 21300000, guid: 393781675fedf45caa73b42273c43781, type: 3}
+  iconCoin: {fileID: 21300000, guid: 9d911362ef12d4c8a935c7b8e05d7037, type: 3}
+  iconGem: {fileID: 21300000, guid: 013966a2dcaeb464da94b6b45afe84de, type: 3}
+  iconEnergy: {fileID: 21300000, guid: f537fa563f71d4ba8a1dcb5cf89ecf50, type: 3}
+  iconSword: {fileID: 21300000, guid: b6e41787749124a50acfa9bd651e0fcd, type: 3}
+  iconShield: {fileID: 21300000, guid: 863d316d976504fc5a3734b33e10c55e, type: 3}
+  iconHelmet: {fileID: 21300000, guid: b5e0e0ec391174ed485c99b626e1ec9d, type: 3}
+  iconBoots: {fileID: 21300000, guid: 5c0630e5a59294f6a8646bbd0f3c624b, type: 3}
   toggleOn: {fileID: 21300000, guid: e8cd3cffd0d684631b8b486cc5fbe11e, type: 3}
   toggleOff: {fileID: 21300000, guid: 7cdf7e77407074bd1a6157aa19871da6, type: 3}
-  ribbonYellow: {fileID: 0}
-  ribbonGreen: {fileID: 0}
-  ribbonBlue: {fileID: 0}
-  ribbonPurple: {fileID: 0}
-  sliderBackground: {fileID: 0}
-  sliderFill: {fileID: 0}
+  toggleCheckOn: {fileID: 21300000, guid: 1e5c88a38d2ef40e5b7ca336263ca8e6, type: 3}
+  toggleCheckOff: {fileID: 21300000, guid: 8cdaa4706fff54daebb18e19a798ed86, type: 3}
+  switchOn: {fileID: 21300000, guid: ef05b95b390274195b66bf50304d7e4a, type: 3}
+  switchOff: {fileID: 21300000, guid: df843252e994c4cc0bc5f6e62dbedab2, type: 3}
+  switchButton: {fileID: 21300000, guid: 1f97e489f04f84b2fb386fb3d74ccdac, type: 3}
+  ribbonYellow: {fileID: 21300000, guid: 0d6bcce8a80284b63afb025a509a6d34, type: 3}
+  ribbonGreen: {fileID: 21300000, guid: 18476493d79414f769354a9239290ac6, type: 3}
+  ribbonBlue: {fileID: 21300000, guid: 3a0d3ab57c63c40418b86c7af01d2619, type: 3}
+  ribbonPurple: {fileID: 21300000, guid: 452d88534e6c944a295eadd37e40a985, type: 3}
+  ribbonPink: {fileID: 21300000, guid: 865e81a26f7b7454aabd0efe1cec1c38, type: 3}
+  ribbonRed: {fileID: 21300000, guid: e584a3dedd9334a9eb304a488939dc86, type: 3}
+  alertDotRed: {fileID: 21300000, guid: 4dfe60e13721045b6982752c421e76ca, type: 3}
+  alertDotWhite: {fileID: 21300000, guid: 9f955428c3ec04b17a53aba3a1d8aee5, type: 3}
+  alertCountRed: {fileID: 21300000, guid: f50d5117f889a46ca8065d0265e01dc1, type: 3}
+  alertCountGreen: {fileID: 21300000, guid: f0bbee4261dff4cb7bcae5c218b4e05f, type: 3}
+  alertTextYellow: {fileID: 21300000, guid: c274e02c2a7ba4ca28e2668def36b52b, type: 3}
+  alertTextRed: {fileID: 21300000, guid: ff6d06c5a07434d9b8edaa92176cd86f, type: 3}
+  sliderBackground: {fileID: 21300000, guid: 13c73c16ccdc94217a92e8ae0a1aa106, type: 3}
+  sliderFill: {fileID: 21300000, guid: 5a0addb7d54814d15bb4f87f6571e887, type: 3}
+  sliderFillGreen: {fileID: 21300000, guid: 008fdcfb6465c4cd2874421ba6dac25e, type: 3}
+  sliderFillBlue: {fileID: 21300000, guid: 5a0addb7d54814d15bb4f87f6571e887, type: 3}
+  sliderFillYellow: {fileID: 21300000, guid: 8a47a6f885ec948ec97633aef29030e0, type: 3}
+  sliderFillRed: {fileID: 21300000, guid: 5d3ebab44e3d74e088eef04216c725bd, type: 3}
+  sliderHandle: {fileID: 21300000, guid: 328913699fc7e4bf79b4581dc67ee1eb, type: 3}
+  statusBarBackground: {fileID: 21300000, guid: e005bf4dc7b304adaa9295cf80d903ef, type: 3}
+  statusBarButton: {fileID: 21300000, guid: 8900083b89ee740a785f26ccbc6f32f6, type: 3}
+  tabMenuBackground: {fileID: 21300000, guid: ecf3e525de7a347879c0787e5d7f091d, type: 3}
+  tabMenuFocus: {fileID: 21300000, guid: db9921feae62c49c397bde0fdd539174, type: 3}
+  decorGlow: {fileID: 21300000, guid: ebff80659085042d29d702c88ccf5bdc, type: 3}
+  decorLeaf: {fileID: 21300000, guid: c995eae70f2b346b08932f4758c1000c, type: 3}
+  decorCrown: {fileID: 21300000, guid: 551efa212a2c74c4cb9d0e7d709d6854, type: 3}
+  decorLight: {fileID: 21300000, guid: eb17c23e3801d42a194930794a085559, type: 3}
+  listFrame: {fileID: 21300000, guid: 39cba7c40821a4122891c4dd82645d59, type: 3}
+  itemFrame: {fileID: 21300000, guid: 695315d059c5a44a3ac75d6ff2b303f7, type: 3}
+  horizontalFrame: {fileID: 21300000, guid: 5a57a083d13e64ccf80a243455645272, type: 3}
