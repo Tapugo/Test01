@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using UnityEngine;
 using Incredicer.Dice;
 using Incredicer.Skills;
@@ -120,6 +121,13 @@ namespace Incredicer.Core
             // Notify listeners
             OnAscensionCompleted?.Invoke(ascensionLevel);
             OnDarkMatterUnlocked?.Invoke();
+
+            // Track Ascension event with TinySauce
+            TinySauce.TrackCustomEvent("Ascension", new Dictionary<string, object>
+            {
+                { "total_money", CurrencyManager.Instance?.Money ?? 0 },
+                { "dice_count", DiceManager.Instance?.GetAllDice().Count ?? 0 }
+            });
 
             return true;
         }

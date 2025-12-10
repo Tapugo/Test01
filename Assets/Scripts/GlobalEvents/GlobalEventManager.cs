@@ -298,6 +298,13 @@ namespace Incredicer.GlobalEvents
                 // Check if tier just became available (not yet claimed)
                 if (progress >= tier.progressThreshold && i > currentEventProgress.highestTierClaimed)
                 {
+                    // Track Global Event Tier Reached with TinySauce
+                    TinySauce.TrackCustomEvent("GlobalEventTier", new Dictionary<string, object>
+                    {
+                        { "event_name", currentEvent.eventName },
+                        { "tier", i }
+                    });
+
                     OnTierReached?.Invoke(i, tier);
                 }
             }

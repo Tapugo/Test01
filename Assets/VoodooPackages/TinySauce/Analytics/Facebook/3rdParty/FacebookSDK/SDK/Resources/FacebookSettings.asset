@@ -14,11 +14,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   selectedAppIndex: 0
   clientTokens:
-  - 
+  - 7eb04a62678829f7773029d668e3b81f
   appIds:
-  - 0
+  - 1258550432766820
   appLabels:
-  - App Name
+  - Go Luck Yourself!
   cookie: 1
   logging: 1
   status: 1

@@ -452,6 +452,12 @@ namespace Incredicer.Milestones
 
                     if (debugMode) Debug.Log($"[MilestoneManager] Milestone completed: {milestone.displayName}");
 
+                    // Track Milestone Unlocked with TinySauce
+                    TinySauce.TrackCustomEvent("MilestoneUnlocked", new Dictionary<string, object>
+                    {
+                        { "milestone_id", milestone.milestoneId }
+                    });
+
                     OnMilestoneCompleted?.Invoke(milestone);
                     OnClaimableCountChanged?.Invoke(GetClaimableCount());
                 }

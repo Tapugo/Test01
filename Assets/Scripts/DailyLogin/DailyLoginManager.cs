@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 using Incredicer.Core;
 using Incredicer.Dice;
@@ -314,6 +315,13 @@ namespace Incredicer.DailyLogin
             {
                 Debug.Log($"[DailyLogin] Reward claimed: {reward.type} x{reward.amount}");
             }
+
+            // Track Daily Login with TinySauce
+            TinySauce.TrackCustomEvent("DailyLogin", new Dictionary<string, object>
+            {
+                { "streak_day", reward.streakDay },
+                { "reward_type", reward.type.ToString() }
+            });
 
             // Notify listeners
             OnDailyRewardClaimed?.Invoke(reward);

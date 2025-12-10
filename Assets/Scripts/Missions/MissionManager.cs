@@ -331,6 +331,14 @@ namespace Incredicer.Missions
                     if (!wasCompleted && mission.isCompleted)
                     {
                         if (debugMode) Debug.Log($"[MissionManager] Mission completed: {mission.displayName}");
+
+                        // Track Mission Completed with TinySauce
+                        TinySauce.TrackCustomEvent("MissionCompleted", new Dictionary<string, object>
+                        {
+                            { "mission_type", mission.isDaily ? "daily" : "weekly" },
+                            { "mission_id", mission.missionId }
+                        });
+
                         OnMissionCompleted?.Invoke(mission);
                     }
                 }

@@ -1,0 +1,28 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: faa11ec82e9746928e211e7f096812ca, type: 3}
+  m_Name: Settings
+  m_EditorClassIdentifier: 
+  gameAnalyticsIosGameKey: 94a36924e82777e42b308663cfb58c5c
+  gameAnalyticsIosSecretKey: 13b4797d9fe8731a06ea56173f9cb9b071b5a2b4
+  gameAnalyticsAndroidGameKey: 
+  gameAnalyticsAndroidSecretKey: 
+  facebookAppId: 1258550432766820
+  facebookClientToken: 7eb04a62678829f7773029d668e3b81f
+  adjustIOSToken: ydgh13al2q68
+  adjustAndroidToken: 
+  EditorIdfa: a6f10422-279c-4483-a6df-3ba7aca002bf
+  UseRemoteConfig: 0
+  UseVoodooAnalytics: 1
+  companyName: Tapugo FZCO
+  privacyPolicyURL: https://tapugo.games/#privacy-policy
+  developerContactEmail: chafik@tapugo.games

@@ -155,8 +155,18 @@ namespace Incredicer.Dice
         /// </summary>
         public void UnlockDiceType(DiceType type)
         {
+            bool wasNew = !unlockedDiceTypes.Contains(type);
             unlockedDiceTypes.Add(type);
             OnDiceTypeUnlocked?.Invoke(type);
+
+            // Track new dice type unlock with TinySauce
+            if (wasNew)
+            {
+                TinySauce.TrackCustomEvent("DiceTypeUnlocked", new Dictionary<string, object>
+                {
+                    { "dice_type", type.ToString() }
+                });
+            }
         }
 
         /// <summary>
@@ -204,6 +214,9 @@ namespace Incredicer.Dice
             {
                 Core.VisualEffectsManager.Instance.SpawnPurchaseEffect(spawnPos);
             }
+
+            // Track Dice Purchase with TinySauce
+            TinySauce.OnCurrencyTaken("Money", (int)price, "Dice", type.ToString());
 
             return true;
         }

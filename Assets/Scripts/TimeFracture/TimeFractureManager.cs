@@ -194,6 +194,13 @@ namespace Incredicer.TimeFracture
             OnTimeFractureCompleted?.Invoke(fractureLevel);
             OnBonusesChanged?.Invoke(currentBonuses);
 
+            // Track Time Fracture event with TinySauce
+            TinySauce.TrackCustomEvent("TimeFracture", new Dictionary<string, object>
+            {
+                { "fracture_level", fractureLevel },
+                { "time_shards_earned", timeShardsEarned }
+            });
+
             return true;
         }
 

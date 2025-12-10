@@ -8,7 +8,7 @@ PlayerSettings:
   AndroidProfiler: 0
   AndroidFilterTouchesWhenObscured: 0
   AndroidEnableSustainedPerformanceMode: 0
-  defaultScreenOrientation: 4
+  defaultScreenOrientation: 0
   targetDevice: 2
   useOnDemandResources: 0
   accelerometerFrequency: 60
@@ -164,6 +164,7 @@ PlayerSettings:
   androidMaxAspectRatio: 2.1
   applicationIdentifier:
     Standalone: com.DefaultCompany.2DProject
+    iPhone: com.tapugo.gly
   buildNumber:
     Standalone: 0
     VisionOS: 0
@@ -832,7 +833,7 @@ PlayerSettings:
   webGLMemoryGeometricGrowthCap: 96
   webGLPowerPreference: 2
   scriptingDefineSymbols:
-    Android: DOTWEEN;MOREMOUNTAINS_NICEVIBRATIONS_INSTALLED;MOREMOUNTAINS_NICEVIBRATIONS
+    Android: NEWTONSOFT;DOTWEEN;MOREMOUNTAINS_NICEVIBRATIONS_INSTALLED;MOREMOUNTAINS_NICEVIBRATIONS
     EmbeddedLinux: DOTWEEN
     GameCoreScarlett: DOTWEEN
     GameCoreXboxOne: DOTWEEN
@@ -847,10 +848,11 @@ PlayerSettings:
     WebGL: DOTWEEN
     Windows Store Apps: DOTWEEN
     XboxOne: DOTWEEN
-    iPhone: DOTWEEN;MOREMOUNTAINS_NICEVIBRATIONS_INSTALLED
+    iPhone: VS_ATT;NEWTONSOFT;DOTWEEN;MOREMOUNTAINS_NICEVIBRATIONS_INSTALLED
     tvOS: DOTWEEN
   additionalCompilerArguments: {}
-  platformArchitecture: {}
+  platformArchitecture:
+    iPhone: 1
   scriptingBackend: {}
   il2cppCompilerConfiguration: {}
   il2cppCodeGeneration: {}
@@ -966,4 +968,4 @@ PlayerSettings:
   hmiLoadingImage: {fileID: 0}
   platformRequiresReadableAssets: 0
   virtualTexturingSupportEnabled: 0
-  insecureHttpOption: 0
+  insecureHttpOption: 2

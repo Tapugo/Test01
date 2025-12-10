@@ -436,6 +436,13 @@ namespace Incredicer.Overclock
             // Play destruction effects
             PlayDestructionEffects(dice, dmReward);
 
+            // Track Dice Destroyed with TinySauce
+            TinySauce.TrackCustomEvent("DiceDestroyed", new Dictionary<string, object>
+            {
+                { "dice_type", dice.Data?.type.ToString() ?? "Unknown" },
+                { "dm_earned", dmReward }
+            });
+
             // Fire event before removal
             OnDiceDestroyed?.Invoke(dice, dmReward);
 

@@ -127,6 +127,10 @@ namespace Incredicer.Skills
             }
 
             lastUsedTime[skill] = Time.time;
+
+            // Track PowerUp usage with TinySauce
+            TinySauce.OnPowerUpUsed(skill.ToString());
+
             OnSkillActivated?.Invoke(skill);
             return true;
         }

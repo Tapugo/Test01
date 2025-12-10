@@ -145,6 +145,9 @@ namespace Incredicer.Skills
                 AudioManager.Instance.PlaySkillUnlockSound();
             }
 
+            // Track Skill Unlock with TinySauce
+            TinySauce.OnUpgradeEvent("SkillTree", data?.displayName ?? nodeId.ToString(), 1);
+
             OnSkillUnlocked?.Invoke(nodeId);
         }
 

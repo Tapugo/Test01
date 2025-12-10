@@ -306,6 +306,9 @@ namespace Incredicer.Core
             // Apply rewards
             ApplyRewards(rewards.money, rewards.darkMatter, rewards.timeShards);
 
+            // Track Flying Jackpot collected with TinySauce
+            TinySauce.OnCurrencyGiven("Money", (int)rewards.money, "FlyingJackpot", "collected");
+
             // Play EPIC celebration effects
             PlayCatchEffects(rewards.money, rewards.darkMatter, rewards.timeShards);
 
